@@ -246,18 +246,18 @@ Options:
 
 ```
 ├── cmd/
-│   ├── codegen/           # Code generation from A2A schema
+│   ├── codegen/                # Code generation from A2A schema
 │   └── google-calendar-agent/  # Main application entry point
 ├── a2a/
-│   ├── agent.go           # A2A protocol handler and calendar logic
-│   ├── generated_types.go # Generated A2A protocol types
-│   └── a2a-schema.yaml    # A2A protocol schema definition
+│   ├── agent.go                # A2A protocol handler and calendar logic
+│   ├── generated_types.go      # Generated A2A protocol types
+│   └── a2a-schema.yaml         # A2A protocol schema definition
 ├── google/
-│   ├── calendar.go        # Google Calendar API service interface
-│   ├── credentials.go     # Google credentials management
-│   └── mocks/             # Mock implementations for testing
+│   ├── calendar.go             # Google Calendar API service interface
+│   ├── credentials.go          # Google credentials management
+│   └── mocks/                  # Mock implementations for testing
 └── internal/
-    └── codegen/           # Internal code generation utilities
+    └── codegen/                # Internal code generation utilities
 ```
 
 ### Development Workflow
