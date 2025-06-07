@@ -2,6 +2,7 @@
 
 Today is June 07, 2025.
 
+- Never modify files with generated\_ prefix: These files are automatically generated and should not be edited manually.
 - Always use context7 to check for the latest updates, features, or best practices of a library relevant to the task at hand.
 - Always prefer Table-Driven Testing: When writing tests.
 - Always use Early Returns: Favor early returns to simplify logic and avoid deep nesting with if-else structures.
