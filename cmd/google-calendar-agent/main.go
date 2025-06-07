@@ -385,53 +385,52 @@ func main() {
 			Name:        "google-calendar-agent",
 			Description: "A comprehensive Google Calendar agent that can list, create, update, and delete calendar events using the A2A protocol",
 			URL:         "http://localhost:8084",
-			Version:     "1.0.0",
-			Capabilities: a2a.AgentCapabilities{
+			Version:     "1.0.0", Capabilities: a2a.AgentCapabilities{
 				Streaming:              false,
-				Pushnotifications:      false,
-				Statetransitionhistory: false,
+				PushNotifications:      false,
+				StateTransitionHistory: false,
 			},
-			Defaultinputmodes:  []string{"text/plain"},
-			Defaultoutputmodes: []string{"text/plain", "application/json"},
+			DefaultInputModes:  []string{"text/plain"},
+			DefaultOutputModes: []string{"text/plain", "application/json"},
 			Skills: []a2a.AgentSkill{
 				{
 					ID:          "list-calendars",
 					Name:        "List Available Calendars",
 					Description: "Discover and list all available Google Calendars with their IDs",
-					Inputmodes:  []string{"text/plain"},
-					Outputmodes: []string{"text/plain", "application/json"},
+					InputModes:  []string{"text/plain"},
+					OutputModes: []string{"text/plain", "application/json"},
 					Examples:    []string{"List my calendars", "Show available calendars", "What calendars do I have?", "Find my calendar ID"},
 				},
 				{
 					ID:          "list-events",
 					Name:        "List Calendar Events",
 					Description: "List upcoming events from your Google Calendar",
-					Inputmodes:  []string{"text/plain"},
-					Outputmodes: []string{"text/plain", "application/json"},
+					InputModes:  []string{"text/plain"},
+					OutputModes: []string{"text/plain", "application/json"},
 					Examples:    []string{"Show me my events today", "What's on my calendar this week?", "List my meetings tomorrow"},
 				},
 				{
 					ID:          "create-event",
 					Name:        "Create Calendar Event",
 					Description: "Create a new event in your Google Calendar",
-					Inputmodes:  []string{"text/plain"},
-					Outputmodes: []string{"text/plain", "application/json"},
+					InputModes:  []string{"text/plain"},
+					OutputModes: []string{"text/plain", "application/json"},
 					Examples:    []string{"Schedule a meeting with John at 2pm tomorrow", "Create a dentist appointment on Friday at 10am", "Book lunch with Sarah next Tuesday at 12:30pm"},
 				},
 				{
 					ID:          "update-event",
 					Name:        "Update Calendar Event",
 					Description: "Modify an existing event in your Google Calendar",
-					Inputmodes:  []string{"text/plain"},
-					Outputmodes: []string{"text/plain", "application/json"},
+					InputModes:  []string{"text/plain"},
+					OutputModes: []string{"text/plain", "application/json"},
 					Examples:    []string{"Move my 3pm meeting to 4pm", "Change the location of tomorrow's standup to conference room B", "Update the title of my 2pm appointment"},
 				},
 				{
 					ID:          "delete-event",
 					Name:        "Delete Calendar Event",
 					Description: "Remove an event from your Google Calendar",
-					Inputmodes:  []string{"text/plain"},
-					Outputmodes: []string{"text/plain"},
+					InputModes:  []string{"text/plain"},
+					OutputModes: []string{"text/plain"},
 					Examples:    []string{"Cancel my 4pm meeting", "Delete tomorrow's dentist appointment", "Remove the lunch meeting with Sarah"},
 				},
 			},
@@ -589,9 +588,9 @@ func handleMessageSend(c *gin.Context, req a2a.JSONRPCRequest) {
 
 	responseMessage := a2a.Message{
 		Role:      "assistant",
-		Messageid: messageId,
-		Contextid: contextId,
-		Taskid:    taskId,
+		MessageID: messageId,
+		ContextID: contextId,
+		TaskID:    taskId,
 		Parts: []a2a.Part{
 			a2a.TextPart{
 				Kind: "text",
@@ -615,7 +614,7 @@ func handleMessageSend(c *gin.Context, req a2a.JSONRPCRequest) {
 
 	task := a2a.Task{
 		ID:        taskId,
-		Contextid: contextId,
+		ContextID: contextId,
 		Status: a2a.TaskStatus{
 			State:     "completed",
 			Timestamp: time.Now().Format(time.RFC3339),
@@ -623,7 +622,7 @@ func handleMessageSend(c *gin.Context, req a2a.JSONRPCRequest) {
 		},
 		Artifacts: []a2a.Artifact{
 			{
-				Artifactid: uuid.New().String(),
+				ArtifactID: uuid.New().String(),
 				Name:       "calendar-response",
 				Parts: []a2a.Part{
 					a2a.TextPart{
@@ -636,9 +635,9 @@ func handleMessageSend(c *gin.Context, req a2a.JSONRPCRequest) {
 		History: []a2a.Message{
 			{
 				Role:      "user",
-				Messageid: getStringParam(paramsMap, "messageId", uuid.New().String()),
-				Contextid: contextId,
-				Taskid:    taskId,
+				MessageID: getStringParam(paramsMap, "messageId", uuid.New().String()),
+				ContextID: contextId,
+				TaskID:    taskId,
 				Parts: []a2a.Part{
 					a2a.TextPart{
 						Kind: "text",

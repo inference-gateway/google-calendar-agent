@@ -33,8 +33,8 @@ type APIKeySecurityScheme struct {
 // Defines optional capabilities supported by an agent.
 type AgentCapabilities struct {
 	Extensions             []AgentExtension `json:"extensions"`
-	Pushnotifications      bool             `json:"pushNotifications"`
-	Statetransitionhistory bool             `json:"stateTransitionHistory"`
+	PushNotifications      bool             `json:"pushNotifications"`
+	StateTransitionHistory bool             `json:"stateTransitionHistory"`
 	Streaming              bool             `json:"streaming"`
 }
 
@@ -45,17 +45,17 @@ type AgentCapabilities struct {
 // - Authentication requirements
 type AgentCard struct {
 	Capabilities                      AgentCapabilities        `json:"capabilities"`
-	Defaultinputmodes                 []string                 `json:"defaultInputModes"`
-	Defaultoutputmodes                []string                 `json:"defaultOutputModes"`
+	DefaultInputModes                 []string                 `json:"defaultInputModes"`
+	DefaultOutputModes                []string                 `json:"defaultOutputModes"`
 	Description                       string                   `json:"description"`
-	Documentationurl                  string                   `json:"documentationUrl"`
-	Iconurl                           string                   `json:"iconUrl"`
+	DocumentationURL                  string                   `json:"documentationUrl"`
+	IconURL                           string                   `json:"iconUrl"`
 	Name                              string                   `json:"name"`
 	Provider                          AgentProvider            `json:"provider"`
 	Security                          []map[string]interface{} `json:"security"`
-	Securityschemes                   map[string]interface{}   `json:"securitySchemes"`
+	SecuritySchemes                   map[string]interface{}   `json:"securitySchemes"`
 	Skills                            []AgentSkill             `json:"skills"`
-	Supportsauthenticatedextendedcard bool                     `json:"supportsAuthenticatedExtendedCard"`
+	SupportsAuthenticatedExtendedCard bool                     `json:"supportsAuthenticatedExtendedCard"`
 	URL                               string                   `json:"url"`
 	Version                           string                   `json:"version"`
 }
@@ -79,15 +79,15 @@ type AgentSkill struct {
 	Description string   `json:"description"`
 	Examples    []string `json:"examples"`
 	ID          string   `json:"id"`
-	Inputmodes  []string `json:"inputModes"`
+	InputModes  []string `json:"inputModes"`
 	Name        string   `json:"name"`
-	Outputmodes []string `json:"outputModes"`
+	OutputModes []string `json:"outputModes"`
 	Tags        []string `json:"tags"`
 }
 
 // Represents an artifact generated for a task.
 type Artifact struct {
-	Artifactid  string                 `json:"artifactId"`
+	ArtifactID  string                 `json:"artifactId"`
 	Description string                 `json:"description"`
 	Extensions  []string               `json:"extensions"`
 	Metadata    map[string]interface{} `json:"metadata"`
@@ -97,10 +97,10 @@ type Artifact struct {
 
 // Configuration details for a supported OAuth Flow
 type AuthorizationCodeOAuthFlow struct {
-	Authorizationurl string                 `json:"authorizationUrl"`
-	Refreshurl       string                 `json:"refreshUrl"`
+	AuthorizationURL string                 `json:"authorizationUrl"`
+	RefreshURL       string                 `json:"refreshUrl"`
 	Scopes           map[string]interface{} `json:"scopes"`
-	Tokenurl         string                 `json:"tokenUrl"`
+	TokenURL         string                 `json:"tokenUrl"`
 }
 
 // JSON-RPC request model for the 'tasks/cancel' method.
@@ -123,9 +123,9 @@ type CancelTaskSuccessResponse struct {
 
 // Configuration details for a supported OAuth Flow
 type ClientCredentialsOAuthFlow struct {
-	Refreshurl string                 `json:"refreshUrl"`
+	RefreshURL string                 `json:"refreshUrl"`
 	Scopes     map[string]interface{} `json:"scopes"`
-	Tokenurl   string                 `json:"tokenUrl"`
+	TokenURL   string                 `json:"tokenUrl"`
 }
 
 // A2A specific error indicating incompatible content types between request and agent capabilities.
@@ -144,7 +144,7 @@ type DataPart struct {
 
 // Represents the base entity for FileParts
 type FileBase struct {
-	Mimetype string `json:"mimeType"`
+	MIMEType string `json:"mimeType"`
 	Name     string `json:"name"`
 }
 
@@ -158,13 +158,13 @@ type FilePart struct {
 // Define the variant where 'bytes' is present and 'uri' is absent
 type FileWithBytes struct {
 	Bytes    string `json:"bytes"`
-	Mimetype string `json:"mimeType"`
+	MIMEType string `json:"mimeType"`
 	Name     string `json:"name"`
 }
 
 // Define the variant where 'uri' is present and 'bytes' is absent
 type FileWithUri struct {
-	Mimetype string `json:"mimeType"`
+	MIMEType string `json:"mimeType"`
 	Name     string `json:"name"`
 	URI      string `json:"uri"`
 }
@@ -207,7 +207,7 @@ type GetTaskSuccessResponse struct {
 
 // HTTP Authentication security scheme.
 type HTTPAuthSecurityScheme struct {
-	Bearerformat string `json:"bearerFormat"`
+	BearerFormat string `json:"bearerFormat"`
 	Description  string `json:"description"`
 	Scheme       string `json:"scheme"`
 	Type         string `json:"type"`
@@ -215,8 +215,8 @@ type HTTPAuthSecurityScheme struct {
 
 // Configuration details for a supported OAuth Flow
 type ImplicitOAuthFlow struct {
-	Authorizationurl string                 `json:"authorizationUrl"`
-	Refreshurl       string                 `json:"refreshUrl"`
+	AuthorizationURL string                 `json:"authorizationUrl"`
+	RefreshURL       string                 `json:"refreshUrl"`
 	Scopes           map[string]interface{} `json:"scopes"`
 }
 
@@ -296,23 +296,23 @@ type JSONRPCSuccessResponse struct {
 
 // Represents a single message exchanged between user and agent.
 type Message struct {
-	Contextid        string                 `json:"contextId"`
+	ContextID        string                 `json:"contextId"`
 	Extensions       []string               `json:"extensions"`
 	Kind             string                 `json:"kind"`
-	Messageid        string                 `json:"messageId"`
+	MessageID        string                 `json:"messageId"`
 	Metadata         map[string]interface{} `json:"metadata"`
 	Parts            []Part                 `json:"parts"`
-	Referencetaskids []string               `json:"referenceTaskIds"`
+	ReferenceTaskIds []string               `json:"referenceTaskIds"`
 	Role             string                 `json:"role"`
-	Taskid           string                 `json:"taskId"`
+	TaskID           string                 `json:"taskId"`
 }
 
 // Configuration for the send message request.
 type MessageSendConfiguration struct {
-	Acceptedoutputmodes    []string               `json:"acceptedOutputModes"`
+	AcceptedOutputModes    []string               `json:"acceptedOutputModes"`
 	Blocking               bool                   `json:"blocking"`
-	Historylength          int                    `json:"historyLength"`
-	Pushnotificationconfig PushNotificationConfig `json:"pushNotificationConfig"`
+	HistoryLength          int                    `json:"historyLength"`
+	PushNotificationConfig PushNotificationConfig `json:"pushNotificationConfig"`
 }
 
 // Sent by the client to the agent as a request. May create, continue or restart a task.
@@ -338,8 +338,8 @@ type OAuth2SecurityScheme struct {
 
 // Allows configuration of the supported OAuth Flows
 type OAuthFlows struct {
-	Authorizationcode AuthorizationCodeOAuthFlow `json:"authorizationCode"`
-	Clientcredentials ClientCredentialsOAuthFlow `json:"clientCredentials"`
+	AuthorizationCode AuthorizationCodeOAuthFlow `json:"authorizationCode"`
+	ClientCredentials ClientCredentialsOAuthFlow `json:"clientCredentials"`
 	Implicit          ImplicitOAuthFlow          `json:"implicit"`
 	Password          PasswordOAuthFlow          `json:"password"`
 }
@@ -347,7 +347,7 @@ type OAuthFlows struct {
 // OpenID Connect security scheme configuration.
 type OpenIdConnectSecurityScheme struct {
 	Description      string `json:"description"`
-	Openidconnecturl string `json:"openIdConnectUrl"`
+	OpenIDConnectURL string `json:"openIdConnectUrl"`
 	Type             string `json:"type"`
 }
 
@@ -361,9 +361,9 @@ type PartBase struct {
 
 // Configuration details for a supported OAuth Flow
 type PasswordOAuthFlow struct {
-	Refreshurl string                 `json:"refreshUrl"`
+	RefreshURL string                 `json:"refreshUrl"`
 	Scopes     map[string]interface{} `json:"scopes"`
-	Tokenurl   string                 `json:"tokenUrl"`
+	TokenURL   string                 `json:"tokenUrl"`
 }
 
 // Defines authentication details for push notifications.
@@ -452,7 +452,7 @@ type SetTaskPushNotificationConfigSuccessResponse struct {
 
 type Task struct {
 	Artifacts []Artifact             `json:"artifacts"`
-	Contextid string                 `json:"contextId"`
+	ContextID string                 `json:"contextId"`
 	History   []Message              `json:"history"`
 	ID        string                 `json:"id"`
 	Kind      string                 `json:"kind"`
@@ -464,11 +464,11 @@ type Task struct {
 type TaskArtifactUpdateEvent struct {
 	Append    bool                   `json:"append"`
 	Artifact  Artifact               `json:"artifact"`
-	Contextid string                 `json:"contextId"`
+	ContextID string                 `json:"contextId"`
 	Kind      string                 `json:"kind"`
-	Lastchunk bool                   `json:"lastChunk"`
+	LastChunk bool                   `json:"lastChunk"`
 	Metadata  map[string]interface{} `json:"metadata"`
-	Taskid    string                 `json:"taskId"`
+	TaskID    string                 `json:"taskId"`
 }
 
 // Parameters containing only a task ID, used for simple task operations.
@@ -493,13 +493,13 @@ type TaskNotFoundError struct {
 
 // Parameters for setting or getting push notification configuration for a task
 type TaskPushNotificationConfig struct {
-	Pushnotificationconfig PushNotificationConfig `json:"pushNotificationConfig"`
-	Taskid                 string                 `json:"taskId"`
+	PushNotificationConfig PushNotificationConfig `json:"pushNotificationConfig"`
+	TaskID                 string                 `json:"taskId"`
 }
 
 // Parameters for querying a task, including optional history length.
 type TaskQueryParams struct {
-	Historylength int                    `json:"historyLength"`
+	HistoryLength int                    `json:"historyLength"`
 	ID            string                 `json:"id"`
 	Metadata      map[string]interface{} `json:"metadata"`
 }
@@ -521,12 +521,12 @@ type TaskStatus struct {
 
 // Sent by server during sendStream or subscribe requests
 type TaskStatusUpdateEvent struct {
-	Contextid string                 `json:"contextId"`
+	ContextID string                 `json:"contextId"`
 	Final     bool                   `json:"final"`
 	Kind      string                 `json:"kind"`
 	Metadata  map[string]interface{} `json:"metadata"`
 	Status    TaskStatus             `json:"status"`
-	Taskid    string                 `json:"taskId"`
+	TaskID    string                 `json:"taskId"`
 }
 
 // Represents a text segment within parts.

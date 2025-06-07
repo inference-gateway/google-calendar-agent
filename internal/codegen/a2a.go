@@ -163,7 +163,6 @@ package a2a
 			continue
 		}
 
-		// Check if this is a union type with anyOf
 		if anyOf, ok := defMap["anyOf"].([]interface{}); ok && len(anyOf) > 0 {
 			description := ""
 			if desc, ok := defMap["description"].(string); ok {
@@ -177,7 +176,6 @@ package a2a
 				}
 			}
 
-			// Generate interface{} for union types
 			typeDecl := fmt.Sprintf("type %s interface{}\n\n", typeName)
 			if _, err := outputFile.WriteString(typeDecl); err != nil {
 				return err
@@ -267,17 +265,44 @@ func convertToGoFieldName(name string, acronyms map[string]bool) string {
 	}
 
 	name = strings.ReplaceAll(name, "-", "_")
-	parts := strings.Split(name, "_")
-	for i, part := range parts {
-		lowerPart := strings.ToLower(part)
-		if acronyms[lowerPart] {
-			parts[i] = strings.ToUpper(lowerPart)
-		} else {
-			parts[i] = cases.Title(language.English).String(lowerPart)
+
+	var parts []string
+	var current strings.Builder
+
+	for i, r := range name {
+		if i > 0 && (r >= 'A' && r <= 'Z') {
+			if current.Len() > 0 {
+				parts = append(parts, current.String())
+				current.Reset()
+			}
+		}
+		current.WriteRune(r)
+	}
+
+	if current.Len() > 0 {
+		parts = append(parts, current.String())
+	}
+
+	var finalParts []string
+	for _, part := range parts {
+		subParts := strings.Split(part, "_")
+		for _, subPart := range subParts {
+			if subPart != "" {
+				finalParts = append(finalParts, subPart)
+			}
 		}
 	}
 
-	return strings.Join(parts, "")
+	for i, part := range finalParts {
+		lowerPart := strings.ToLower(part)
+		if acronyms[lowerPart] {
+			finalParts[i] = strings.ToUpper(lowerPart)
+		} else {
+			finalParts[i] = cases.Title(language.English).String(lowerPart)
+		}
+	}
+
+	return strings.Join(finalParts, "")
 }
 
 // determineGoType determines the Go type for a JSON schema property
