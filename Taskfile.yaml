@@ -1,0 +1,46 @@
+---
+version: "3"
+
+tasks:
+  a2a:download:schema:
+    desc: "Download the latest A2A schema and convert to YAML"
+    cmds:
+      - curl -o a2a/a2a-schema.json https://raw.githubusercontent.com/google-a2a/A2A/main/specification/json/a2a.json
+      - |
+        echo "Converting A2A JSON schema to YAML format"
+        NODE_PATH=/usr/lib/node_modules node -e "
+          const fs = require('fs');
+          const yaml = require('js-yaml');
+          const json = JSON.parse(fs.readFileSync('a2a/a2a-schema.json', 'utf8'));
+          fs.writeFileSync('a2a/a2a-schema.yaml', yaml.dump(json, {lineWidth: -1}));
+        "
+
+  generate:
+    desc: "Generate Go code from Protocol Buffers"
+    cmds:
+      - echo "Generating Go code from JSON RPC Schema..."
+      - go run cmd/codegen/main.go -output a2a/generated_types.go
+
+  lint:
+    desc: "Run linters on the codebase"
+    cmds:
+      - echo "Running linters..."
+      - golangci-lint run
+
+  build:
+    desc: "Build the project"
+    cmds:
+      - echo "Building the project..."
+      - go build -o bin/google-calendar-agent cmd/google-calendar-agent/main.go
+
+  test:
+    desc: "Run tests"
+    cmds:
+      - echo "Running tests..."
+      - go test ./...
+
+  clean:
+    desc: "Clean up build artifacts"
+    cmds:
+      - echo "Cleaning up..."
+      - rm -f bin/google-calendar-agent
