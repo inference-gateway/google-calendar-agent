@@ -33,6 +33,7 @@ var (
 	logLevel        = flag.String("log-level", "debug", "log level (debug, info, warn, error)")
 	calendarID      = flag.String("calendar-id", "", "Google calendar ID to use (overrides GOOGLE_CALENDAR_ID env var)")
 	demoMode        = flag.Bool("demo", false, "run in demo mode with mock calendar service")
+	ginMode         = flag.String("gin-mode", "", "Gin server mode (debug, release, test) - overrides GIN_MODE env var")
 )
 
 func main() {
@@ -52,19 +53,29 @@ func main() {
 		fmt.Printf("  -calendar-id string           Google calendar ID to use (overrides GOOGLE_CALENDAR_ID env var)\n")
 		fmt.Printf("  -credentials string           The path to Google credentials file (overrides GOOGLE_APPLICATION_CREDENTIALS env var)\n")
 		fmt.Printf("  -demo                         Run in demo mode with mock calendar service\n")
+		fmt.Printf("  -gin-mode string              Gin server mode (debug, release, test) - overrides GIN_MODE env var\n")
 		fmt.Printf("  -help                         Show help information and exit\n")
 		fmt.Printf("  -log-level string             Log level (debug, info, warn, error) (default \"debug\")\n")
 		fmt.Printf("  -version                      Show version information and exit\n")
 		fmt.Printf("\nEnvironment Variables:\n")
 		fmt.Printf("  GOOGLE_CALENDAR_SA_JSON       - The Google Service Account in a JSON format\n")
 		fmt.Printf("  GOOGLE_CALENDAR_ID            - Google calendar ID to use (default: primary)\n")
+		fmt.Printf("  GIN_MODE                      - Gin server mode (debug, release, test) - overridden by -gin-mode flag\n")
+		fmt.Printf("  LOG_LEVEL                     - Log level (debug, info, warn, error) - overridden by -log-level flag\n")
 		os.Exit(0)
 	}
 
 	var err error
 
+	finalLogLevel := *logLevel
+	if finalLogLevel == "debug" {
+		if envLogLevel := os.Getenv("LOG_LEVEL"); envLogLevel != "" {
+			finalLogLevel = envLogLevel
+		}
+	}
+
 	var logLevelZap zapcore.Level
-	switch *logLevel {
+	switch finalLogLevel {
 	case "debug":
 		logLevelZap = zap.DebugLevel
 	case "info":
@@ -74,7 +85,7 @@ func main() {
 	case "error":
 		logLevelZap = zap.ErrorLevel
 	default:
-		fmt.Fprintf(os.Stderr, "Invalid log level: %s. Using debug.\n", *logLevel)
+		fmt.Fprintf(os.Stderr, "Invalid log level: %s. Using debug.\n", finalLogLevel)
 		logLevelZap = zap.DebugLevel
 	}
 
@@ -105,6 +116,24 @@ func main() {
 		zap.String("commit", commit),
 		zap.String("buildDate", date))
 
+	finalGinMode := *ginMode
+	if finalGinMode == "" {
+		if envGinMode := os.Getenv("GIN_MODE"); envGinMode != "" {
+			finalGinMode = envGinMode
+		} else {
+			finalGinMode = "release"
+		}
+	}
+
+	switch finalGinMode {
+	case "debug", "release", "test":
+		gin.SetMode(finalGinMode)
+		logger.Debug("gin mode configured", zap.String("mode", finalGinMode))
+	default:
+		logger.Warn("invalid gin mode, using debug mode", zap.String("invalidMode", finalGinMode))
+		gin.SetMode(gin.DebugMode)
+	}
+
 	finalCredentialsPath := *credentialsPath
 	if finalCredentialsPath == "" {
 		finalCredentialsPath = os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
@@ -128,7 +157,6 @@ func main() {
 			zap.Error(err))
 	}
 
-	// Server always runs on port 8080
 	finalPort := "8080"
 	logger.Debug("using port", zap.String("port", finalPort))
 
