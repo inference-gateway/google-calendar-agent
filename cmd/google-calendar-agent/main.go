@@ -81,7 +81,7 @@ func main() {
 		logger.Warn("failed to initialize calendar service, running in demo mode",
 			zap.Error(err),
 			zap.String("credentialsPath", credentialsPath))
-		calendarService = &google_mocks.MockCalendarService{}
+		calendarService = &google_mocks.FakeCalendarService{}
 		logger.Warn("using mock calendar service - no real google calendar api calls will be made",
 			zap.String("serviceType", "mock"))
 	} else {

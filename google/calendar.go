@@ -14,7 +14,7 @@ import (
 // CalendarService represents the interface for interacting with Google Calendar API
 //
 //go:generate counterfeiter -generate
-//counterfeiter:generate -o ../tests/mocks . CalendarService
+//counterfeiter:generate -o mocks . CalendarService
 type CalendarService interface {
 	ListEvents(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, error)
 	CreateEvent(calendarID string, event *calendar.Event) (*calendar.Event, error)
