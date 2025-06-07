@@ -2,17 +2,17 @@
 ---
 version: 2
 
-project_name: inference-gateway
+project_name: google-calendar-agent
 
 before:
   hooks:
     - go install go.uber.org/mock/mockgen@v0.5.0
     - go mod tidy
-    - go generate ./providers/... ./api/... ./otel/...
+    - go generate ./...
 
 builds:
-  - id: inference-gateway
-    main: ./cmd/gateway
+  - id: google-calendar-agent
+    main: ./cmd/google-calendar-agent
     env:
       - CGO_ENABLED=0
     goos:

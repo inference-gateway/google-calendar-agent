@@ -1,0 +1,11 @@
+FROM gcr.io/distroless/static-debian12:nonroot
+
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+
+COPY google-calendar-agent /google-calendar-agent
+
+USER nonroot:nonroot
+EXPOSE 8080
+
+ENTRYPOINT ["/google-calendar-agent"]
