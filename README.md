@@ -254,9 +254,8 @@ Options:
 │   └── a2a-schema.yaml    # A2A protocol schema definition
 ├── google/
 │   ├── calendar.go        # Google Calendar API service interface
+│   ├── credentials.go     # Google credentials management
 │   └── mocks/             # Mock implementations for testing
-├── utils/
-│   └── credentials.go     # Google credentials management
 └── internal/
     └── codegen/           # Internal code generation utilities
 ```

@@ -15,7 +15,6 @@ import (
 	"github.com/inference-gateway/google-calendar-agent/a2a"
 	"github.com/inference-gateway/google-calendar-agent/google"
 	google_mocks "github.com/inference-gateway/google-calendar-agent/google/mocks"
-	"github.com/inference-gateway/google-calendar-agent/utils"
 )
 
 var (
@@ -125,7 +124,7 @@ func main() {
 			zap.String("credentialsPath", finalCredentialsPath))
 	}
 
-	err = utils.CreateGoogleCredentialsFile(logger)
+	err = google.CreateGoogleCredentialsFile(logger)
 	if err != nil {
 		logger.Fatal("failed to create google credentials file",
 			zap.String("credentialsPath", finalCredentialsPath),
