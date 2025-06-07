@@ -33,6 +33,12 @@ tasks:
       - echo "Building the project..."
       - go build -o bin/google-calendar-agent cmd/google-calendar-agent/main.go
 
+  build:docker:
+    desc: "Build the Docker image"
+    cmds:
+      - echo "Building Docker image..."
+      - docker build -t google-calendar-agent:latest .
+
   test:
     desc: "Run tests"
     cmds:
