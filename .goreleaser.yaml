@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+---
+version: 2
+
+project_name: inference-gateway
+
+before:
+  hooks:
+    - go install go.uber.org/mock/mockgen@v0.5.0
+    - go mod tidy
+    - go generate ./providers/... ./api/... ./otel/...
+
+builds:
+  - id: inference-gateway
+    main: ./cmd/gateway
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - "7"
+    goamd64:
+      - "v1"
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }} -X main.commit={{ .Commit }} -X main.date={{ .CommitDate }} -X main.builtBy=goreleaser -X main.treeState={{ .IsGitDirty }}
+
+dockers:
+  - id: google-calendar-agent-amd64
+    goos: linux
+    goarch: amd64
+    goamd64: "v1"
+    use: buildx
+    dockerfile: Dockerfile.goreleaser
+    image_templates:
+      - "ghcr.io/inference-gateway/google-calendar-agent:{{ .Version }}-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+
+  - id: google-calendar-agent-arm64
+    goos: linux
+    goarch: arm64
+    goarm: "7"
+    use: buildx
+    dockerfile: Dockerfile.goreleaser
+    image_templates:
+      - "ghcr.io/inference-gateway/google-calendar-agent:{{ .Version }}-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+
+docker_manifests:
+  - name_template: ghcr.io/inference-gateway/google-calendar-agent:{{ .Version }}
+    image_templates:
+      - ghcr.io/inference-gateway/google-calendar-agent:{{ .Version }}-amd64
+      - ghcr.io/inference-gateway/google-calendar-agent:{{ .Version }}-arm64
+
+  - name_template: "{{ if not (contains .Tag `rc`) }}ghcr.io/inference-gateway/google-calendar-agent:latest{{ end }}"
+    image_templates:
+      - "{{ if not (contains .Tag `rc`) }}ghcr.io/inference-gateway/google-calendar-agent:{{ .Version }}-amd64{{ end }}"
+      - "{{ if not (contains .Tag `rc`) }}ghcr.io/inference-gateway/google-calendar-agent:{{ .Version }}-arm64{{ end }}"
+
+archives:
+  - formats:
+      - tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    files:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  disable: true
+
+release:
+  disable: true
