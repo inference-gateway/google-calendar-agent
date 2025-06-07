@@ -1,2 +1,12 @@
 a2a/a2a-schema.json
 a2a/a2a-schema.yaml
+**_test.go
+cmd/codegen
+internal
+.devcontainer
+.git
+bin
+.github
+README.md
+Taskfile.yaml
+Dockerfile

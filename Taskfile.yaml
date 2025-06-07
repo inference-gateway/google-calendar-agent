@@ -29,16 +29,36 @@ tasks:
       - golangci-lint run
 
   build:
-    desc: "Build the project"
+    desc: "Build the project with version information"
     cmds:
       - echo "Building the project..."
+      - |
+        VERSION=$(git describe --tags --always --dirty)
+        COMMIT=$(git rev-parse HEAD)
+        DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        go build -ldflags "-X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE}" -o bin/google-calendar-agent cmd/google-calendar-agent/main.go
+
+  build:dev:
+    desc: "Build the project for development (no version information)"
+    cmds:
+      - echo "Building the project for development..."
       - go build -o bin/google-calendar-agent cmd/google-calendar-agent/main.go
 
   build:docker:
-    desc: "Build the Docker image"
+    desc: "Build the Docker image with version information"
     cmds:
       - echo "Building Docker image..."
-      - docker build -t google-calendar-agent:latest .
+      - |
+        VERSION=$(git describe --tags --always --dirty)
+        COMMIT=$(git rev-parse HEAD)
+        DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        docker build \
+          --build-arg VERSION="${VERSION}" \
+          --build-arg COMMIT="${COMMIT}" \
+          --build-arg DATE="${DATE}" \
+          -t google-calendar-agent:latest \
+          -t google-calendar-agent:${VERSION} \
+          .
 
   test:
     desc: "Run tests"
