@@ -9,12 +9,9 @@ ENV TASK_VERSION=v3.43.3 \
 
 RUN apt-get update && \
     # Determine architecture
-    architecture=$(uname -m); \
-    architecture_pretty="arm64"; \
-    if [ "$architecture" = "x86_64" ]; then \
-    architecture_pretty="amd64"; \
-    fi && \
-    echo "Installing depenenices for ${architecture}" && \
+    architecture=$(uname -m) && \
+    architecture_pretty=$(dpkg --print-architecture) && \
+    echo "Installing dependencies for ${architecture}" && \
     # Install networking utilities
     apt-get install -y iputils-ping dnsutils && \
     # Install Node.js
@@ -54,7 +51,6 @@ RUN go install go.uber.org/mock/mockgen@v0.5.0
 RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/vscode/.powerlevel10k
 RUN echo 'source /home/vscode/.powerlevel10k/powerlevel10k.zsh-theme' >> /home/vscode/.zshrc
 RUN echo 'POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true' >> /home/vscode/.zshrc
-
 
 # Shell completion
 RUN echo "source <(gh completion -s zsh)" >> /home/vscode/.zshrc && \
