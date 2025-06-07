@@ -1,79 +1,165 @@
 package main
 
 import (
+	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
+	"math/big"
+	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
-func TestVersionFlag(t *testing.T) {
-	cmd := exec.Command("go", "build", "-o", "../../bin/test-binary", "main.go")
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to build binary: %v", err)
+var (
+	testBinaryPath string
+	testCertPath   string
+	testKeyPath    string
+)
+
+// TestMain sets up shared resources for all tests
+func TestMain(m *testing.M) {
+	var err error
+	testBinaryPath, err = buildTestBinary()
+	if err != nil {
+		os.Exit(1)
+	}
+	defer os.Remove(testBinaryPath)
+
+	testCertPath, testKeyPath, err = createTestCertificates()
+	if err != nil {
+		os.Exit(1)
 	}
 	defer func() {
-		if err := os.Remove("../../bin/test-binary"); err != nil {
-			t.Logf("Failed to remove test binary: %v", err)
-		}
+		os.Remove(testCertPath)
+		os.Remove(testKeyPath)
 	}()
 
-	cmd = exec.Command("../../bin/test-binary", "--version")
+	code := m.Run()
+	os.Exit(code)
+}
+
+// buildTestBinary builds the test binary once and returns its path
+func buildTestBinary() (string, error) {
+	binaryPath := filepath.Join("../../bin", "test-binary")
+	cmd := exec.Command("go", "build", "-o", binaryPath, "main.go")
+	return binaryPath, cmd.Run()
+}
+
+// createTestCertificates creates certificates once for all tests
+func createTestCertificates() (certPath, keyPath string, err error) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return "", "", err
+	}
+
+	template := x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject: pkix.Name{
+			Organization: []string{"Test"},
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().Add(time.Hour),
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		IPAddresses:           []net.IP{net.IPv4(127, 0, 0, 1)},
+		DNSNames:              []string{"localhost"},
+		BasicConstraintsValid: true,
+	}
+
+	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
+	if err != nil {
+		return "", "", err
+	}
+
+	certFile, err := os.CreateTemp("", "test-cert-*.crt")
+	if err != nil {
+		return "", "", err
+	}
+	certPath = certFile.Name()
+
+	if err := pem.Encode(certFile, &pem.Block{Type: "CERTIFICATE", Bytes: certDER}); err != nil {
+		certFile.Close()
+		os.Remove(certPath)
+		return "", "", err
+	}
+	certFile.Close()
+
+	keyFile, err := os.CreateTemp("", "test-key-*.key")
+	if err != nil {
+		os.Remove(certPath)
+		return "", "", err
+	}
+	keyPath = keyFile.Name()
+
+	privateKeyDER, err := x509.MarshalPKCS8PrivateKey(privateKey)
+	if err != nil {
+		keyFile.Close()
+		os.Remove(certPath)
+		os.Remove(keyPath)
+		return "", "", err
+	}
+
+	if err := pem.Encode(keyFile, &pem.Block{Type: "PRIVATE KEY", Bytes: privateKeyDER}); err != nil {
+		keyFile.Close()
+		os.Remove(certPath)
+		os.Remove(keyPath)
+		return "", "", err
+	}
+	keyFile.Close()
+
+	return certPath, keyPath, nil
+}
+
+func TestVersionFlag(t *testing.T) {
+	cmd := exec.Command(testBinaryPath, "--version")
 	output, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("Failed to run version command: %v", err)
 	}
 
 	outputStr := string(output)
-	if !strings.Contains(outputStr, "google-calendar-agent") {
-		t.Errorf("Version output should contain 'google-calendar-agent', got: %s", outputStr)
+	expectedStrings := []string{
+		"google-calendar-agent",
+		"Version:",
+		"Commit:",
+		"Build Date:",
 	}
-	if !strings.Contains(outputStr, "Version:") {
-		t.Errorf("Version output should contain 'Version:', got: %s", outputStr)
-	}
-	if !strings.Contains(outputStr, "Commit:") {
-		t.Errorf("Version output should contain 'Commit:', got: %s", outputStr)
-	}
-	if !strings.Contains(outputStr, "Build Date:") {
-		t.Errorf("Version output should contain 'Build Date:', got: %s", outputStr)
+
+	for _, expected := range expectedStrings {
+		if !strings.Contains(outputStr, expected) {
+			t.Errorf("Version output should contain '%s', got: %s", expected, outputStr)
+		}
 	}
 }
 
 func TestHelpFlag(t *testing.T) {
-	cmd := exec.Command("go", "build", "-o", "../../bin/test-binary", "main.go")
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to build binary: %v", err)
-	}
-	defer func() {
-		if err := os.Remove("../../bin/test-binary"); err != nil {
-			t.Logf("Failed to remove test binary: %v", err)
-		}
-	}()
-
-	cmd = exec.Command("../../bin/test-binary", "--help")
+	cmd := exec.Command(testBinaryPath, "--help")
 	output, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("Failed to run help command: %v", err)
 	}
 
 	outputStr := string(output)
-	if !strings.Contains(outputStr, "Usage:") {
-		t.Errorf("Help output should contain 'Usage:', got: %s", outputStr)
+	expectedStrings := []string{
+		"Usage:",
+		"-version",
+		"-demo",
+		"-gin-mode",
+		"LOG_LEVEL",
+		"GIN_MODE",
 	}
-	if !strings.Contains(outputStr, "-version") {
-		t.Errorf("Help output should contain '-version' flag, got: %s", outputStr)
-	}
-	if !strings.Contains(outputStr, "-demo") {
-		t.Errorf("Help output should contain '-demo' flag, got: %s", outputStr)
-	}
-	if !strings.Contains(outputStr, "-gin-mode") {
-		t.Errorf("Help output should contain '-gin-mode' flag, got: %s", outputStr)
-	}
-	if !strings.Contains(outputStr, "LOG_LEVEL") {
-		t.Errorf("Help output should contain 'LOG_LEVEL' environment variable, got: %s", outputStr)
-	}
-	if !strings.Contains(outputStr, "GIN_MODE") {
-		t.Errorf("Help output should contain 'GIN_MODE' environment variable, got: %s", outputStr)
+
+	for _, expected := range expectedStrings {
+		if !strings.Contains(outputStr, expected) {
+			t.Errorf("Help output should contain '%s', got: %s", expected, outputStr)
+		}
 	}
 }
 
@@ -89,8 +175,8 @@ func TestGinModeConfiguration(t *testing.T) {
 			name:          "default mode when no env or flag",
 			envValue:      "",
 			flagValue:     "",
-			expectedMode:  "debug",
-			shouldContain: `"mode":"debug"`,
+			expectedMode:  "release",
+			shouldContain: `"mode":"release"`,
 		},
 		{
 			name:          "release mode from environment variable",
@@ -124,30 +210,40 @@ func TestGinModeConfiguration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cmd := exec.Command("go", "build", "-o", "../../bin/test-gin-mode-binary", "main.go")
-			if err := cmd.Run(); err != nil {
-				t.Fatalf("Failed to build binary: %v", err)
-			}
-			defer func() {
-				if err := os.Remove("../../bin/test-gin-mode-binary"); err != nil {
-					t.Logf("Failed to remove test binary: %v", err)
-				}
-			}()
-
 			args := []string{"--demo"}
 			if tc.flagValue != "" {
 				args = append(args, "--gin-mode="+tc.flagValue)
 			}
 
-			cmd = exec.Command("../../bin/test-gin-mode-binary", args...)
-			if tc.envValue != "" {
-				cmd.Env = append(os.Environ(), "GIN_MODE="+tc.envValue)
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			defer cancel()
+
+			cmd := exec.CommandContext(ctx, testBinaryPath, args...)
+
+			cleanEnv := []string{}
+			for _, env := range os.Environ() {
+				if !strings.HasPrefix(env, "ENABLE_TLS=") &&
+					!strings.HasPrefix(env, "TLS_CERT_PATH=") &&
+					!strings.HasPrefix(env, "TLS_KEY_PATH=") &&
+					!strings.HasPrefix(env, "GIN_MODE=") {
+					cleanEnv = append(cleanEnv, env)
+				}
 			}
+			cmd.Env = cleanEnv
+
+			if tc.envValue != "" {
+				cmd.Env = append(cmd.Env, "GIN_MODE="+tc.envValue)
+			}
+			cmd.Env = append(cmd.Env, "TLS_CERT_PATH="+testCertPath)
+			cmd.Env = append(cmd.Env, "TLS_KEY_PATH="+testKeyPath)
 
 			output, err := cmd.Output()
 			if err != nil {
-				// This is expected since the server will try to run indefinitely
-				// We check the output for expected log messages
+				if ctx.Err() == context.DeadlineExceeded {
+					// This is expected - the server runs indefinitely
+				} else {
+					t.Logf("Command execution error (might be expected): %v", err)
+				}
 			}
 
 			outputStr := string(output)

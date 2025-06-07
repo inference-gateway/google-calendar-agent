@@ -52,6 +52,13 @@ RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/vscod
 RUN echo 'source /home/vscode/.powerlevel10k/powerlevel10k.zsh-theme' >> /home/vscode/.zshrc
 RUN echo 'POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true' >> /home/vscode/.zshrc
 
+# Configure Powerlevel10k
+RUN echo 'POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs)' >> /home/vscode/.zshrc && \
+    echo 'POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(command_execution_time status)' >> /home/vscode/.zshrc && \
+    echo 'POWERLEVEL9K_COMMAND_EXECUTION_TIME_THRESHOLD=0' >> /home/vscode/.zshrc && \
+    echo 'POWERLEVEL9K_COMMAND_EXECUTION_TIME_PRECISION=2' >> /home/vscode/.zshrc && \
+    echo 'POWERLEVEL9K_COMMAND_EXECUTION_TIME_FORMAT="duration"' >> /home/vscode/.zshrc
+
 # Shell completion
 RUN echo "source <(gh completion -s zsh)" >> /home/vscode/.zshrc && \
     echo "source <(task --completion zsh)" >> /home/vscode/.zshrc && \

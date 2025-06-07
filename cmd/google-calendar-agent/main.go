@@ -34,6 +34,9 @@ var (
 	calendarID      = flag.String("calendar-id", "", "Google calendar ID to use (overrides GOOGLE_CALENDAR_ID env var)")
 	demoMode        = flag.Bool("demo", false, "run in demo mode with mock calendar service")
 	ginMode         = flag.String("gin-mode", "", "Gin server mode (debug, release, test) - overrides GIN_MODE env var")
+	enableTLS       = flag.Bool("enable-tls", false, "enable TLS/HTTPS server (overrides ENABLE_TLS env var)")
+	tlsCertPath     = flag.String("tls-cert", "", "path to TLS certificate file (overrides TLS_CERT_PATH env var)")
+	tlsKeyPath      = flag.String("tls-key", "", "path to TLS private key file (overrides TLS_KEY_PATH env var)")
 )
 
 func main() {
@@ -53,15 +56,21 @@ func main() {
 		fmt.Printf("  -calendar-id string           Google calendar ID to use (overrides GOOGLE_CALENDAR_ID env var)\n")
 		fmt.Printf("  -credentials string           The path to Google credentials file (overrides GOOGLE_APPLICATION_CREDENTIALS env var)\n")
 		fmt.Printf("  -demo                         Run in demo mode with mock calendar service\n")
+		fmt.Printf("  -enable-tls                   Enable TLS/HTTPS server (overrides ENABLE_TLS env var)\n")
 		fmt.Printf("  -gin-mode string              Gin server mode (debug, release, test) - overrides GIN_MODE env var\n")
 		fmt.Printf("  -help                         Show help information and exit\n")
 		fmt.Printf("  -log-level string             Log level (debug, info, warn, error) (default \"debug\")\n")
+		fmt.Printf("  -tls-cert string              Path to TLS certificate file (overrides TLS_CERT_PATH env var)\n")
+		fmt.Printf("  -tls-key string               Path to TLS private key file (overrides TLS_KEY_PATH env var)\n")
 		fmt.Printf("  -version                      Show version information and exit\n")
 		fmt.Printf("\nEnvironment Variables:\n")
 		fmt.Printf("  GOOGLE_CALENDAR_SA_JSON       - The Google Service Account in a JSON format\n")
 		fmt.Printf("  GOOGLE_CALENDAR_ID            - Google calendar ID to use (default: primary)\n")
 		fmt.Printf("  GIN_MODE                      - Gin server mode (debug, release, test) - overridden by -gin-mode flag\n")
 		fmt.Printf("  LOG_LEVEL                     - Log level (debug, info, warn, error) - overridden by -log-level flag\n")
+		fmt.Printf("  ENABLE_TLS                    - Enable TLS/HTTPS server (true/false) - overridden by -enable-tls flag\n")
+		fmt.Printf("  TLS_CERT_PATH                 - Path to TLS certificate file - overridden by -tls-cert flag\n")
+		fmt.Printf("  TLS_KEY_PATH                  - Path to TLS private key file - overridden by -tls-key flag\n")
 		os.Exit(0)
 	}
 
@@ -157,8 +166,44 @@ func main() {
 			zap.Error(err))
 	}
 
+	finalEnableTLS := *enableTLS
+	if !finalEnableTLS {
+		if envEnableTLS := os.Getenv("ENABLE_TLS"); envEnableTLS == "true" {
+			finalEnableTLS = true
+		}
+	}
+
 	finalPort := "8080"
-	logger.Debug("using port", zap.String("port", finalPort))
+	if finalEnableTLS {
+		finalPort = "8443"
+	}
+	logger.Debug("using port", zap.String("port", finalPort), zap.Bool("tls", finalEnableTLS))
+
+	var finalTLSCertPath, finalTLSKeyPath string
+	if finalEnableTLS {
+		finalTLSCertPath = *tlsCertPath
+		if finalTLSCertPath == "" {
+			finalTLSCertPath = os.Getenv("TLS_CERT_PATH")
+		}
+
+		finalTLSKeyPath = *tlsKeyPath
+		if finalTLSKeyPath == "" {
+			finalTLSKeyPath = os.Getenv("TLS_KEY_PATH")
+		}
+
+		if finalTLSCertPath == "" || finalTLSKeyPath == "" {
+			logger.Fatal("TLS enabled but certificate or key path not provided",
+				zap.Bool("enableTLS", finalEnableTLS),
+				zap.String("certPath", finalTLSCertPath),
+				zap.String("keyPath", finalTLSKeyPath))
+		}
+
+		logger.Info("TLS enabled",
+			zap.String("certPath", finalTLSCertPath),
+			zap.String("keyPath", finalTLSKeyPath))
+	} else {
+		logger.Debug("TLS disabled, running HTTP server")
+	}
 
 	finalCalendarID := *calendarID
 	if finalCalendarID == "" {
@@ -210,10 +255,16 @@ func main() {
 		logger.Info("agent info requested",
 			zap.String("clientIP", c.ClientIP()),
 			zap.String("userAgent", c.GetHeader("User-Agent")))
+
+		protocol := "http"
+		if finalEnableTLS {
+			protocol = "https"
+		}
+
 		info := a2a.AgentCard{
 			Name:        "google-calendar-agent",
 			Description: "A comprehensive Google Calendar agent that can list, create, update, and delete calendar events using the A2A protocol",
-			URL:         fmt.Sprintf("http://localhost:%s", finalPort),
+			URL:         fmt.Sprintf("%s://localhost:%s", protocol, finalPort),
 			Version:     version,
 			Capabilities: a2a.AgentCapabilities{
 				Streaming:              false,
@@ -268,8 +319,18 @@ func main() {
 		c.JSON(http.StatusOK, info)
 	})
 
-	logger.Info("server starting", zap.String("port", finalPort))
-	if err := r.Run(":" + finalPort); err != nil {
-		logger.Fatal("failed to start server", zap.Error(err))
+	if finalEnableTLS {
+		logger.Info("starting HTTPS server",
+			zap.String("port", finalPort),
+			zap.String("certPath", finalTLSCertPath),
+			zap.String("keyPath", finalTLSKeyPath))
+		if err := r.RunTLS(":"+finalPort, finalTLSCertPath, finalTLSKeyPath); err != nil {
+			logger.Fatal("failed to start HTTPS server", zap.Error(err))
+		}
+	} else {
+		logger.Info("starting HTTP server", zap.String("port", finalPort))
+		if err := r.Run(":" + finalPort); err != nil {
+			logger.Fatal("failed to start HTTP server", zap.Error(err))
+		}
 	}
 }
