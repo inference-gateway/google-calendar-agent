@@ -12,8 +12,8 @@ RUN apt-get update && \
     architecture=$(uname -m) && \
     architecture_pretty=$(dpkg --print-architecture) && \
     echo "Installing dependencies for ${architecture}" && \
-    # Install networking utilities
-    apt-get install -y iputils-ping dnsutils && \
+    # Install common dependencies
+    apt-get install -y iputils-ping dnsutils file && \
     # Install Node.js
     curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && \
     apt-get install -y nodejs && \
