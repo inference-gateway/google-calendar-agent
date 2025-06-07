@@ -21,11 +21,17 @@ tasks:
         "
 
   generate:
-    desc: "Generate Go code from Protocol Buffers"
+    desc: "Generate Go code from JSON RPC Schema"
     cmds:
       - echo "Generating Go code from JSON RPC Schema..."
       - go run cmd/codegen/main.go -output a2a/generated_types.go
       - go generate ./...
+
+  tidy:
+    desc: "Run go mod tidy to clean up dependencies"
+    cmds:
+      - echo "Running go mod tidy..."
+      - go mod tidy
 
   lint:
     desc: "Run linters on the codebase"

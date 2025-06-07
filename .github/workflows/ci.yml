@@ -27,8 +27,15 @@ jobs:
         run: |
           curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v2.1.6
 
+      - name: Install Go tools
+        run: |
+          go install github.com/maxbrunsfeld/counterfeiter/v6@latest
+
       - name: Generate
         run: task generate
+
+      - name: Run Tidy
+        run: task tidy
 
       - name: Check dirty files
         run: |
