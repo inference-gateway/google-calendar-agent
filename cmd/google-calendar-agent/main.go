@@ -124,7 +124,7 @@ func main() {
 			zap.String("credentialsPath", finalCredentialsPath))
 	}
 
-	err = google.CreateGoogleCredentialsFile(logger)
+	err = google.CreateCredentialsFile(logger)
 	if err != nil {
 		logger.Fatal("failed to create google credentials file",
 			zap.String("credentialsPath", finalCredentialsPath),

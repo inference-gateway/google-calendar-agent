@@ -9,8 +9,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// CreateGoogleCredentialsFile creates a Google credentials JSON file from environment variable content
-func CreateGoogleCredentialsFile(l *zap.Logger) error {
+// CreateCredentialsFile creates a Google credentials JSON file from environment variable content
+func CreateCredentialsFile(l *zap.Logger) error {
 	jsonContent := os.Getenv("GOOGLE_CALENDAR_SA_JSON")
 	if jsonContent == "" {
 		l.Debug("google_calendar_sa_json environment variable not set, skipping credentials file creation")
