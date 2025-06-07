@@ -50,4 +50,4 @@ tasks:
     desc: "Clean up build artifacts"
     cmds:
       - echo "Cleaning up..."
-      - rm -f bin/google-calendar-agent
+      - rm -rf bin/
