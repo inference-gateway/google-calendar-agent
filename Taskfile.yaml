@@ -2,6 +2,11 @@
 version: "3"
 
 tasks:
+  default:
+    desc: "Show help information"
+    cmds:
+      - task --list
+
   a2a:download:schema:
     desc: "Download the latest A2A schema and convert to YAML"
     cmds:
