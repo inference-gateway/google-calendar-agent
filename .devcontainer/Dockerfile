@@ -5,7 +5,7 @@ ENV TASK_VERSION=v3.43.3 \
     GOLANG_CI_LINT_VERSION=v2.1.6 \
     GITHUB_CLI_VERSION=2.68.1 \
     NODE_VERSION=lts \
-    SEMANTIC_RELEASE_VERSION=v24.2.3
+    SEMANTIC_RELEASE_VERSION=v24.2.5
 
 RUN apt-get update && \
     # Determine architecture
