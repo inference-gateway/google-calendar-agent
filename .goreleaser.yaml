@@ -7,7 +7,7 @@ project_name: google-calendar-agent
 before:
   hooks:
     - go install go.uber.org/mock/mockgen@v0.5.0
-    - go install github.com/maxbrunsfeld/counterfeiter/v6@latest
+    - go install github.com/maxbrunsfeld/counterfeiter/v6@6.11.2
     - go mod tidy
     - go generate ./...
 
