@@ -44,7 +44,7 @@ RUN apt-get update && \
 
 USER vscode
 
-RUN go install github.com/maxbrunsfeld/counterfeiter/v6@6.11.2
+RUN go install github.com/maxbrunsfeld/counterfeiter/v6@v6.11.2
 RUN go install go.uber.org/mock/mockgen@v0.5.0
 
 # Use Powerlevel10k theme
