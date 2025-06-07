@@ -15,6 +15,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -30,15 +32,17 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		os.Exit(1)
 	}
-	defer os.Remove(testBinaryPath)
+	defer func() {
+		_ = os.Remove(testBinaryPath)
+	}()
 
 	testCertPath, testKeyPath, err = createTestCertificates()
 	if err != nil {
 		os.Exit(1)
 	}
 	defer func() {
-		os.Remove(testCertPath)
-		os.Remove(testKeyPath)
+		_ = os.Remove(testCertPath)
+		_ = os.Remove(testKeyPath)
 	}()
 
 	code := m.Run()
@@ -85,34 +89,41 @@ func createTestCertificates() (certPath, keyPath string, err error) {
 	certPath = certFile.Name()
 
 	if err := pem.Encode(certFile, &pem.Block{Type: "CERTIFICATE", Bytes: certDER}); err != nil {
-		certFile.Close()
-		os.Remove(certPath)
+		_ = certFile.Close()
+		_ = os.Remove(certPath)
 		return "", "", err
 	}
-	certFile.Close()
+	if closeErr := certFile.Close(); closeErr != nil {
+		_ = os.Remove(certPath)
+		return "", "", closeErr
+	}
 
 	keyFile, err := os.CreateTemp("", "test-key-*.key")
 	if err != nil {
-		os.Remove(certPath)
+		_ = os.Remove(certPath)
 		return "", "", err
 	}
 	keyPath = keyFile.Name()
 
 	privateKeyDER, err := x509.MarshalPKCS8PrivateKey(privateKey)
 	if err != nil {
-		keyFile.Close()
-		os.Remove(certPath)
-		os.Remove(keyPath)
+		_ = keyFile.Close()
+		_ = os.Remove(certPath)
+		_ = os.Remove(keyPath)
 		return "", "", err
 	}
 
 	if err := pem.Encode(keyFile, &pem.Block{Type: "PRIVATE KEY", Bytes: privateKeyDER}); err != nil {
-		keyFile.Close()
-		os.Remove(certPath)
-		os.Remove(keyPath)
+		_ = keyFile.Close()
+		_ = os.Remove(certPath)
+		_ = os.Remove(keyPath)
 		return "", "", err
 	}
-	keyFile.Close()
+	if err := keyFile.Close(); err != nil {
+		_ = os.Remove(certPath)
+		_ = os.Remove(keyPath)
+		return "", "", err
+	}
 
 	return certPath, keyPath, nil
 }
@@ -120,9 +131,7 @@ func createTestCertificates() (certPath, keyPath string, err error) {
 func TestVersionFlag(t *testing.T) {
 	cmd := exec.Command(testBinaryPath, "--version")
 	output, err := cmd.Output()
-	if err != nil {
-		t.Fatalf("Failed to run version command: %v", err)
-	}
+	assert.NoError(t, err, "Failed to run version command")
 
 	outputStr := string(output)
 	expectedStrings := []string{
@@ -133,18 +142,14 @@ func TestVersionFlag(t *testing.T) {
 	}
 
 	for _, expected := range expectedStrings {
-		if !strings.Contains(outputStr, expected) {
-			t.Errorf("Version output should contain '%s', got: %s", expected, outputStr)
-		}
+		assert.Contains(t, outputStr, expected, "Version output should contain '%s'", expected)
 	}
 }
 
 func TestHelpFlag(t *testing.T) {
 	cmd := exec.Command(testBinaryPath, "--help")
 	output, err := cmd.Output()
-	if err != nil {
-		t.Fatalf("Failed to run help command: %v", err)
-	}
+	assert.NoError(t, err, "Failed to run help command")
 
 	outputStr := string(output)
 	expectedStrings := []string{
@@ -157,9 +162,7 @@ func TestHelpFlag(t *testing.T) {
 	}
 
 	for _, expected := range expectedStrings {
-		if !strings.Contains(outputStr, expected) {
-			t.Errorf("Help output should contain '%s', got: %s", expected, outputStr)
-		}
+		assert.Contains(t, outputStr, expected, "Help output should contain '%s'", expected)
 	}
 }
 
@@ -247,9 +250,7 @@ func TestGinModeConfiguration(t *testing.T) {
 			}
 
 			outputStr := string(output)
-			if !strings.Contains(outputStr, tc.shouldContain) {
-				t.Errorf("Expected output to contain '%s', got: %s", tc.shouldContain, outputStr)
-			}
+			assert.Contains(t, outputStr, tc.shouldContain, "Expected output to contain '%s'", tc.shouldContain)
 		})
 	}
 }
