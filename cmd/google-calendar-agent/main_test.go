@@ -63,9 +63,6 @@ func TestHelpFlag(t *testing.T) {
 	if !strings.Contains(outputStr, "-version") {
 		t.Errorf("Help output should contain '-version' flag, got: %s", outputStr)
 	}
-	if !strings.Contains(outputStr, "-port") {
-		t.Errorf("Help output should contain '-port' flag, got: %s", outputStr)
-	}
 	if !strings.Contains(outputStr, "-demo") {
 		t.Errorf("Help output should contain '-demo' flag, got: %s", outputStr)
 	}

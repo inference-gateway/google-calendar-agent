@@ -29,7 +29,6 @@ var (
 	// Command line flags
 	showVersion     = flag.Bool("version", false, "show version information and exit")
 	showHelp        = flag.Bool("help", false, "show help information and exit")
-	port            = flag.String("port", "", "port to run the server on (overrides PORT env var)")
 	credentialsPath = flag.String("credentials", "", "path to Google credentials file (overrides GOOGLE_APPLICATION_CREDENTIALS env var)")
 	logLevel        = flag.String("log-level", "debug", "log level (debug, info, warn, error)")
 	calendarID      = flag.String("calendar-id", "", "Google calendar ID to use (overrides GOOGLE_CALENDAR_ID env var)")
@@ -55,10 +54,8 @@ func main() {
 		fmt.Printf("  -demo                         Run in demo mode with mock calendar service\n")
 		fmt.Printf("  -help                         Show help information and exit\n")
 		fmt.Printf("  -log-level string             Log level (debug, info, warn, error) (default \"debug\")\n")
-		fmt.Printf("  -port string                  Port to run the server on (overrides PORT env var)\n")
 		fmt.Printf("  -version                      Show version information and exit\n")
 		fmt.Printf("\nEnvironment Variables:\n")
-		fmt.Printf("  PORT                          - Server port (default: 8080)\n")
 		fmt.Printf("  GOOGLE_CALENDAR_SA_JSON       - The Google Service Account in a JSON format\n")
 		fmt.Printf("  GOOGLE_CALENDAR_ID            - Google calendar ID to use (default: primary)\n")
 		os.Exit(0)
@@ -131,18 +128,9 @@ func main() {
 			zap.Error(err))
 	}
 
-	finalPort := *port
-	if finalPort == "" {
-		finalPort = os.Getenv("PORT")
-		if finalPort == "" {
-			finalPort = "8080"
-			logger.Debug("port not specified, using default", zap.String("port", finalPort))
-		} else {
-			logger.Debug("using port from environment", zap.String("port", finalPort))
-		}
-	} else {
-		logger.Debug("using port from flag", zap.String("port", finalPort))
-	}
+	// Server always runs on port 8080
+	finalPort := "8080"
+	logger.Debug("using port", zap.String("port", finalPort))
 
 	finalCalendarID := *calendarID
 	if finalCalendarID == "" {

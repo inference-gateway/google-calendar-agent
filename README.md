@@ -143,9 +143,6 @@ export GOOGLE_CALENDAR_SA_JSON='{"type":"service_account",...}'
 
 # Optional: Specific calendar ID (defaults to "primary")
 export GOOGLE_CALENDAR_ID="your-calendar-id@gmail.com"
-
-# Optional: Server port (defaults to 8080)
-export PORT=8080
 ```
 
 ### 4. Run the Agent
@@ -195,7 +192,6 @@ curl -X POST http://localhost:8080/a2a \
 | ------------------------- | -------------------------------- | ----------- | ---------------------- |
 | `GOOGLE_CALENDAR_SA_JSON` | Service account JSON credentials | -           | Yes (unless demo mode) |
 | `GOOGLE_CALENDAR_ID`      | Target calendar ID               | `"primary"` | No                     |
-| `PORT`                    | HTTP server port                 | `8080`      | No                     |
 
 ### Command Line Options
 
@@ -208,9 +204,10 @@ Options:
   -demo                   Run in demo mode with mock service
   -help                   Show help information
   -log-level string       Log level (debug, info, warn, error) (default "debug")
-  -port string           Server port
   -version               Show version information
 ```
+
+**Note**: The server always runs on port 8080.
 
 ## API Reference
 
