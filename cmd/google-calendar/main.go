@@ -24,7 +24,7 @@ import (
 
 var logger *zap.Logger
 
-// CalendarService interface for easier testing
+// CalendarService represents the interface for interacting with Google Calendar API
 type CalendarService interface {
 	ListEvents(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, error)
 	CreateEvent(calendarID string, event *calendar.Event) (*calendar.Event, error)
