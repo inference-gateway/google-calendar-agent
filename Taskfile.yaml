@@ -21,7 +21,7 @@ tasks:
         "
 
   generate:
-    desc: "Generate Go code from JSON RPC Schema"
+    desc: "Generate Go code from the official A2A JSON RPC Schema"
     cmds:
       - echo "Generating Go code from JSON RPC Schema..."
       - go run cmd/codegen/main.go -output a2a/generated_types.go
