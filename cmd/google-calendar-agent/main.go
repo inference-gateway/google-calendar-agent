@@ -319,7 +319,9 @@ func main() {
 	if err != nil {
 		panic("failed to initialize logger: " + err.Error())
 	}
-	defer logger.Sync()
+	defer func() {
+		_ = logger.Sync()
+	}()
 
 	credentialsPath := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	if credentialsPath == "" {
@@ -472,8 +474,8 @@ func handleA2ARequest(c *gin.Context) {
 		return
 	}
 
-	if req.Jsonrpc == "" {
-		req.Jsonrpc = "2.0"
+	if req.JSONRPC == "" {
+		req.JSONRPC = "2.0"
 		logger.Debug("jsonrpc version not specified, defaulting to 2.0",
 			zap.String("component", "a2a-handler"))
 	}
@@ -587,12 +589,12 @@ func handleMessageSend(c *gin.Context, req a2a.JSONRPCRequest) {
 
 	responseMessage := a2a.Message{
 		Role:      "assistant",
-		MessageId: messageId,
-		ContextId: contextId,
-		TaskId:    taskId,
+		Messageid: messageId,
+		Contextid: contextId,
+		Taskid:    taskId,
 		Parts: []a2a.Part{
-			{
-				Type: "text",
+			a2a.TextPart{
+				Kind: "text",
 				Text: response.Text,
 			},
 		},
@@ -600,8 +602,8 @@ func handleMessageSend(c *gin.Context, req a2a.JSONRPCRequest) {
 
 	if response.Data != nil {
 		jsonBytes, _ := json.Marshal(response.Data)
-		responseMessage.Parts = append(responseMessage.Parts, a2a.Part{
-			Type: "data",
+		responseMessage.Parts = append(responseMessage.Parts, a2a.DataPart{
+			Kind: "data",
 			Data: map[string]interface{}{
 				"events": response.Data,
 			},
@@ -612,20 +614,20 @@ func handleMessageSend(c *gin.Context, req a2a.JSONRPCRequest) {
 	}
 
 	task := a2a.Task{
-		Id:        taskId,
-		ContextId: contextId,
+		ID:        taskId,
+		Contextid: contextId,
 		Status: a2a.TaskStatus{
 			State:     "completed",
-			Timestamp: time.Now(),
-			Message:   &responseMessage,
+			Timestamp: time.Now().Format(time.RFC3339),
+			Message:   responseMessage,
 		},
 		Artifacts: []a2a.Artifact{
 			{
-				ArtifactId: uuid.New().String(),
+				Artifactid: uuid.New().String(),
 				Name:       "calendar-response",
 				Parts: []a2a.Part{
-					{
-						Type: "text",
+					a2a.TextPart{
+						Kind: "text",
 						Text: response.Text,
 					},
 				},
@@ -634,12 +636,12 @@ func handleMessageSend(c *gin.Context, req a2a.JSONRPCRequest) {
 		History: []a2a.Message{
 			{
 				Role:      "user",
-				MessageId: getStringParam(paramsMap, "messageId", uuid.New().String()),
-				ContextId: contextId,
-				TaskId:    taskId,
+				Messageid: getStringParam(paramsMap, "messageId", uuid.New().String()),
+				Contextid: contextId,
+				Taskid:    taskId,
 				Parts: []a2a.Part{
-					{
-						Type: "text",
+					a2a.TextPart{
+						Kind: "text",
 						Text: messageText,
 					},
 				},
@@ -651,7 +653,7 @@ func handleMessageSend(c *gin.Context, req a2a.JSONRPCRequest) {
 
 	jsonRPCResponse := a2a.JSONRPCSuccessResponse{
 		ID:      req.ID,
-		Jsonrpc: "2.0",
+		JSONRPC: "2.0",
 		Result:  task,
 	}
 
@@ -712,7 +714,7 @@ func sendError(c *gin.Context, id interface{}, code int, message string) {
 
 	response := a2a.JSONRPCErrorResponse{
 		ID:      id,
-		Jsonrpc: "2.0",
+		JSONRPC: "2.0",
 		Error: a2a.JSONRPCError{
 			Code:    code,
 			Message: message,

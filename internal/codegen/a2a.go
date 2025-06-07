@@ -44,7 +44,11 @@ func GenerateA2ATypes(destination string, schemaPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
-	defer outputFile.Close()
+	defer func() {
+		if closeErr := outputFile.Close(); closeErr != nil {
+			fmt.Printf("Warning: Failed to close output file: %v\n", closeErr)
+		}
+	}()
 
 	header := `// Code generated from A2A schema. DO NOT EDIT.
 package a2a
@@ -156,6 +160,28 @@ package a2a
 		}
 
 		if processedTypes[typeName] {
+			continue
+		}
+
+		// Check if this is a union type with anyOf
+		if anyOf, ok := defMap["anyOf"].([]interface{}); ok && len(anyOf) > 0 {
+			description := ""
+			if desc, ok := defMap["description"].(string); ok {
+				description = desc
+			}
+
+			if description != "" {
+				formattedDescription := formatDescription(description)
+				if _, err := outputFile.WriteString(formattedDescription + "\n"); err != nil {
+					return err
+				}
+			}
+
+			// Generate interface{} for union types
+			typeDecl := fmt.Sprintf("type %s interface{}\n\n", typeName)
+			if _, err := outputFile.WriteString(typeDecl); err != nil {
+				return err
+			}
 			continue
 		}
 

@@ -17,12 +17,10 @@ const (
 	TaskStateWorking       TaskState = "working"
 )
 
-type A2AError struct {
-}
+type A2AError interface{}
 
 // A2A supported request types
-type A2ARequest struct {
-}
+type A2ARequest interface{}
 
 // API Key security scheme.
 type APIKeySecurityScheme struct {
@@ -114,8 +112,7 @@ type CancelTaskRequest struct {
 }
 
 // JSON-RPC response for the 'tasks/cancel' method.
-type CancelTaskResponse struct {
-}
+type CancelTaskResponse interface{}
 
 // JSON-RPC success response model for the 'tasks/cancel' method.
 type CancelTaskSuccessResponse struct {
@@ -181,8 +178,7 @@ type GetTaskPushNotificationConfigRequest struct {
 }
 
 // JSON-RPC response for the 'tasks/pushNotificationConfig/set' method.
-type GetTaskPushNotificationConfigResponse struct {
-}
+type GetTaskPushNotificationConfigResponse interface{}
 
 // JSON-RPC success response model for the 'tasks/pushNotificationConfig/get' method.
 type GetTaskPushNotificationConfigSuccessResponse struct {
@@ -200,8 +196,7 @@ type GetTaskRequest struct {
 }
 
 // JSON-RPC response for the 'tasks/get' method.
-type GetTaskResponse struct {
-}
+type GetTaskResponse interface{}
 
 // JSON-RPC success response for the 'tasks/get' method.
 type GetTaskSuccessResponse struct {
@@ -290,8 +285,7 @@ type JSONRPCRequest struct {
 }
 
 // Represents a JSON-RPC 2.0 Response object.
-type JSONRPCResponse struct {
-}
+type JSONRPCResponse interface{}
 
 // Represents a JSON-RPC 2.0 Success Response object.
 type JSONRPCSuccessResponse struct {
@@ -358,8 +352,7 @@ type OpenIdConnectSecurityScheme struct {
 }
 
 // Represents a part of a message, which can be text, a file, or structured data.
-type Part struct {
-}
+type Part interface{}
 
 // Base properties common to all message parts.
 type PartBase struct {
@@ -396,8 +389,7 @@ type PushNotificationNotSupportedError struct {
 
 // Mirrors the OpenAPI Security Scheme Object
 // (https://swagger.io/specification/#security-scheme-object)
-type SecurityScheme struct {
-}
+type SecurityScheme interface{}
 
 // Base properties shared by all security schemes.
 type SecuritySchemeBase struct {
@@ -413,8 +405,7 @@ type SendMessageRequest struct {
 }
 
 // JSON-RPC response model for the 'message/send' method.
-type SendMessageResponse struct {
-}
+type SendMessageResponse interface{}
 
 // JSON-RPC success response model for the 'message/send' method.
 type SendMessageSuccessResponse struct {
@@ -432,8 +423,7 @@ type SendStreamingMessageRequest struct {
 }
 
 // JSON-RPC response model for the 'message/stream' method.
-type SendStreamingMessageResponse struct {
-}
+type SendStreamingMessageResponse interface{}
 
 // JSON-RPC success response model for the 'message/stream' method.
 type SendStreamingMessageSuccessResponse struct {
@@ -451,8 +441,7 @@ type SetTaskPushNotificationConfigRequest struct {
 }
 
 // JSON-RPC response for the 'tasks/pushNotificationConfig/set' method.
-type SetTaskPushNotificationConfigResponse struct {
-}
+type SetTaskPushNotificationConfigResponse interface{}
 
 // JSON-RPC success response model for the 'tasks/pushNotificationConfig/set' method.
 type SetTaskPushNotificationConfigSuccessResponse struct {
