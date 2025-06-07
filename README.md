@@ -1,6 +1,19 @@
+<div align="center">
+
 # Google Calendar Agent (A2A)
 
-A comprehensive Google Calendar agent built with Go that implements the Agent-to-Agent (A2A) protocol for seamless calendar management through natural language interactions.
+[![CI](https://github.com/inference-gateway/google-calendar-agent/workflows/CI/badge.svg)](https://github.com/inference-gateway/google-calendar-agent/actions/workflows/ci.yml)
+[![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://golang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?style=flat&logo=docker)](https://hub.docker.com/)
+[![Go Report Card](https://goreportcard.com/badge/github.com/inference-gateway/google-calendar-agent)](https://goreportcard.com/report/github.com/inference-gateway/google-calendar-agent)
+[![GitHub release](https://img.shields.io/github/release/inference-gateway/google-calendar-agent.svg)](https://github.com/inference-gateway/google-calendar-agent/releases)
+[![GitHub issues](https://img.shields.io/github/issues/inference-gateway/google-calendar-agent.svg)](https://github.com/inference-gateway/google-calendar-agent/issues)
+[![GitHub stars](https://img.shields.io/github/stars/inference-gateway/google-calendar-agent.svg?style=social&label=Star)](https://github.com/inference-gateway/google-calendar-agent)
+
+**A comprehensive Google Calendar agent built with Go that implements the Agent-to-Agent (A2A) protocol for seamless calendar management through natural language interactions.**
+
+</div>
 
 ## Table of Contents
 
