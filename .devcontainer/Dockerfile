@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/go:1-1.23-bookworm
+FROM mcr.microsoft.com/devcontainers/go:1-1.24-bookworm
 
 ENV TASK_VERSION=v3.42.1 \
     CTLPTL_VERSION=0.8.39 \
@@ -62,6 +62,7 @@ RUN apt-get update && \
 
 USER vscode
 
+RUN go install github.com/maxbrunsfeld/counterfeiter/v6@latest
 RUN go install go.uber.org/mock/mockgen@v0.5.0
 
 # Use Powerlevel10k theme

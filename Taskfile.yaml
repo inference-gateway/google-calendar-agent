@@ -20,6 +20,7 @@ tasks:
     cmds:
       - echo "Generating Go code from JSON RPC Schema..."
       - go run cmd/codegen/main.go -output a2a/generated_types.go
+      - go generate ./...
 
   lint:
     desc: "Run linters on the codebase"
