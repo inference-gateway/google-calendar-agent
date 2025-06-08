@@ -88,3 +88,5 @@ tasks:
     cmds:
       - echo "Cleaning up..."
       - rm -rf bin/
+      - rm -f *.out
+      - rm -rf dist/
