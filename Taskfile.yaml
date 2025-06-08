@@ -77,6 +77,12 @@ tasks:
       - echo "Running tests..."
       - go test ./...
 
+  test:converage:
+    desc: "Run tests with coverage"
+    cmds:
+      - echo "Running tests with coverage..."
+      - go test -coverprofile=coverage.out ./google && go tool cover -func=coverage.out
+
   clean:
     desc: "Clean up build artifacts"
     cmds:
