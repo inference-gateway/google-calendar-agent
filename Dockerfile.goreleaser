@@ -1,11 +1,12 @@
-FROM gcr.io/distroless/static-debian12:nonroot
-
+FROM alpine:latest AS builder
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
+RUN apk add --no-cache upx
+COPY google-calendar-agent /artifacts/agent
+RUN upx --best --lzma /artifacts/agent
 
-COPY google-calendar-agent /google-calendar-agent
-
+FROM gcr.io/distroless/static-debian12:nonroot
+COPY --from=builder /artifacts/agent /google-calendar-agent
 USER nonroot:nonroot
 EXPOSE 8080
-
 ENTRYPOINT ["/google-calendar-agent"]
