@@ -20,16 +20,6 @@ services:
       - "8081:8080"
     env_file:
       - .env.agent
-    healthcheck:
-      test:
-        - CMD
-        - curl
-        - -f
-        - http://localhost:8080/health
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     restart: unless-stopped
     pull_policy: always
 
