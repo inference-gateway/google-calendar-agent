@@ -13,6 +13,8 @@
 
 **A comprehensive Google Calendar agent built with Go that implements the Agent-to-Agent (A2A) protocol for seamless calendar management through natural language interactions.**
 
+> ⚠️ **Early Development Warning**: This project is in its early stages of development. The API, configuration, and functionality may change significantly between versions. Breaking changes are expected and allowed until we reach a stable release. Please use with caution in production environments.
+
 </div>
 
 ## Table of Contents
