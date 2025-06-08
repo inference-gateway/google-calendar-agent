@@ -13,6 +13,7 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/inference-gateway/google-calendar-agent/a2a"
+	"github.com/inference-gateway/google-calendar-agent/config"
 	"github.com/inference-gateway/google-calendar-agent/google"
 	google_mocks "github.com/inference-gateway/google-calendar-agent/google/mocks"
 )
@@ -27,16 +28,8 @@ var (
 	date    = "unknown"
 
 	// Command line flags
-	showVersion     = flag.Bool("version", false, "show version information and exit")
-	showHelp        = flag.Bool("help", false, "show help information and exit")
-	credentialsPath = flag.String("credentials", "", "path to Google credentials file (overrides GOOGLE_APPLICATION_CREDENTIALS env var)")
-	logLevel        = flag.String("log-level", "debug", "log level (debug, info, warn, error)")
-	calendarID      = flag.String("calendar-id", "", "Google calendar ID to use (overrides GOOGLE_CALENDAR_ID env var)")
-	demoMode        = flag.Bool("demo", false, "run in demo mode with mock calendar service")
-	ginMode         = flag.String("gin-mode", "", "Gin server mode (debug, release, test) - overrides GIN_MODE env var")
-	enableTLS       = flag.Bool("enable-tls", false, "enable TLS/HTTPS server (overrides ENABLE_TLS env var)")
-	tlsCertPath     = flag.String("tls-cert", "", "path to TLS certificate file (overrides TLS_CERT_PATH env var)")
-	tlsKeyPath      = flag.String("tls-key", "", "path to TLS private key file (overrides TLS_KEY_PATH env var)")
+	showVersion = flag.Bool("version", false, "show version information and exit")
+	showHelp    = flag.Bool("help", false, "show help information and exit")
 )
 
 func main() {
@@ -51,68 +44,53 @@ func main() {
 	}
 
 	if *showHelp {
-		fmt.Printf("google-calendar-agent - A comprehensive Google Calendar agent using the A2A protocol\n\n")
+		fmt.Printf("google-calendar-agent - A Google Calendar agent using the A2A protocol\n\n")
 		fmt.Printf("Usage:\n")
-		fmt.Printf("  -calendar-id string           Google calendar ID to use (overrides GOOGLE_CALENDAR_ID env var)\n")
-		fmt.Printf("  -credentials string           The path to Google credentials file (overrides GOOGLE_APPLICATION_CREDENTIALS env var)\n")
-		fmt.Printf("  -demo                         Run in demo mode with mock calendar service\n")
-		fmt.Printf("  -enable-tls                   Enable TLS/HTTPS server (overrides ENABLE_TLS env var)\n")
-		fmt.Printf("  -gin-mode string              Gin server mode (debug, release, test) - overrides GIN_MODE env var\n")
 		fmt.Printf("  -help                         Show help information and exit\n")
-		fmt.Printf("  -log-level string             Log level (debug, info, warn, error) (default \"debug\")\n")
-		fmt.Printf("  -tls-cert string              Path to TLS certificate file (overrides TLS_CERT_PATH env var)\n")
-		fmt.Printf("  -tls-key string               Path to TLS private key file (overrides TLS_KEY_PATH env var)\n")
 		fmt.Printf("  -version                      Show version information and exit\n")
-		fmt.Printf("\nEnvironment Variables:\n")
-		fmt.Printf("  GOOGLE_CALENDAR_SA_JSON       - The Google Service Account in a JSON format\n")
-		fmt.Printf("  GOOGLE_CALENDAR_ID            - Google calendar ID to use (default: primary)\n")
-		fmt.Printf("  GIN_MODE                      - Gin server mode (debug, release, test) - overridden by -gin-mode flag\n")
-		fmt.Printf("  LOG_LEVEL                     - Log level (debug, info, warn, error) - overridden by -log-level flag\n")
-		fmt.Printf("  ENABLE_TLS                    - Enable TLS/HTTPS server (true/false) - overridden by -enable-tls flag\n")
-		fmt.Printf("  TLS_CERT_PATH                 - Path to TLS certificate file - overridden by -tls-cert flag\n")
-		fmt.Printf("  TLS_KEY_PATH                  - Path to TLS private key file - overridden by -tls-key flag\n")
+		fmt.Printf("\nConfiguration is managed through environment variables and config files.\n")
+		fmt.Printf("See the project documentation for configuration details.\n")
 		os.Exit(0)
 	}
 
-	var err error
-
-	finalLogLevel := *logLevel
-	if finalLogLevel == "debug" {
-		if envLogLevel := os.Getenv("LOG_LEVEL"); envLogLevel != "" {
-			finalLogLevel = envLogLevel
-		}
+	ctx := context.Background()
+	cfg, err := config.Load(ctx)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error loading configuration: %v\n", err)
+		os.Exit(1)
 	}
 
-	var logLevelZap zapcore.Level
-	switch finalLogLevel {
+	logLevelStr := cfg.GetLogLevel()
+
+	var logLevel zapcore.Level
+	switch logLevelStr {
 	case "debug":
-		logLevelZap = zap.DebugLevel
+		logLevel = zap.DebugLevel
 	case "info":
-		logLevelZap = zap.InfoLevel
+		logLevel = zap.InfoLevel
 	case "warn":
-		logLevelZap = zap.WarnLevel
+		logLevel = zap.WarnLevel
 	case "error":
-		logLevelZap = zap.ErrorLevel
+		logLevel = zap.ErrorLevel
 	default:
-		fmt.Fprintf(os.Stderr, "Invalid log level: %s. Using debug.\n", finalLogLevel)
-		logLevelZap = zap.DebugLevel
+		logLevel = zap.InfoLevel
 	}
 
-	config := zap.NewProductionConfig()
-	config.Level = zap.NewAtomicLevelAt(logLevelZap)
-	config.OutputPaths = []string{"stdout"}
-	config.ErrorOutputPaths = []string{"stderr"}
-	config.Encoding = "json"
-	config.EncoderConfig.TimeKey = "timestamp"
-	config.EncoderConfig.LevelKey = "level"
-	config.EncoderConfig.MessageKey = "message"
-	config.EncoderConfig.CallerKey = "caller"
-	config.EncoderConfig.StacktraceKey = "stacktrace"
-	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	config.EncoderConfig.EncodeLevel = zapcore.LowercaseLevelEncoder
-	config.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
+	logConfig := zap.NewProductionConfig()
+	logConfig.Level = zap.NewAtomicLevelAt(logLevel)
+	logConfig.OutputPaths = []string{"stdout"}
+	logConfig.ErrorOutputPaths = []string{"stderr"}
+	logConfig.Encoding = "json"
+	logConfig.EncoderConfig.TimeKey = "timestamp"
+	logConfig.EncoderConfig.LevelKey = "level"
+	logConfig.EncoderConfig.MessageKey = "message"
+	logConfig.EncoderConfig.CallerKey = "caller"
+	logConfig.EncoderConfig.StacktraceKey = "stacktrace"
+	logConfig.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	logConfig.EncoderConfig.EncodeLevel = zapcore.LowercaseLevelEncoder
+	logConfig.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
 
-	logger, err = config.Build()
+	logger, err = logConfig.Build()
 	if err != nil {
 		panic("failed to initialize logger: " + err.Error())
 	}
@@ -125,120 +103,123 @@ func main() {
 		zap.String("commit", commit),
 		zap.String("buildDate", date))
 
-	finalGinMode := *ginMode
-	if finalGinMode == "" {
-		if envGinMode := os.Getenv("GIN_MODE"); envGinMode != "" {
-			finalGinMode = envGinMode
-		} else {
-			finalGinMode = "release"
-		}
-	}
-
-	switch finalGinMode {
-	case "debug", "release", "test":
-		gin.SetMode(finalGinMode)
-		logger.Debug("gin mode configured", zap.String("mode", finalGinMode))
-	default:
-		logger.Warn("invalid gin mode, using debug mode", zap.String("invalidMode", finalGinMode))
-		gin.SetMode(gin.DebugMode)
-	}
-
-	finalCredentialsPath := *credentialsPath
-	if finalCredentialsPath == "" {
-		finalCredentialsPath = os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-		if finalCredentialsPath == "" {
-			finalCredentialsPath = "credentials.json"
-			logger.Debug("credentials path not specified, using default",
-				zap.String("credentialsPath", finalCredentialsPath))
-		} else {
-			logger.Debug("using credentials path from environment",
-				zap.String("credentialsPath", finalCredentialsPath))
-		}
-	} else {
-		logger.Debug("using credentials path from flag",
-			zap.String("credentialsPath", finalCredentialsPath))
-	}
+	gin.SetMode(cfg.Server.Mode)
+	logger.Info("gin mode configured", zap.String("mode", cfg.Server.Mode))
 
 	err = google.CreateCredentialsFile(logger)
 	if err != nil {
-		logger.Fatal("failed to create google credentials file",
-			zap.String("credentialsPath", finalCredentialsPath),
-			zap.Error(err))
+		logger.Fatal("failed to create google credentials file", zap.Error(err))
 	}
 
-	finalEnableTLS := *enableTLS
-	if !finalEnableTLS {
-		if envEnableTLS := os.Getenv("ENABLE_TLS"); envEnableTLS == "true" {
-			finalEnableTLS = true
-		}
+	_, err = cfg.GetTLSConfig()
+	if err != nil {
+		logger.Fatal("failed to get TLS config", zap.Error(err))
 	}
 
-	finalPort := "8080"
-	if finalEnableTLS {
-		finalPort = "8443"
-	}
-	logger.Debug("using port", zap.String("port", finalPort), zap.Bool("tls", finalEnableTLS))
+	port := cfg.GetPort()
+	logger.Debug("using port", zap.String("port", port), zap.Bool("tls", cfg.Server.EnableTLS))
 
-	var finalTLSCertPath, finalTLSKeyPath string
-	if finalEnableTLS {
-		finalTLSCertPath = *tlsCertPath
-		if finalTLSCertPath == "" {
-			finalTLSCertPath = os.Getenv("TLS_CERT_PATH")
-		}
-
-		finalTLSKeyPath = *tlsKeyPath
-		if finalTLSKeyPath == "" {
-			finalTLSKeyPath = os.Getenv("TLS_KEY_PATH")
-		}
-
-		if finalTLSCertPath == "" || finalTLSKeyPath == "" {
+	if cfg.Server.EnableTLS {
+		if cfg.TLS.CertPath == "" || cfg.TLS.KeyPath == "" {
 			logger.Fatal("TLS enabled but certificate or key path not provided",
-				zap.Bool("enableTLS", finalEnableTLS),
-				zap.String("certPath", finalTLSCertPath),
-				zap.String("keyPath", finalTLSKeyPath))
+				zap.Bool("enableTLS", cfg.Server.EnableTLS),
+				zap.String("certPath", cfg.TLS.CertPath),
+				zap.String("keyPath", cfg.TLS.KeyPath))
 		}
 
 		logger.Info("TLS enabled",
-			zap.String("certPath", finalTLSCertPath),
-			zap.String("keyPath", finalTLSKeyPath))
+			zap.String("certPath", cfg.TLS.CertPath),
+			zap.String("keyPath", cfg.TLS.KeyPath))
 	} else {
 		logger.Debug("TLS disabled, running HTTP server")
 	}
 
-	finalCalendarID := *calendarID
-	if finalCalendarID == "" {
-		finalCalendarID = os.Getenv("GOOGLE_CALENDAR_ID")
-		if finalCalendarID == "" {
-			finalCalendarID = "primary"
-		}
+	calendarID := cfg.Google.CalendarID
+	if calendarID == "" {
+		calendarID = "primary"
 	}
-	logger.Debug("using calendar ID", zap.String("calendarID", finalCalendarID))
+	logger.Debug("using calendar ID", zap.String("calendarID", calendarID))
 
-	ctx := context.Background()
-	logger.Info("initializing calendar service", zap.String("credentialsPath", finalCredentialsPath))
+	logger.Info("initializing calendar service")
 
-	if *demoMode {
+	if cfg.ShouldUseMockService() {
 		logger.Info("demo mode enabled, using mock calendar service")
 		calendarService = &google_mocks.FakeCalendarService{}
 	} else {
-		googleService, err := google.NewCalendarService(ctx, logger, option.WithCredentialsFile(finalCredentialsPath))
-		if err != nil {
-			logger.Warn("failed to initialize calendar service, running in demo mode",
-				zap.Error(err),
-				zap.String("credentialsPath", finalCredentialsPath))
+		credType, credValue, optErr := cfg.GetGoogleCredentialsOption()
+		if optErr != nil {
+			logger.Warn("failed to get google credentials option, running in demo mode",
+				zap.Error(optErr))
 			calendarService = &google_mocks.FakeCalendarService{}
-			logger.Warn("using mock calendar service - no real google calendar api calls will be made",
-				zap.String("serviceType", "mock"))
 		} else {
-			calendarService = googleService
-			logger.Info("calendar service initialized successfully",
-				zap.String("serviceType", "google-api"))
+			var googleService google.CalendarService
+			var err error
+
+			switch credType {
+			case "json":
+				googleService, err = google.NewCalendarService(ctx, cfg, logger, option.WithCredentialsJSON([]byte(credValue)))
+			case "file":
+				googleService, err = google.NewCalendarService(ctx, cfg, logger, option.WithCredentialsFile(credValue))
+			default:
+				logger.Warn("no credentials available, running in demo mode")
+				calendarService = &google_mocks.FakeCalendarService{}
+				googleService = nil
+			}
+
+			if err != nil {
+				logger.Warn("failed to initialize calendar service, running in demo mode",
+					zap.Error(err))
+				calendarService = &google_mocks.FakeCalendarService{}
+				logger.Warn("using mock calendar service - no real google calendar api calls will be made",
+					zap.String("serviceType", "mock"))
+			} else if googleService != nil {
+				calendarService = googleService
+				logger.Info("calendar service initialized successfully",
+					zap.String("serviceType", "google-api"))
+			}
 		}
 	}
 
 	agent := a2a.NewCalendarAgent(calendarService, logger)
 
 	r := gin.Default()
+
+	r.Use(func(c *gin.Context) {
+		if c.Request.URL.Path == "/a2a" && c.Request.Method != "POST" {
+			logger.Debug("unsupported method on /a2a endpoint",
+				zap.String("method", c.Request.Method),
+				zap.String("clientIP", c.ClientIP()),
+				zap.String("userAgent", c.GetHeader("User-Agent")))
+			c.JSON(http.StatusMethodNotAllowed, gin.H{
+				"error":           "Method Not Allowed",
+				"message":         "Only POST requests are supported on this endpoint",
+				"allowed_methods": []string{"POST"},
+				"endpoint":        "/a2a",
+			})
+			c.Abort()
+			return
+		}
+		c.Next()
+	})
+
+	r.NoRoute(func(c *gin.Context) {
+		logger.Debug("route not found",
+			zap.String("method", c.Request.Method),
+			zap.String("path", c.Request.URL.Path),
+			zap.String("clientIP", c.ClientIP()),
+			zap.String("userAgent", c.GetHeader("User-Agent")))
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "Not Found",
+			"message": "The requested endpoint does not exist",
+			"path":    c.Request.URL.Path,
+			"method":  c.Request.Method,
+			"available_endpoints": []string{
+				"GET /health",
+				"POST /a2a",
+				"GET /.well-known/agent.json",
+			},
+		})
+	})
 
 	r.GET("/health", func(c *gin.Context) {
 		logger.Debug("health check requested",
@@ -256,15 +237,12 @@ func main() {
 			zap.String("clientIP", c.ClientIP()),
 			zap.String("userAgent", c.GetHeader("User-Agent")))
 
-		protocol := "http"
-		if finalEnableTLS {
-			protocol = "https"
-		}
+		baseURL := cfg.GetBaseURL()
 
 		info := a2a.AgentCard{
 			Name:        "google-calendar-agent",
-			Description: "A comprehensive Google Calendar agent that can list, create, update, and delete calendar events using the A2A protocol",
-			URL:         fmt.Sprintf("%s://localhost:%s", protocol, finalPort),
+			Description: "A Google Calendar agent that can list, create, update, and delete calendar events using the A2A protocol",
+			URL:         baseURL,
 			Version:     version,
 			Capabilities: a2a.AgentCapabilities{
 				Streaming:              false,
@@ -319,17 +297,17 @@ func main() {
 		c.JSON(http.StatusOK, info)
 	})
 
-	if finalEnableTLS {
+	if cfg.Server.EnableTLS {
 		logger.Info("starting HTTPS server",
-			zap.String("port", finalPort),
-			zap.String("certPath", finalTLSCertPath),
-			zap.String("keyPath", finalTLSKeyPath))
-		if err := r.RunTLS(":"+finalPort, finalTLSCertPath, finalTLSKeyPath); err != nil {
+			zap.String("port", port),
+			zap.String("certPath", cfg.TLS.CertPath),
+			zap.String("keyPath", cfg.TLS.KeyPath))
+		if err := r.RunTLS(":"+port, cfg.TLS.CertPath, cfg.TLS.KeyPath); err != nil {
 			logger.Fatal("failed to start HTTPS server", zap.Error(err))
 		}
 	} else {
-		logger.Info("starting HTTP server", zap.String("port", finalPort))
-		if err := r.Run(":" + finalPort); err != nil {
+		logger.Info("starting HTTP server", zap.String("port", port))
+		if err := r.Run(":" + port); err != nil {
 			logger.Fatal("failed to start HTTP server", zap.Error(err))
 		}
 	}

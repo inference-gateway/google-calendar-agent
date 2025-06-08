@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/inference-gateway/google-calendar-agent/config"
 	"go.uber.org/zap"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/option"
@@ -31,12 +32,18 @@ type CalendarServiceImpl struct {
 }
 
 // NewCalendarService creates a new Google Calendar service
-func NewCalendarService(ctx context.Context, logger *zap.Logger, opts ...option.ClientOption) (CalendarService, error) {
-	scopesOption := option.WithScopes(
-		calendar.CalendarReadonlyScope,
-		calendar.CalendarScope,
-	)
+func NewCalendarService(ctx context.Context, cfg *config.Config, logger *zap.Logger, opts ...option.ClientOption) (CalendarService, error) {
+	var scopes []string
+	if cfg.Google.ReadOnly {
+		scopes = []string{calendar.CalendarReadonlyScope}
+	} else {
+		scopes = []string{
+			calendar.CalendarReadonlyScope,
+			calendar.CalendarScope,
+		}
+	}
 
+	scopesOption := option.WithScopes(scopes...)
 	allOptions := append([]option.ClientOption{scopesOption}, opts...)
 
 	svc, err := calendar.NewService(ctx, allOptions...)
