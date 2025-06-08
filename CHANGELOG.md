@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1](https://github.com/inference-gateway/google-calendar-agent/compare/v0.2.0...v0.2.1) (2025-06-08)
+
+### 📚 Documentation
+
+* Cleanup a bit - remove internal service from direct interaction ([9aba7af](https://github.com/inference-gateway/google-calendar-agent/commit/9aba7af75f662675fa1470461a385d3c4c3ffe63))
+
+### 🔧 Miscellaneous
+
+* Update docker-compose.yaml ([7ffb366](https://github.com/inference-gateway/google-calendar-agent/commit/7ffb36677a5dcc2068dda24df6c3f523779ef578))
+
+### 🔨 Miscellaneous
+
+* Optimize Dockerfile.goreleaser by adding UPX compression for the agent ([#5](https://github.com/inference-gateway/google-calendar-agent/issues/5)) ([e7774fd](https://github.com/inference-gateway/google-calendar-agent/commit/e7774fd646450260913bb971d688fb2e597cfcd5))
+
 ## [0.2.0](https://github.com/inference-gateway/google-calendar-agent/compare/v0.1.3...v0.2.0) (2025-06-08)
 
 ### ✨ Features
