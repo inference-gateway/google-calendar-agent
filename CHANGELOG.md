@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.3](https://github.com/inference-gateway/google-calendar-agent/compare/v0.1.2...v0.1.3) (2025-06-08)
+
+### ♻️ Improvements
+
+* Update Google credentials handling and configuration options ([c953002](https://github.com/inference-gateway/google-calendar-agent/commit/c953002d318a940e9e421eb55f22292276adc99f))
+
 ## [0.1.2](https://github.com/inference-gateway/google-calendar-agent/compare/v0.1.1...v0.1.2) (2025-06-08)
 
 ### ♻️ Improvements
