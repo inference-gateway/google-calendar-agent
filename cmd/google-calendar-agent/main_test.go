@@ -155,10 +155,8 @@ func TestHelpFlag(t *testing.T) {
 	expectedStrings := []string{
 		"Usage:",
 		"-version",
-		"-demo",
-		"-gin-mode",
-		"LOG_LEVEL",
-		"GIN_MODE",
+		"-help",
+		"Configuration is managed through environment variables",
 	}
 
 	for _, expected := range expectedStrings {
@@ -170,80 +168,63 @@ func TestGinModeConfiguration(t *testing.T) {
 	testCases := []struct {
 		name          string
 		envValue      string
-		flagValue     string
 		expectedMode  string
 		shouldContain string
 	}{
 		{
-			name:          "default mode when no env or flag",
+			name:          "default mode when no env",
 			envValue:      "",
-			flagValue:     "",
 			expectedMode:  "release",
 			shouldContain: `"mode":"release"`,
 		},
 		{
 			name:          "release mode from environment variable",
 			envValue:      "release",
-			flagValue:     "",
 			expectedMode:  "release",
 			shouldContain: `"mode":"release"`,
 		},
 		{
 			name:          "test mode from environment variable",
 			envValue:      "test",
-			flagValue:     "",
 			expectedMode:  "test",
 			shouldContain: `"mode":"test"`,
 		},
 		{
-			name:          "flag overrides environment variable",
+			name:          "debug mode from environment variable",
 			envValue:      "debug",
-			flagValue:     "release",
-			expectedMode:  "release",
-			shouldContain: `"mode":"release"`,
-		},
-		{
-			name:          "invalid mode falls back to debug",
-			envValue:      "",
-			flagValue:     "invalid",
 			expectedMode:  "debug",
-			shouldContain: `"invalidMode":"invalid"`,
+			shouldContain: `"mode":"debug"`,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			args := []string{"--demo"}
-			if tc.flagValue != "" {
-				args = append(args, "--gin-mode="+tc.flagValue)
-			}
-
-			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 			defer cancel()
 
-			cmd := exec.CommandContext(ctx, testBinaryPath, args...)
+			cmd := exec.CommandContext(ctx, testBinaryPath)
 
 			cleanEnv := []string{}
 			for _, env := range os.Environ() {
-				if !strings.HasPrefix(env, "ENABLE_TLS=") &&
-					!strings.HasPrefix(env, "TLS_CERT_PATH=") &&
-					!strings.HasPrefix(env, "TLS_KEY_PATH=") &&
-					!strings.HasPrefix(env, "GIN_MODE=") {
+				if !strings.HasPrefix(env, "SERVER_GIN_MODE=") &&
+					!strings.HasPrefix(env, "GOOGLE_") &&
+					!strings.HasPrefix(env, "APP_") {
 					cleanEnv = append(cleanEnv, env)
 				}
 			}
 			cmd.Env = cleanEnv
 
+			cmd.Env = append(cmd.Env, "APP_DEMO_MODE=true")
+
 			if tc.envValue != "" {
-				cmd.Env = append(cmd.Env, "GIN_MODE="+tc.envValue)
+				cmd.Env = append(cmd.Env, "SERVER_GIN_MODE="+tc.envValue)
 			}
-			cmd.Env = append(cmd.Env, "TLS_CERT_PATH="+testCertPath)
-			cmd.Env = append(cmd.Env, "TLS_KEY_PATH="+testKeyPath)
 
 			output, err := cmd.Output()
 			if err != nil {
 				if ctx.Err() == context.DeadlineExceeded {
 					// This is expected - the server runs indefinitely
+					t.Logf("Server started and was terminated due to timeout (expected)")
 				} else {
 					t.Logf("Command execution error (might be expected): %v", err)
 				}

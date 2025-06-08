@@ -11,7 +11,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/inference-gateway/google-calendar-agent.svg)](https://github.com/inference-gateway/google-calendar-agent/issues)
 [![GitHub stars](https://img.shields.io/github/stars/inference-gateway/google-calendar-agent.svg?style=social&label=Star)](https://github.com/inference-gateway/google-calendar-agent)
 
-**A comprehensive Google Calendar agent built with Go that implements the Agent-to-Agent (A2A) protocol for seamless calendar management through natural language interactions.**
+**A Google Calendar agent built with Go that implements the Agent-to-Agent (A2A) protocol for seamless calendar management through natural language interactions.**
 
 > ⚠️ **Early Development Warning**: This project is in its early stages of development. The API, configuration, and functionality may change significantly between versions. Breaking changes are expected and allowed until we reach a stable release. Please use with caution in production environments.
 
@@ -155,7 +155,7 @@ task build:dev
 ./bin/google-calendar-agent
 
 # Or with demo mode (no Google API required)
-./bin/google-calendar-agent -demo
+APP_DEMO_MODE=true ./bin/google-calendar-agent
 
 # Or with Docker
 docker build -t calendar-agent .
@@ -190,10 +190,11 @@ curl -X POST http://localhost:8080/a2a \
 
 ### Environment Variables
 
-| Variable                  | Description                      | Default     | Required               |
-| ------------------------- | -------------------------------- | ----------- | ---------------------- |
-| `GOOGLE_CALENDAR_SA_JSON` | Service account JSON credentials | -           | Yes (unless demo mode) |
-| `GOOGLE_CALENDAR_ID`      | Target calendar ID               | `"primary"` | No                     |
+| Variable                  | Description                        | Default     | Required               |
+| ------------------------- | ---------------------------------- | ----------- | ---------------------- |
+| `APP_DEMO_MODE`           | Enable demo mode with mock service | `false`     | No                     |
+| `GOOGLE_CALENDAR_SA_JSON` | Service account JSON credentials   | -           | Yes (unless demo mode) |
+| `GOOGLE_CALENDAR_ID`      | Target calendar ID                 | `"primary"` | No                     |
 
 ### Command Line Options
 
@@ -201,15 +202,11 @@ curl -X POST http://localhost:8080/a2a \
 ./google-calendar-agent [options]
 
 Options:
-  -calendar-id string     Google calendar ID to use
-  -credentials string     Path to Google credentials file
-  -demo                   Run in demo mode with mock service
-  -help                   Show help information
-  -log-level string       Log level (debug, info, warn, error) (default "debug")
-  -version               Show version information
+  -help                   Show help information and exit
+  -version               Show version information and exit
 ```
 
-**Note**: The server always runs on port 8080.
+**Note**: Configuration is managed through environment variables. See the Environment Variables section above.
 
 ## API Reference
 
@@ -291,7 +288,7 @@ task build
 task test
 
 # Run in development mode
-task build:dev && ./bin/google-calendar-agent -demo
+task build:dev && APP_DEMO_MODE=true ./bin/google-calendar-agent
 ```
 
 ### Available Tasks
@@ -359,10 +356,10 @@ The project includes comprehensive testing with mock implementations:
 
 ```bash
 # Run all tests
-go test ./...
+task test
 
 # Run tests with coverage
-go test -cover ./...
+task test:coverage
 
 # Run specific test package
 go test ./a2a/...
@@ -374,7 +371,7 @@ The agent includes a mock calendar service for testing and demo purposes:
 
 ```bash
 # Run in demo mode
-./google-calendar-agent -demo
+APP_DEMO_MODE=true ./google-calendar-agent
 ```
 
 ## Contributing
