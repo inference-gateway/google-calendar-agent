@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0](https://github.com/inference-gateway/google-calendar-agent/compare/v0.1.3...v0.2.0) (2025-06-08)
+
+### ✨ Features
+
+* Enhance CalendarAgent with configuration support and timezone handling ([e7dd96c](https://github.com/inference-gateway/google-calendar-agent/commit/e7dd96c9bfa1b1e994c6e28e2881a6bdb63a4d4a))
+* Implement Inference Gateway LLM Service ([#2](https://github.com/inference-gateway/google-calendar-agent/issues/2)) ([04eb229](https://github.com/inference-gateway/google-calendar-agent/commit/04eb22929e68ea2ee3221af771e80497a9c6bd23))
+
+### 🔧 Miscellaneous
+
+* Add timezone configuration for Google Calendar ([64bee3e](https://github.com/inference-gateway/google-calendar-agent/commit/64bee3ed3b1aadf235e36fa293bb5775efd155b9))
+
 ## [0.1.3](https://github.com/inference-gateway/google-calendar-agent/compare/v0.1.2...v0.1.3) (2025-06-08)
 
 ### ♻️ Improvements
