@@ -13,7 +13,6 @@ import (
 func TestConfig_Load_DefaultValues(t *testing.T) {
 	ctx := context.Background()
 
-	// Test with minimal environment (demo mode)
 	lookuper := envconfig.MapLookuper(map[string]string{
 		"APP_DEMO_MODE": "true",
 	})
@@ -22,7 +21,6 @@ func TestConfig_Load_DefaultValues(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	// Test default values
 	assert.Equal(t, "primary", cfg.Google.CalendarID)
 	assert.Equal(t, false, cfg.Google.ReadOnly)
 	assert.Equal(t, "8080", cfg.Server.Port)
@@ -75,7 +73,7 @@ func TestConfig_Load_CustomValues(t *testing.T) {
 				"TLS_CERT_PATH":       "/cert.pem",
 				"TLS_KEY_PATH":        "/key.pem",
 				"SERVER_READ_TIMEOUT": "30s",
-				"APP_DEMO_MODE":       "true", // To pass validation
+				"APP_DEMO_MODE":       "true",
 			},
 			expected: func(t *testing.T, cfg *Config) {
 				assert.Equal(t, "9090", cfg.Server.Port)
@@ -93,7 +91,7 @@ func TestConfig_Load_CustomValues(t *testing.T) {
 				"LOG_OUTPUT":            "stderr",
 				"LOG_ENABLE_CALLER":     "false",
 				"LOG_ENABLE_STACKTRACE": "false",
-				"APP_DEMO_MODE":         "true", // To pass validation
+				"APP_DEMO_MODE":         "true",
 			},
 			expected: func(t *testing.T, cfg *Config) {
 				assert.Equal(t, "debug", cfg.Logging.Level)
@@ -111,7 +109,7 @@ func TestConfig_Load_CustomValues(t *testing.T) {
 				"TLS_KEY_PATH":      "/path/to/key.pem",
 				"TLS_MIN_VERSION":   "1.3",
 				"TLS_CIPHER_SUITES": "TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256",
-				"APP_DEMO_MODE":     "true", // To pass validation
+				"APP_DEMO_MODE":     "true",
 			},
 			expected: func(t *testing.T, cfg *Config) {
 				assert.Equal(t, "/path/to/cert.pem", cfg.TLS.CertPath)
@@ -123,12 +121,12 @@ func TestConfig_Load_CustomValues(t *testing.T) {
 		{
 			name: "app_configuration",
 			envVars: map[string]string{
-				"APP_ENVIRONMENT":         "production",
-				"APP_DEBUG":               "true",
-				"APP_DEMO_MODE":           "false",
-				"APP_MAX_REQUEST_SIZE":    "2097152",
-				"APP_REQUEST_TIMEOUT":     "60s",
-				"GOOGLE_CALENDAR_SA_JSON": `{"type":"service_account"}`, // To pass validation
+				"APP_ENVIRONMENT":                "production",
+				"APP_DEBUG":                      "true",
+				"APP_DEMO_MODE":                  "false",
+				"APP_MAX_REQUEST_SIZE":           "2097152",
+				"APP_REQUEST_TIMEOUT":            "60s",
+				"GOOGLE_APPLICATION_CREDENTIALS": `{"type":"service_account"}`,
 			},
 			expected: func(t *testing.T, cfg *Config) {
 				assert.Equal(t, "production", cfg.App.Environment)
@@ -168,7 +166,7 @@ func TestConfig_Validate(t *testing.T) {
 		{
 			name: "valid_with_service_account",
 			envVars: map[string]string{
-				"GOOGLE_CALENDAR_SA_JSON": `{"type":"service_account"}`,
+				"GOOGLE_APPLICATION_CREDENTIALS": `{"type":"service_account"}`,
 			},
 			expectError: false,
 		},
@@ -185,7 +183,7 @@ func TestConfig_Validate(t *testing.T) {
 				"APP_DEMO_MODE": "false",
 			},
 			expectError: true,
-			errorMsg:    "either GOOGLE_CALENDAR_SA_JSON or GOOGLE_APPLICATION_CREDENTIALS must be provided",
+			errorMsg:    "GOOGLE_APPLICATION_CREDENTIALS must be provided when not in demo mode",
 		},
 		{
 			name: "tls_enabled_missing_cert",
@@ -350,16 +348,13 @@ func TestConfig_HelperMethods(t *testing.T) {
 }
 
 func TestConfig_Load_RealEnvironment(t *testing.T) {
-	// This test uses the real environment and should work with minimal setup
 	ctx := context.Background()
 
-	// Set a minimal environment for the test
 	t.Setenv("APP_DEMO_MODE", "true")
 
 	cfg, err := Load(ctx)
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	// Should work with demo mode
 	assert.True(t, cfg.ShouldUseMockService())
 }

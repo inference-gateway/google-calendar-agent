@@ -106,7 +106,7 @@ func main() {
 	gin.SetMode(cfg.Server.Mode)
 	logger.Info("gin mode configured", zap.String("mode", cfg.Server.Mode))
 
-	err = google.CreateCredentialsFile(logger)
+	err = google.CreateCredentialsFile(logger, cfg)
 	if err != nil {
 		logger.Fatal("failed to create google credentials file", zap.Error(err))
 	}

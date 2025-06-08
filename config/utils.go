@@ -77,7 +77,7 @@ func (c *Config) GetGoogleCredentialsOption() (string, string, error) {
 		return "file", c.Google.CredentialsPath, nil
 	}
 
-	return "", "", fmt.Errorf("no Google credentials configured")
+	return "", "", fmt.Errorf("no google credentials configured")
 }
 
 // GetLogLevel returns the zap log level equivalent
