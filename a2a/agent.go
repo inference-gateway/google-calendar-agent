@@ -175,6 +175,13 @@ func (a *CalendarAgent) handleMessageSend(c *gin.Context, req JSONRPCRequest) {
 		zap.String("text", messageText),
 		zap.Any("requestId", req.ID))
 
+	if strings.TrimSpace(messageText) == "" {
+		a.logger.Error("received empty message text",
+			zap.Any("requestId", req.ID))
+		a.sendError(c, req.ID, -32602, "invalid params: message text cannot be empty")
+		return
+	}
+
 	response, err := a.processCalendarRequestWithLLM(c.Request.Context(), messageText)
 	if err != nil {
 		a.logger.Error("failed to process calendar request",
@@ -345,6 +352,10 @@ func (a *CalendarAgent) processCalendarRequest(messageText string) (*CalendarRes
 		zap.String("input", messageText),
 		zap.Int("inputLength", len(messageText)),
 		zap.Time("startTime", requestStartTime))
+
+	if strings.TrimSpace(messageText) == "" {
+		return nil, fmt.Errorf("message text cannot be empty")
+	}
 
 	normalizedText := strings.ToLower(strings.TrimSpace(messageText))
 	a.logger.Debug("normalized text for processing",

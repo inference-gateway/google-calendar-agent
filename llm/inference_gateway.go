@@ -65,6 +65,10 @@ func (s *InferenceGatewayService) ProcessNaturalLanguage(ctx context.Context, in
 		return nil, fmt.Errorf("LLM service is disabled")
 	}
 
+	if strings.TrimSpace(input) == "" {
+		return nil, fmt.Errorf("input text cannot be empty")
+	}
+
 	startTime := time.Now()
 
 	systemPrompt := s.buildSystemPrompt()
@@ -234,6 +238,11 @@ func (s *InferenceGatewayService) parseToolResponse(response *sdk.CreateChatComp
 	}
 
 	responseContent := choice.Message.Content
+
+	// Validate that we have actual content to work with
+	if strings.TrimSpace(responseContent) == "" {
+		return nil, fmt.Errorf("received empty response content from LLM")
+	}
 
 	intent := "question"
 	confidence := 0.8

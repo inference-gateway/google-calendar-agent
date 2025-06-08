@@ -60,7 +60,7 @@ func createMessageSendParams(text string) map[string]interface{} {
 		"message": map[string]interface{}{
 			"parts": []interface{}{
 				map[string]interface{}{
-					"type": "text",
+					"kind": "text",
 					"text": text,
 				},
 			},
@@ -362,6 +362,38 @@ func TestCalendarAgent_HandleMessageSend_InvalidParams(t *testing.T) {
 			expectedStatus: http.StatusOK,
 			expectedCode:   -32602,
 			expectedError:  "invalid params: missing message parts",
+		},
+		{
+			name: "empty message text",
+			params: map[string]interface{}{
+				"message": map[string]interface{}{
+					"parts": []interface{}{
+						map[string]interface{}{
+							"kind": "text",
+							"text": "",
+						},
+					},
+				},
+			},
+			expectedStatus: http.StatusOK,
+			expectedCode:   -32602,
+			expectedError:  "invalid params: message text cannot be empty",
+		},
+		{
+			name: "whitespace only message text",
+			params: map[string]interface{}{
+				"message": map[string]interface{}{
+					"parts": []interface{}{
+						map[string]interface{}{
+							"kind": "text",
+							"text": "   \t\n  ",
+						},
+					},
+				},
+			},
+			expectedStatus: http.StatusOK,
+			expectedCode:   -32602,
+			expectedError:  "invalid params: message text cannot be empty",
 		},
 	}
 

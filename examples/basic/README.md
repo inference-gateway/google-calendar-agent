@@ -296,7 +296,7 @@ LLM_MODEL=@cf/meta/llama-3.1-8b-instruct
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek-r1-distill-llama-70b",
+    "model": "deepseek/deepseek-chat",
     "messages": [
       {
         "role": "user",
