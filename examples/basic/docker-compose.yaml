@@ -1,7 +1,7 @@
 ---
 services:
   inference-gateway:
-    image: ghcr.io/inference-gateway/inference-gateway:0.10.0-rc.2
+    image: ghcr.io/inference-gateway/inference-gateway:0.10.0
     ports:
       - "8080:8080"
     env_file:
@@ -13,9 +13,7 @@ services:
     pull_policy: always
 
   google-calendar-agent:
-    build:
-      context: ../..
-      dockerfile: Dockerfile
+    image: ghcr.io/inference-gateway/google-calendar-agent:0.2.0
     ports:
       - "8081:8080"
     env_file:
