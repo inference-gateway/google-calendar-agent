@@ -60,7 +60,7 @@ func createMessageSendParams(text string) map[string]interface{} {
 		"message": map[string]interface{}{
 			"parts": []interface{}{
 				map[string]interface{}{
-					"type": "text",
+					"kind": "text",
 					"text": text,
 				},
 			},
@@ -362,6 +362,38 @@ func TestCalendarAgent_HandleMessageSend_InvalidParams(t *testing.T) {
 			expectedStatus: http.StatusOK,
 			expectedCode:   -32602,
 			expectedError:  "invalid params: missing message parts",
+		},
+		{
+			name: "empty message text",
+			params: map[string]interface{}{
+				"message": map[string]interface{}{
+					"parts": []interface{}{
+						map[string]interface{}{
+							"kind": "text",
+							"text": "",
+						},
+					},
+				},
+			},
+			expectedStatus: http.StatusOK,
+			expectedCode:   -32602,
+			expectedError:  "invalid params: message text cannot be empty",
+		},
+		{
+			name: "whitespace only message text",
+			params: map[string]interface{}{
+				"message": map[string]interface{}{
+					"parts": []interface{}{
+						map[string]interface{}{
+							"kind": "text",
+							"text": "   \t\n  ",
+						},
+					},
+				},
+			},
+			expectedStatus: http.StatusOK,
+			expectedCode:   -32602,
+			expectedError:  "invalid params: message text cannot be empty",
 		},
 	}
 
@@ -921,4 +953,314 @@ func TestCalendarAgent_GetNextWeekday(t *testing.T) {
 			assert.Equal(t, tc.targetWeekday, result.Weekday())
 		})
 	}
+}
+
+func TestCalendarAgent_ConflictDetection(t *testing.T) {
+	testCases := []struct {
+		name                 string
+		messageText          string
+		existingEvents       []*calendar.Event
+		checkConflictsError  error
+		expectConflict       bool
+		expectedConflictText string
+	}{
+		{
+			name:                "no conflicts - create event successfully",
+			messageText:         "schedule meeting with John at 2pm today",
+			existingEvents:      []*calendar.Event{},
+			checkConflictsError: nil,
+			expectConflict:      false,
+		},
+		{
+			name:        "single conflict detected",
+			messageText: "schedule meeting with John at 2pm today",
+			existingEvents: []*calendar.Event{
+				{
+					Id:      "existing-1",
+					Summary: "Team Standup",
+					Status:  "confirmed",
+					Start: &calendar.EventDateTime{
+						DateTime: time.Now().Truncate(24 * time.Hour).Add(14 * time.Hour).Format(time.RFC3339), // 2pm today
+					},
+					End: &calendar.EventDateTime{
+						DateTime: time.Now().Truncate(24 * time.Hour).Add(15 * time.Hour).Format(time.RFC3339), // 3pm today
+					},
+					Location: "Conference Room A",
+				},
+			},
+			checkConflictsError:  nil,
+			expectConflict:       true,
+			expectedConflictText: "Scheduling Conflict Detected",
+		},
+		{
+			name:        "multiple conflicts detected",
+			messageText: "schedule meeting with John at 2pm today",
+			existingEvents: []*calendar.Event{
+				{
+					Id:      "existing-1",
+					Summary: "Team Standup",
+					Status:  "confirmed",
+					Start: &calendar.EventDateTime{
+						DateTime: time.Now().Truncate(24 * time.Hour).Add(14 * time.Hour).Format(time.RFC3339), // 2pm today
+					},
+					End: &calendar.EventDateTime{
+						DateTime: time.Now().Truncate(24 * time.Hour).Add(15 * time.Hour).Format(time.RFC3339), // 3pm today
+					},
+				},
+				{
+					Id:      "existing-2",
+					Summary: "Client Call",
+					Status:  "confirmed",
+					Start: &calendar.EventDateTime{
+						DateTime: time.Now().Truncate(24 * time.Hour).Add(14*time.Hour + 30*time.Minute).Format(time.RFC3339), // 2:30pm today
+					},
+					End: &calendar.EventDateTime{
+						DateTime: time.Now().Truncate(24 * time.Hour).Add(16 * time.Hour).Format(time.RFC3339), // 4pm today
+					},
+				},
+			},
+			checkConflictsError:  nil,
+			expectConflict:       true,
+			expectedConflictText: "You already have 2 event(s) scheduled",
+		},
+		{
+			name:                "conflict check service error",
+			messageText:         "schedule meeting with John at 2pm today",
+			existingEvents:      nil,
+			checkConflictsError: fmt.Errorf("calendar service unavailable"),
+			expectConflict:      false, // Error should prevent creation, not show conflicts
+		},
+		{
+			name:        "cancelled events ignored in conflicts",
+			messageText: "schedule meeting with John at 2pm today",
+			existingEvents: []*calendar.Event{
+				{
+					Id:      "cancelled-event",
+					Summary: "Cancelled Meeting",
+					Status:  "cancelled",
+					Start: &calendar.EventDateTime{
+						DateTime: time.Now().Truncate(24 * time.Hour).Add(14 * time.Hour).Format(time.RFC3339),
+					},
+					End: &calendar.EventDateTime{
+						DateTime: time.Now().Truncate(24 * time.Hour).Add(15 * time.Hour).Format(time.RFC3339),
+					},
+				},
+			},
+			checkConflictsError: nil,
+			expectConflict:      false, // Cancelled events should not cause conflicts
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			agent, mockService := setupTestCalendarAgent(t)
+
+			// Setup mock to return conflicts after filtering (as the real implementation would do)
+			var expectedConflicts []*calendar.Event
+			if tc.expectConflict {
+				// Filter out cancelled events to simulate what CheckConflicts actually returns
+				for _, event := range tc.existingEvents {
+					if event.Status != "cancelled" {
+						expectedConflicts = append(expectedConflicts, event)
+					}
+				}
+			}
+
+			mockService.CheckConflictsReturns(expectedConflicts, tc.checkConflictsError)
+
+			// Setup mock for successful event creation when no conflicts
+			if !tc.expectConflict && tc.checkConflictsError == nil {
+				mockService.CreateEventReturns(&calendar.Event{
+					Id:      "created-event-123",
+					Summary: "Meeting with John",
+					Start: &calendar.EventDateTime{
+						DateTime: time.Now().Truncate(24 * time.Hour).Add(14 * time.Hour).Format(time.RFC3339),
+					},
+					End: &calendar.EventDateTime{
+						DateTime: time.Now().Truncate(24 * time.Hour).Add(15 * time.Hour).Format(time.RFC3339),
+					},
+				}, nil)
+			}
+
+			response, err := agent.processCalendarRequest(tc.messageText)
+
+			if tc.checkConflictsError != nil {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), "failed to check for scheduling conflicts")
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, response)
+
+			if tc.expectConflict {
+				assert.Contains(t, response.Text, tc.expectedConflictText)
+				assert.Contains(t, response.Text, "Suggested alternative times")
+				assert.NotNil(t, response.Data)
+
+				// Verify conflict data structure
+				data, ok := response.Data.(map[string]interface{})
+				require.True(t, ok)
+				assert.Contains(t, data, "conflicts")
+				assert.Contains(t, data, "alternative_times")
+				assert.Contains(t, data, "proposed_event")
+
+				// Verify alternative times are provided
+				altTimes, ok := data["alternative_times"].([]map[string]interface{})
+				require.True(t, ok)
+				assert.Len(t, altTimes, 3) // Should suggest 3 alternative times
+
+				// Event should not have been created
+				assert.Equal(t, 0, mockService.CreateEventCallCount())
+			} else {
+				assert.Contains(t, response.Text, "Event created successfully")
+				assert.Equal(t, 1, mockService.CreateEventCallCount())
+			}
+
+			// Verify CheckConflicts was called
+			assert.Equal(t, 1, mockService.CheckConflictsCallCount())
+		})
+	}
+}
+
+func TestCalendarAgent_DirectCreateEventConflictDetection(t *testing.T) {
+	testCases := []struct {
+		name             string
+		arguments        map[string]interface{}
+		existingEvents   []*calendar.Event
+		expectConflict   bool
+		expectedErrorMsg string
+	}{
+		{
+			name: "no conflicts in direct create",
+			arguments: map[string]interface{}{
+				"title":      "Team Meeting",
+				"start_time": time.Now().Add(2 * time.Hour).Format(time.RFC3339),
+				"end_time":   time.Now().Add(3 * time.Hour).Format(time.RFC3339),
+			},
+			existingEvents: []*calendar.Event{},
+			expectConflict: false,
+		},
+		{
+			name: "conflict detected in direct create",
+			arguments: map[string]interface{}{
+				"title":      "Team Meeting",
+				"start_time": time.Now().Add(2 * time.Hour).Format(time.RFC3339),
+				"end_time":   time.Now().Add(3 * time.Hour).Format(time.RFC3339),
+			},
+			existingEvents: []*calendar.Event{
+				{
+					Id:      "conflict-event",
+					Summary: "Existing Meeting",
+					Status:  "confirmed",
+					Start: &calendar.EventDateTime{
+						DateTime: time.Now().Add(2*time.Hour + 30*time.Minute).Format(time.RFC3339),
+					},
+					End: &calendar.EventDateTime{
+						DateTime: time.Now().Add(4 * time.Hour).Format(time.RFC3339),
+					},
+				},
+			},
+			expectConflict: true,
+		},
+		{
+			name: "invalid time format",
+			arguments: map[string]interface{}{
+				"title":      "Team Meeting",
+				"start_time": "invalid-time",
+				"end_time":   time.Now().Add(3 * time.Hour).Format(time.RFC3339),
+			},
+			existingEvents:   []*calendar.Event{},
+			expectConflict:   false,
+			expectedErrorMsg: "invalid start_time format",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			agent, mockService := setupTestCalendarAgent(t)
+
+			// Setup mock for conflict checking
+			mockService.CheckConflictsReturns(tc.existingEvents, nil)
+
+			// Setup mock for successful event creation when no conflicts
+			if !tc.expectConflict && tc.expectedErrorMsg == "" {
+				mockService.CreateEventReturns(&calendar.Event{
+					Id:      "created-event-456",
+					Summary: "Team Meeting",
+					Start: &calendar.EventDateTime{
+						DateTime: time.Now().Add(2 * time.Hour).Format(time.RFC3339),
+					},
+					End: &calendar.EventDateTime{
+						DateTime: time.Now().Add(3 * time.Hour).Format(time.RFC3339),
+					},
+				}, nil)
+			}
+
+			response, err := agent.handleDirectCreateEvent(tc.arguments)
+
+			if tc.expectedErrorMsg != "" {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tc.expectedErrorMsg)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, response)
+
+			if tc.expectConflict {
+				assert.Contains(t, response.Text, "Scheduling Conflict Detected")
+				assert.Contains(t, response.Text, "Existing Meeting")
+				assert.Contains(t, response.Text, "Suggested alternative times")
+
+				// Event should not have been created
+				assert.Equal(t, 0, mockService.CreateEventCallCount())
+			} else {
+				assert.Contains(t, response.Text, "Event created successfully")
+				assert.Equal(t, 1, mockService.CreateEventCallCount())
+			}
+		})
+	}
+}
+
+func TestCalendarAgent_ConflictAlternativeTimesSuggestion(t *testing.T) {
+	agent, mockService := setupTestCalendarAgent(t)
+
+	// Create a conflict at 2pm-3pm today
+	conflictingEvent := &calendar.Event{
+		Id:      "conflict-1",
+		Summary: "Existing Meeting",
+		Status:  "confirmed",
+		Start: &calendar.EventDateTime{
+			DateTime: time.Now().Truncate(24 * time.Hour).Add(14 * time.Hour).Format(time.RFC3339), // 2pm
+		},
+		End: &calendar.EventDateTime{
+			DateTime: time.Now().Truncate(24 * time.Hour).Add(15 * time.Hour).Format(time.RFC3339), // 3pm
+		},
+	}
+
+	mockService.CheckConflictsReturns([]*calendar.Event{conflictingEvent}, nil)
+
+	response, err := agent.processCalendarRequest("schedule meeting with John at 2pm today for 1 hour")
+
+	require.NoError(t, err)
+	require.NotNil(t, response)
+
+	// Verify conflict response structure
+	assert.Contains(t, response.Text, "Scheduling Conflict Detected")
+	assert.Contains(t, response.Text, "Suggested alternative times")
+
+	data, ok := response.Data.(map[string]interface{})
+	require.True(t, ok)
+
+	altTimes, ok := data["alternative_times"].([]map[string]interface{})
+	require.True(t, ok)
+	require.Len(t, altTimes, 3)
+
+	// Verify alternative time suggestions
+	// Should suggest: 3pm-4pm (1 hour later), 4pm-5pm (2 hours later), 2pm-3pm tomorrow
+	assert.Contains(t, altTimes[0]["display"], "3:00 PM - 4:00 PM")
+	assert.Contains(t, altTimes[1]["display"], "4:00 PM - 5:00 PM")
+	assert.Contains(t, altTimes[2]["display"], "2:00 PM - 3:00 PM")
+	assert.Contains(t, altTimes[2]["display"], "June 9") // Next day
 }

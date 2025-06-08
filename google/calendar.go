@@ -23,6 +23,7 @@ type CalendarService interface {
 	DeleteEvent(calendarID, eventID string) error
 	GetEvent(calendarID, eventID string) (*calendar.Event, error)
 	ListCalendars() ([]*calendar.CalendarListEntry, error)
+	CheckConflicts(calendarID string, startTime, endTime time.Time) ([]*calendar.Event, error)
 }
 
 // CalendarServiceImpl implements the calendar service interface for Google Calendar API
@@ -299,4 +300,70 @@ func (g *CalendarServiceImpl) ListCalendars() ([]*calendar.CalendarListEntry, er
 		zap.Int("calendarCount", len(calendarList.Items)))
 
 	return calendarList.Items, nil
+}
+
+// CheckConflicts checks for conflicting events in the specified time range
+func (g *CalendarServiceImpl) CheckConflicts(calendarID string, startTime, endTime time.Time) ([]*calendar.Event, error) {
+	g.logger.Debug("checking for event conflicts",
+		zap.String("component", "google-calendar-service"),
+		zap.String("operation", "check-conflicts"),
+		zap.String("calendarID", calendarID),
+		zap.Time("startTime", startTime),
+		zap.Time("endTime", endTime))
+
+	events, err := g.ListEvents(calendarID, startTime, endTime)
+	if err != nil {
+		g.logger.Error("failed to retrieve events for conflict checking",
+			zap.String("component", "google-calendar-service"),
+			zap.String("operation", "check-conflicts"),
+			zap.String("calendarID", calendarID),
+			zap.Error(err))
+		return nil, fmt.Errorf("unable to check for conflicts: %w", err)
+	}
+
+	var conflicts []*calendar.Event
+	for _, event := range events {
+		if event.Status == "cancelled" {
+			continue
+		}
+
+		eventStartTime, err := time.Parse(time.RFC3339, event.Start.DateTime)
+		if err != nil {
+			g.logger.Warn("failed to parse event start time, skipping conflict check",
+				zap.String("eventId", event.Id),
+				zap.String("eventSummary", event.Summary),
+				zap.String("startDateTime", event.Start.DateTime),
+				zap.Error(err))
+			continue
+		}
+
+		eventEndTime, err := time.Parse(time.RFC3339, event.End.DateTime)
+		if err != nil {
+			g.logger.Warn("failed to parse event end time, skipping conflict check",
+				zap.String("eventId", event.Id),
+				zap.String("eventSummary", event.Summary),
+				zap.String("endDateTime", event.End.DateTime),
+				zap.Error(err))
+			continue
+		}
+
+		if startTime.Before(eventEndTime) && eventStartTime.Before(endTime) {
+			g.logger.Debug("found conflicting event",
+				zap.String("eventId", event.Id),
+				zap.String("eventSummary", event.Summary),
+				zap.Time("eventStartTime", eventStartTime),
+				zap.Time("eventEndTime", eventEndTime),
+				zap.Time("proposedStartTime", startTime),
+				zap.Time("proposedEndTime", endTime))
+			conflicts = append(conflicts, event)
+		}
+	}
+
+	g.logger.Info("conflict check completed",
+		zap.String("component", "google-calendar-service"),
+		zap.String("operation", "check-conflicts"),
+		zap.String("calendarID", calendarID),
+		zap.Int("conflictCount", len(conflicts)))
+
+	return conflicts, nil
 }

@@ -16,11 +16,14 @@ import (
 	"github.com/inference-gateway/google-calendar-agent/config"
 	"github.com/inference-gateway/google-calendar-agent/google"
 	google_mocks "github.com/inference-gateway/google-calendar-agent/google/mocks"
+	"github.com/inference-gateway/google-calendar-agent/llm"
+	llm_mocks "github.com/inference-gateway/google-calendar-agent/llm/mocks"
 )
 
 var (
 	logger          *zap.Logger
 	calendarService google.CalendarService
+	llmService      llm.Service
 
 	// Version information - will be set by build flags
 	version = "dev"
@@ -180,7 +183,27 @@ func main() {
 		}
 	}
 
-	agent := a2a.NewCalendarAgent(calendarService, logger)
+	// Initialize LLM service
+	logger.Info("initializing LLM service")
+	llmService, err = llm.NewInferenceGatewayService(cfg, logger)
+	if err != nil {
+		logger.Warn("failed to initialize LLM service, using disabled mock",
+			zap.Error(err))
+		// Create a disabled mock service
+		mockService := &llm_mocks.FakeService{}
+		mockService.IsEnabledReturns(false)
+		mockService.GetProviderReturns("")
+		mockService.GetModelReturns("")
+		llmService = mockService
+	} else if llmService.IsEnabled() {
+		logger.Info("LLM service initialized successfully",
+			zap.String("provider", llmService.GetProvider()),
+			zap.String("model", llmService.GetModel()))
+	} else {
+		logger.Info("LLM service is disabled")
+	}
+
+	agent := a2a.NewCalendarAgentWithLLM(calendarService, logger, cfg, llmService)
 
 	r := gin.Default()
 

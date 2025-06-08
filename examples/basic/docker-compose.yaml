@@ -1,0 +1,45 @@
+---
+services:
+  inference-gateway:
+    image: ghcr.io/inference-gateway/inference-gateway:0.10.0-rc.2
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.gateway
+    depends_on:
+      google-calendar-agent-healthcheck:
+        condition: service_healthy
+    restart: unless-stopped
+    pull_policy: always
+
+  google-calendar-agent:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    env_file:
+      - .env.agent
+    restart: unless-stopped
+    pull_policy: always
+
+  google-calendar-agent-healthcheck:
+    image: curlimages/curl:latest
+    entrypoint:
+      - sh
+      - -c
+      - "while true; do sleep 30; done"
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://google-calendar-agent:8080/health
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      google-calendar-agent:
+        condition: service_started
+    restart: unless-stopped

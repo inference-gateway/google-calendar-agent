@@ -255,6 +255,219 @@ func TestConfig_Validate(t *testing.T) {
 	}
 }
 
+func TestConfig_Validate_LLM(t *testing.T) {
+	testCases := []struct {
+		name        string
+		envVars     map[string]string
+		expectError bool
+		errorMsg    string
+	}{
+		{
+			name: "llm_disabled_no_validation",
+			envVars: map[string]string{
+				"APP_DEMO_MODE": "true",
+				"LLM_ENABLED":   "false",
+			},
+			expectError: false,
+		},
+		{
+			name: "llm_enabled_valid_openai",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "http://localhost:8080/v1",
+				"LLM_PROVIDER":    "openai",
+				"LLM_MODEL":       "gpt-4o",
+				"LLM_TEMPERATURE": "0.7",
+				"LLM_MAX_TOKENS":  "2048",
+			},
+			expectError: false,
+		},
+		{
+			name: "llm_enabled_valid_groq",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "http://localhost:8080/v1",
+				"LLM_PROVIDER":    "groq",
+				"LLM_MODEL":       "deepseek-r1-distill-llama-70b",
+				"LLM_TEMPERATURE": "0.5",
+				"LLM_MAX_TOKENS":  "4096",
+			},
+			expectError: false,
+		},
+		{
+			name: "llm_enabled_valid_anthropic",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "http://localhost:8080/v1",
+				"LLM_PROVIDER":    "anthropic",
+				"LLM_MODEL":       "claude-3-opus",
+				"LLM_TEMPERATURE": "1.0",
+				"LLM_MAX_TOKENS":  "1024",
+			},
+			expectError: false,
+		},
+		{
+			name: "llm_enabled_empty_gateway_url",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "",
+				"LLM_PROVIDER":    "openai",
+				"LLM_MODEL":       "gpt-4o",
+			},
+			expectError: true,
+			errorMsg:    "LLM_GATEWAY_URL is required when LLM is enabled",
+		},
+		{
+			name: "llm_enabled_empty_provider",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "http://localhost:8080/v1",
+				"LLM_PROVIDER":    "",
+				"LLM_MODEL":       "gpt-4o",
+			},
+			expectError: true,
+			errorMsg:    "LLM_PROVIDER is required when LLM is enabled",
+		},
+		{
+			name: "llm_enabled_invalid_provider",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "http://localhost:8080/v1",
+				"LLM_PROVIDER":    "invalid-provider",
+				"LLM_MODEL":       "gpt-4o",
+			},
+			expectError: true,
+			errorMsg:    "invalid LLM provider 'invalid-provider', must be one of: openai, anthropic, groq, ollama, deepseek, cohere, cloudflare",
+		},
+		{
+			name: "llm_enabled_empty_model",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "http://localhost:8080/v1",
+				"LLM_PROVIDER":    "openai",
+				"LLM_MODEL":       "",
+			},
+			expectError: true,
+			errorMsg:    "LLM_MODEL is required when LLM is enabled",
+		},
+		{
+			name: "llm_enabled_invalid_temperature_low",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "http://localhost:8080/v1",
+				"LLM_PROVIDER":    "openai",
+				"LLM_MODEL":       "gpt-4o",
+				"LLM_TEMPERATURE": "-0.1",
+			},
+			expectError: true,
+			errorMsg:    "LLM_TEMPERATURE must be between 0.0 and 2.0, got -0.100000",
+		},
+		{
+			name: "llm_enabled_invalid_temperature_high",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "http://localhost:8080/v1",
+				"LLM_PROVIDER":    "openai",
+				"LLM_MODEL":       "gpt-4o",
+				"LLM_TEMPERATURE": "2.1",
+			},
+			expectError: true,
+			errorMsg:    "LLM_TEMPERATURE must be between 0.0 and 2.0, got 2.100000",
+		},
+		{
+			name: "llm_enabled_invalid_max_tokens",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "http://localhost:8080/v1",
+				"LLM_PROVIDER":    "openai",
+				"LLM_MODEL":       "gpt-4o",
+				"LLM_MAX_TOKENS":  "0",
+			},
+			expectError: true,
+			errorMsg:    "LLM_MAX_TOKENS must be greater than 0, got 0",
+		},
+		{
+			name: "llm_enabled_valid_all_providers",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "http://localhost:8080/v1",
+				"LLM_PROVIDER":    "deepseek",
+				"LLM_MODEL":       "deepseek-r1-distill-llama-70b",
+			},
+			expectError: false,
+		},
+		{
+			name: "llm_enabled_cloudflare_provider",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "http://localhost:8080/v1",
+				"LLM_PROVIDER":    "cloudflare",
+				"LLM_MODEL":       "@cf/meta/llama-3.1-8b-instruct",
+			},
+			expectError: false,
+		},
+		{
+			name: "llm_enabled_ollama_provider",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "http://localhost:8080/v1",
+				"LLM_PROVIDER":    "ollama",
+				"LLM_MODEL":       "llama3.2",
+			},
+			expectError: false,
+		},
+		{
+			name: "llm_enabled_cohere_provider",
+			envVars: map[string]string{
+				"APP_DEMO_MODE":   "true",
+				"LLM_ENABLED":     "true",
+				"LLM_GATEWAY_URL": "http://localhost:8080/v1",
+				"LLM_PROVIDER":    "cohere",
+				"LLM_MODEL":       "command-r-plus",
+			},
+			expectError: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			lookuper := envconfig.MapLookuper(tc.envVars)
+
+			cfg, err := LoadWithLookuper(ctx, lookuper)
+
+			if tc.expectError {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.errorMsg)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, cfg)
+
+				// Additional validations for successful cases
+				if tc.envVars["LLM_ENABLED"] == "true" {
+					assert.True(t, cfg.LLM.Enabled)
+					assert.Equal(t, tc.envVars["LLM_GATEWAY_URL"], cfg.LLM.GatewayURL)
+					assert.Equal(t, tc.envVars["LLM_PROVIDER"], cfg.LLM.Provider)
+					assert.Equal(t, tc.envVars["LLM_MODEL"], cfg.LLM.Model)
+				}
+			}
+		})
+	}
+}
+
 func TestConfig_HelperMethods(t *testing.T) {
 	testCases := []struct {
 		name     string

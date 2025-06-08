@@ -1,6 +1,7 @@
 package a2a
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/inference-gateway/google-calendar-agent/config"
 	"github.com/inference-gateway/google-calendar-agent/google"
+	"github.com/inference-gateway/google-calendar-agent/llm"
 )
 
 // CalendarAgent handles A2A calendar requests
@@ -24,6 +26,7 @@ type CalendarAgent struct {
 	calendarService google.CalendarService
 	logger          *zap.Logger
 	config          *config.Config
+	llmService      llm.Service
 }
 
 // NewCalendarAgent creates a new calendar agent
@@ -32,6 +35,7 @@ func NewCalendarAgent(calendarService google.CalendarService, logger *zap.Logger
 		calendarService: calendarService,
 		logger:          logger,
 		config:          nil,
+		llmService:      nil,
 	}
 }
 
@@ -41,6 +45,17 @@ func NewCalendarAgentWithConfig(calendarService google.CalendarService, logger *
 		calendarService: calendarService,
 		logger:          logger,
 		config:          cfg,
+		llmService:      nil,
+	}
+}
+
+// NewCalendarAgentWithLLM creates a new calendar agent with configuration and LLM service
+func NewCalendarAgentWithLLM(calendarService google.CalendarService, logger *zap.Logger, cfg *config.Config, llmSvc llm.Service) *CalendarAgent {
+	return &CalendarAgent{
+		calendarService: calendarService,
+		logger:          logger,
+		config:          cfg,
+		llmService:      llmSvc,
 	}
 }
 
@@ -112,6 +127,10 @@ func (a *CalendarAgent) handleMessageSend(c *gin.Context, req JSONRPCRequest) {
 		zap.Any("requestId", req.ID),
 		zap.String("clientIP", c.ClientIP()))
 
+	a.logger.Debug("full request params",
+		zap.Any("params", req.Params),
+		zap.Any("requestId", req.ID))
+
 	paramsMap, ok := req.Params["message"].(map[string]interface{})
 	if !ok {
 		a.logger.Error("invalid params: missing message",
@@ -132,6 +151,7 @@ func (a *CalendarAgent) handleMessageSend(c *gin.Context, req JSONRPCRequest) {
 
 	a.logger.Debug("extracted message parts",
 		zap.Int("partCount", len(partsArray)),
+		zap.Any("parts", partsArray),
 		zap.Any("requestId", req.ID))
 
 	var messageText string
@@ -140,9 +160,15 @@ func (a *CalendarAgent) handleMessageSend(c *gin.Context, req JSONRPCRequest) {
 		if !ok {
 			a.logger.Debug("skipping invalid part",
 				zap.Int("partIndex", i),
+				zap.Any("part", partInterface),
 				zap.Any("requestId", req.ID))
 			continue
 		}
+
+		a.logger.Debug("processing part",
+			zap.Int("partIndex", i),
+			zap.Any("part", part),
+			zap.Any("requestId", req.ID))
 
 		if partKind, exists := part["kind"]; exists && partKind == "text" {
 			if text, textExists := part["text"].(string); textExists {
@@ -150,6 +176,7 @@ func (a *CalendarAgent) handleMessageSend(c *gin.Context, req JSONRPCRequest) {
 				a.logger.Debug("found text part",
 					zap.Int("partIndex", i),
 					zap.String("textLength", fmt.Sprintf("%d chars", len(text))),
+					zap.String("text", text),
 					zap.Any("requestId", req.ID))
 				break
 			}
@@ -160,7 +187,49 @@ func (a *CalendarAgent) handleMessageSend(c *gin.Context, req JSONRPCRequest) {
 		zap.String("text", messageText),
 		zap.Any("requestId", req.ID))
 
-	response, err := a.processCalendarRequest(messageText)
+	var response *CalendarResponse
+	var err error
+
+	if strings.TrimSpace(messageText) == "" {
+		if metadata, hasMetadata := req.Params["metadata"].(map[string]interface{}); hasMetadata {
+			if skill, hasSkill := metadata["skill"].(string); hasSkill {
+				if arguments, hasArgs := metadata["arguments"].(map[string]interface{}); hasArgs {
+					a.logger.Info("processing direct tool call",
+						zap.String("skill", skill),
+						zap.Any("arguments", arguments),
+						zap.Any("requestId", req.ID))
+
+					response, err = a.processDirectToolCall(c.Request.Context(), skill, arguments)
+					if err != nil {
+						a.logger.Error("failed to process direct tool call",
+							zap.Error(err),
+							zap.String("skill", skill),
+							zap.Any("arguments", arguments),
+							zap.Any("requestId", req.ID))
+						a.sendError(c, req.ID, -32603, "internal error: "+err.Error())
+						return
+					}
+				} else {
+					a.logger.Error("direct tool call missing arguments",
+						zap.Any("requestId", req.ID))
+					a.sendError(c, req.ID, -32602, "invalid params: direct tool call missing arguments")
+					return
+				}
+			} else {
+				a.logger.Error("received empty message text and no direct tool call",
+					zap.Any("requestId", req.ID))
+				a.sendError(c, req.ID, -32602, "invalid params: message text cannot be empty")
+				return
+			}
+		} else {
+			a.logger.Error("received empty message text and no metadata",
+				zap.Any("requestId", req.ID))
+			a.sendError(c, req.ID, -32602, "invalid params: message text cannot be empty")
+			return
+		}
+	} else {
+		response, err = a.processCalendarRequestWithLLM(c.Request.Context(), messageText)
+	}
 	if err != nil {
 		a.logger.Error("failed to process calendar request",
 			zap.Error(err),
@@ -330,6 +399,10 @@ func (a *CalendarAgent) processCalendarRequest(messageText string) (*CalendarRes
 		zap.String("input", messageText),
 		zap.Int("inputLength", len(messageText)),
 		zap.Time("startTime", requestStartTime))
+
+	if strings.TrimSpace(messageText) == "" {
+		return nil, fmt.Errorf("message text cannot be empty")
+	}
 
 	normalizedText := strings.ToLower(strings.TrimSpace(messageText))
 	a.logger.Debug("normalized text for processing",
@@ -544,7 +617,6 @@ func (a *CalendarAgent) isDeleteEventRequest(text string) bool {
 func (a *CalendarAgent) handleListEventsRequest(text string) (*CalendarResponse, error) {
 	a.logger.Debug("handling list events request", zap.String("text", text))
 
-	// Check which service implementation is being used
 	a.logger.Info("using calendar service for list events",
 		zap.String("component", "calendar-processor"),
 		zap.String("operation", "list-events"),
@@ -751,6 +823,97 @@ func (a *CalendarAgent) handleCreateEventRequest(text string) (*CalendarResponse
 	} else {
 		a.logger.Debug("using calendar id from environment",
 			zap.String("calendarID", calendarID))
+	}
+
+	// Check for conflicts before creating the event
+	conflicts, err := a.calendarService.CheckConflicts(calendarID, eventDetails.StartTime, eventDetails.EndTime)
+	if err != nil {
+		a.logger.Error("failed to check for conflicts",
+			zap.Error(err),
+			zap.String("calendarID", calendarID),
+			zap.Time("startTime", eventDetails.StartTime),
+			zap.Time("endTime", eventDetails.EndTime))
+		return nil, fmt.Errorf("failed to check for scheduling conflicts: %w", err)
+	}
+
+	// If conflicts found, suggest alternative times
+	if len(conflicts) > 0 {
+		a.logger.Info("found scheduling conflicts",
+			zap.Int("conflictCount", len(conflicts)),
+			zap.String("proposedTitle", eventDetails.Title),
+			zap.Time("proposedStartTime", eventDetails.StartTime),
+			zap.Time("proposedEndTime", eventDetails.EndTime))
+
+		conflictText := "⚠️ **Scheduling Conflict Detected!**\n\n"
+		conflictText += fmt.Sprintf("You already have %d event(s) scheduled during %s - %s:\n\n",
+			len(conflicts),
+			eventDetails.StartTime.Format("3:04 PM"),
+			eventDetails.EndTime.Format("3:04 PM"))
+
+		for i, conflict := range conflicts {
+			conflictStartTime, _ := time.Parse(time.RFC3339, conflict.Start.DateTime)
+			conflictEndTime, _ := time.Parse(time.RFC3339, conflict.End.DateTime)
+			conflictText += fmt.Sprintf("%d. **%s**\n   Time: %s - %s\n",
+				i+1,
+				conflict.Summary,
+				conflictStartTime.Format("3:04 PM"),
+				conflictEndTime.Format("3:04 PM"))
+			if conflict.Location != "" {
+				conflictText += fmt.Sprintf("   Location: %s\n", conflict.Location)
+			}
+			conflictText += "\n"
+		}
+
+		// Suggest alternative times
+		conflictText += "**Suggested alternative times:**\n"
+		duration := eventDetails.EndTime.Sub(eventDetails.StartTime)
+
+		// Suggest 1 hour later
+		altTime1 := eventDetails.StartTime.Add(time.Hour)
+		conflictText += fmt.Sprintf("• %s - %s\n",
+			altTime1.Format("3:04 PM"),
+			altTime1.Add(duration).Format("3:04 PM"))
+
+		// Suggest 2 hours later
+		altTime2 := eventDetails.StartTime.Add(2 * time.Hour)
+		conflictText += fmt.Sprintf("• %s - %s\n",
+			altTime2.Format("3:04 PM"),
+			altTime2.Add(duration).Format("3:04 PM"))
+
+		// Suggest next day same time
+		altTime3 := eventDetails.StartTime.AddDate(0, 0, 1)
+		conflictText += fmt.Sprintf("• %s - %s (%s)\n",
+			altTime3.Format("3:04 PM"),
+			altTime3.Add(duration).Format("3:04 PM"),
+			altTime3.Format("Monday, January 2"))
+
+		conflictText += "\nWould you like me to schedule it at one of these alternative times instead?"
+
+		return &CalendarResponse{
+			Text: conflictText,
+			Data: map[string]interface{}{
+				"conflicts":      conflicts,
+				"proposed_event": eventDetails,
+				"calendar_id":    calendarID,
+				"alternative_times": []map[string]interface{}{
+					{
+						"start_time": altTime1.Format(time.RFC3339),
+						"end_time":   altTime1.Add(duration).Format(time.RFC3339),
+						"display":    fmt.Sprintf("%s - %s", altTime1.Format("3:04 PM"), altTime1.Add(duration).Format("3:04 PM")),
+					},
+					{
+						"start_time": altTime2.Format(time.RFC3339),
+						"end_time":   altTime2.Add(duration).Format(time.RFC3339),
+						"display":    fmt.Sprintf("%s - %s", altTime2.Format("3:04 PM"), altTime2.Add(duration).Format("3:04 PM")),
+					},
+					{
+						"start_time": altTime3.Format(time.RFC3339),
+						"end_time":   altTime3.Add(duration).Format(time.RFC3339),
+						"display":    fmt.Sprintf("%s - %s (%s)", altTime3.Format("3:04 PM"), altTime3.Add(duration).Format("3:04 PM"), altTime3.Format("Monday, January 2")),
+					},
+				},
+			},
+		}, nil
 	}
 
 	event := &calendar.Event{
@@ -1149,4 +1312,827 @@ func (a *CalendarAgent) getNextWeekday(from time.Time, weekday time.Weekday) tim
 		zap.Time("result", result))
 
 	return result
+}
+
+// processCalendarRequestWithLLM processes calendar requests using LLM service for enhanced natural language understanding
+func (a *CalendarAgent) processCalendarRequestWithLLM(ctx context.Context, messageText string) (*CalendarResponse, error) {
+	if a.llmService == nil || !a.llmService.IsEnabled() {
+		a.logger.Debug("LLM service not available, falling back to pattern matching")
+		return a.processCalendarRequest(messageText)
+	}
+
+	requestStartTime := time.Now()
+	a.logger.Debug("processing calendar request with LLM",
+		zap.String("component", "llm-processor"),
+		zap.String("operation", "process-request"),
+		zap.String("input", messageText),
+		zap.Int("inputLength", len(messageText)),
+		zap.Time("startTime", requestStartTime))
+
+	result, err := a.llmService.ProcessNaturalLanguage(ctx, messageText)
+	if err != nil {
+		a.logger.Warn("LLM processing failed, falling back to pattern matching",
+			zap.Error(err))
+		return a.processCalendarRequest(messageText)
+	}
+
+	processingDuration := time.Since(requestStartTime)
+	a.logger.Info("LLM processing completed",
+		zap.String("intent", result.Intent),
+		zap.Float64("confidence", result.Confidence),
+		zap.Duration("processingTime", processingDuration))
+
+	var response *CalendarResponse
+	switch result.Intent {
+	case "list_calendars":
+		response, err = a.handleListCalendarsRequest("")
+	case "list_events":
+		response, err = a.handleDirectListEvents(result.Parameters)
+	case "create_event":
+		response, err = a.handleDirectCreateEvent(result.Parameters)
+	case "update_event":
+		response, err = a.handleDirectUpdateEvent(result.Parameters)
+	case "delete_event":
+		response, err = a.handleDirectDeleteEvent(result.Parameters)
+	case "search_events":
+		response, err = a.handleSearchEventsRequestWithParams(result.Parameters)
+	case "get_availability":
+		response, err = a.handleGetAvailabilityRequestWithParams(result.Parameters)
+	case "question", "clarification", "unknown":
+		a.logger.Info("LLM provided clarification or question",
+			zap.String("intent", result.Intent),
+			zap.Float64("confidence", result.Confidence))
+		response = &CalendarResponse{
+			Text: result.Response,
+		}
+	default:
+		if result.Response != "" && result.Confidence > 0.3 {
+			a.logger.Info("LLM provided response for unknown intent, using it directly",
+				zap.String("intent", result.Intent),
+				zap.Float64("confidence", result.Confidence))
+			response = &CalendarResponse{
+				Text: result.Response,
+			}
+		} else {
+			a.logger.Debug("LLM response not useful, falling back to pattern matching",
+				zap.String("intent", result.Intent),
+				zap.Float64("confidence", result.Confidence))
+			return a.processCalendarRequest(messageText)
+		}
+	}
+
+	if err != nil {
+		a.logger.Error("failed to process LLM-identified request",
+			zap.String("intent", result.Intent),
+			zap.Error(err))
+		return a.processCalendarRequest(messageText)
+	}
+
+	if result.Response != "" && response != nil {
+		response.Text = result.Response
+	}
+
+	totalDuration := time.Since(requestStartTime)
+	a.logger.Info("successfully processed calendar request with LLM",
+		zap.String("component", "llm-processor"),
+		zap.String("intent", result.Intent),
+		zap.Float64("confidence", result.Confidence),
+		zap.Duration("totalTime", totalDuration))
+
+	return response, nil
+}
+
+// processDirectToolCall handles direct tool calls with structured arguments (no message text)
+func (a *CalendarAgent) processDirectToolCall(ctx context.Context, skill string, arguments map[string]interface{}) (*CalendarResponse, error) {
+	a.logger.Debug("processing direct tool call",
+		zap.String("component", "direct-tool-processor"),
+		zap.String("operation", "process-tool-call"),
+		zap.String("skill", skill),
+		zap.Any("arguments", arguments))
+
+	switch skill {
+	case "list_events":
+		return a.handleDirectListEvents(arguments)
+	case "create_event":
+		return a.handleDirectCreateEvent(arguments)
+	case "update_event":
+		return a.handleDirectUpdateEvent(arguments)
+	case "delete_event":
+		return a.handleDirectDeleteEvent(arguments)
+	case "search_events":
+		return a.handleSearchEventsRequestWithParams(arguments)
+	case "get_availability":
+		return a.handleGetAvailabilityRequestWithParams(arguments)
+	case "list_calendars":
+		return a.handleListCalendarsRequest("")
+	default:
+		return nil, fmt.Errorf("unsupported skill: %s", skill)
+	}
+}
+
+// handleDirectListEvents processes direct list events calls with structured arguments
+func (a *CalendarAgent) handleDirectListEvents(arguments map[string]interface{}) (*CalendarResponse, error) {
+	a.logger.Debug("handling direct list events request", zap.Any("arguments", arguments))
+
+	// Parse parameters using type-safe method
+	params, err := a.parseListEventsParams(arguments)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse list events parameters: %w", err)
+	}
+
+	calendarID := params.CalendarID
+	if calendarID == "" {
+		calendarID = os.Getenv("GOOGLE_CALENDAR_ID")
+		if calendarID == "" {
+			calendarID = "primary"
+		}
+	}
+
+	// Parse start and end dates from structured parameters
+	timeMin, err := time.Parse(time.RFC3339, params.StartDate)
+	if err != nil {
+		a.logger.Error("failed to parse start_date", zap.String("start_date", params.StartDate), zap.Error(err))
+		return nil, fmt.Errorf("invalid start_date format: %w", err)
+	}
+
+	timeMax, err := time.Parse(time.RFC3339, params.EndDate)
+	if err != nil {
+		a.logger.Error("failed to parse end_date", zap.String("end_date", params.EndDate), zap.Error(err))
+		return nil, fmt.Errorf("invalid end_date format: %w", err)
+	}
+
+	timeDescription := fmt.Sprintf("from %s to %s",
+		timeMin.Format("Jan 2, 2006"),
+		timeMax.Format("Jan 2, 2006"))
+
+	a.logger.Debug("time range for direct events call",
+		zap.Time("timeMin", timeMin),
+		zap.Time("timeMax", timeMax),
+		zap.String("description", timeDescription))
+
+	events, err := a.calendarService.ListEvents(calendarID, timeMin, timeMax)
+	if err != nil {
+		a.logger.Error("failed to retrieve events from calendar service",
+			zap.Error(err),
+			zap.String("calendarID", calendarID),
+			zap.String("timeDescription", timeDescription))
+		return nil, fmt.Errorf("failed to retrieve calendar events: %w", err)
+	}
+
+	a.logger.Info("retrieved events for direct call",
+		zap.Int("eventCount", len(events)),
+		zap.String("timeDescription", timeDescription))
+
+	if len(events) == 0 {
+		return &CalendarResponse{
+			Text: "No events found for " + timeDescription + ".",
+		}, nil
+	}
+
+	responseText := "Here are your events for " + timeDescription + ":\n\n"
+	for i, event := range events {
+		startTime, _ := time.Parse(time.RFC3339, event.Start.DateTime)
+		endTime, _ := time.Parse(time.RFC3339, event.End.DateTime)
+
+		responseText += fmt.Sprintf("%d. %s\n", i+1, event.Summary)
+		responseText += fmt.Sprintf("   Time: %s - %s\n",
+			startTime.Format("3:04 PM"),
+			endTime.Format("3:04 PM"))
+		if event.Location != "" {
+			responseText += "   Location: " + event.Location + "\n"
+		}
+		responseText += "\n"
+	}
+
+	return &CalendarResponse{
+		Text: responseText,
+		Data: events,
+	}, nil
+}
+
+// handleDirectCreateEvent processes direct create event calls with structured arguments
+func (a *CalendarAgent) handleDirectCreateEvent(arguments map[string]interface{}) (*CalendarResponse, error) {
+	a.logger.Debug("handling direct create event request", zap.Any("arguments", arguments))
+
+	params, err := a.parseCreateEventParams(arguments)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse create event parameters: %w", err)
+	}
+
+	a.logger.Info("parsed create event parameters",
+		zap.String("title", params.Title),
+		zap.String("startTime", params.StartTime),
+		zap.String("endTime", params.EndTime),
+		zap.String("location", params.Location))
+
+	calendarID := params.CalendarID
+	if calendarID == "" {
+		calendarID = os.Getenv("GOOGLE_CALENDAR_ID")
+		if calendarID == "" {
+			calendarID = "primary"
+		}
+	}
+
+	startTime, err := time.Parse(time.RFC3339, params.StartTime)
+	if err != nil {
+		a.logger.Error("failed to parse start_time", zap.String("start_time", params.StartTime), zap.Error(err))
+		return nil, fmt.Errorf("invalid start_time format: %w", err)
+	}
+
+	endTime, err := time.Parse(time.RFC3339, params.EndTime)
+	if err != nil {
+		a.logger.Error("failed to parse end_time", zap.String("end_time", params.EndTime), zap.Error(err))
+		return nil, fmt.Errorf("invalid end_time format: %w", err)
+	}
+
+	// Check for conflicts before creating the event
+	conflicts, err := a.calendarService.CheckConflicts(calendarID, startTime, endTime)
+	if err != nil {
+		a.logger.Error("failed to check for conflicts in direct tool call",
+			zap.Error(err),
+			zap.String("calendarID", calendarID),
+			zap.Time("startTime", startTime),
+			zap.Time("endTime", endTime))
+		return nil, fmt.Errorf("failed to check for scheduling conflicts: %w", err)
+	}
+
+	// If conflicts found, suggest alternative times
+	if len(conflicts) > 0 {
+		a.logger.Info("found scheduling conflicts in direct tool call",
+			zap.Int("conflictCount", len(conflicts)),
+			zap.String("proposedTitle", params.Title),
+			zap.Time("proposedStartTime", startTime),
+			zap.Time("proposedEndTime", endTime))
+
+		conflictText := "⚠️ **Scheduling Conflict Detected!**\n\n"
+		conflictText += fmt.Sprintf("You already have %d event(s) scheduled during %s - %s:\n\n",
+			len(conflicts),
+			startTime.Format("3:04 PM"),
+			endTime.Format("3:04 PM"))
+
+		for i, conflict := range conflicts {
+			conflictStartTime, _ := time.Parse(time.RFC3339, conflict.Start.DateTime)
+			conflictEndTime, _ := time.Parse(time.RFC3339, conflict.End.DateTime)
+			conflictText += fmt.Sprintf("%d. **%s**\n   Time: %s - %s\n",
+				i+1,
+				conflict.Summary,
+				conflictStartTime.Format("3:04 PM"),
+				conflictEndTime.Format("3:04 PM"))
+			if conflict.Location != "" {
+				conflictText += fmt.Sprintf("   Location: %s\n", conflict.Location)
+			}
+			conflictText += "\n"
+		}
+
+		// Suggest alternative times
+		conflictText += "**Suggested alternative times:**\n"
+		duration := endTime.Sub(startTime)
+
+		// Suggest 1 hour later
+		altTime1 := startTime.Add(time.Hour)
+		conflictText += fmt.Sprintf("• %s - %s\n",
+			altTime1.Format("3:04 PM"),
+			altTime1.Add(duration).Format("3:04 PM"))
+
+		// Suggest 2 hours later
+		altTime2 := startTime.Add(2 * time.Hour)
+		conflictText += fmt.Sprintf("• %s - %s\n",
+			altTime2.Format("3:04 PM"),
+			altTime2.Add(duration).Format("3:04 PM"))
+
+		// Suggest next day same time
+		altTime3 := startTime.AddDate(0, 0, 1)
+		conflictText += fmt.Sprintf("• %s - %s (%s)\n",
+			altTime3.Format("3:04 PM"),
+			altTime3.Add(duration).Format("3:04 PM"),
+			altTime3.Format("Monday, January 2"))
+
+		conflictText += "\nWould you like me to schedule it at one of these alternative times instead?"
+
+		return &CalendarResponse{
+			Text: conflictText,
+			Data: map[string]interface{}{
+				"conflicts":      conflicts,
+				"proposed_event": params,
+				"calendar_id":    calendarID,
+				"alternative_times": []map[string]interface{}{
+					{
+						"start_time": altTime1.Format(time.RFC3339),
+						"end_time":   altTime1.Add(duration).Format(time.RFC3339),
+						"display":    fmt.Sprintf("%s - %s", altTime1.Format("3:04 PM"), altTime1.Add(duration).Format("3:04 PM")),
+					},
+					{
+						"start_time": altTime2.Format(time.RFC3339),
+						"end_time":   altTime2.Add(duration).Format(time.RFC3339),
+						"display":    fmt.Sprintf("%s - %s", altTime2.Format("3:04 PM"), altTime2.Add(duration).Format("3:04 PM")),
+					},
+					{
+						"start_time": altTime3.Format(time.RFC3339),
+						"end_time":   altTime3.Add(duration).Format(time.RFC3339),
+						"display":    fmt.Sprintf("%s - %s (%s)", altTime3.Format("3:04 PM"), altTime3.Add(duration).Format("3:04 PM"), altTime3.Format("Monday, January 2")),
+					},
+				},
+			},
+		}, nil
+	}
+
+	event := &calendar.Event{
+		Summary:     params.Title,
+		Description: params.Description,
+		Start: &calendar.EventDateTime{
+			DateTime: startTime.Format(time.RFC3339),
+		},
+		End: &calendar.EventDateTime{
+			DateTime: endTime.Format(time.RFC3339),
+		},
+		Location: params.Location,
+	}
+
+	a.logger.Debug("created calendar event object for direct tool call",
+		zap.String("eventSummary", event.Summary),
+		zap.String("calendarID", calendarID))
+
+	createdEvent, err := a.calendarService.CreateEvent(calendarID, event)
+	if err != nil {
+		a.logger.Error("failed to create event in calendar service for direct tool call",
+			zap.Error(err),
+			zap.String("calendarID", calendarID),
+			zap.String("eventSummary", event.Summary))
+		return nil, fmt.Errorf("failed to create calendar event: %w", err)
+	}
+
+	responseText := "✅ Event created successfully!\n\n"
+	responseText += "Title: " + createdEvent.Summary + "\n"
+	responseText += "Date: " + startTime.Format("Monday, January 2, 2006") + "\n"
+	responseText += fmt.Sprintf("Time: %s - %s\n",
+		startTime.Format("3:04 PM"),
+		endTime.Format("3:04 PM"))
+	if createdEvent.Location != "" {
+		responseText += "Location: " + createdEvent.Location + "\n"
+	}
+
+	a.logger.Info("successfully created event via direct tool call",
+		zap.String("eventId", createdEvent.Id),
+		zap.String("title", createdEvent.Summary),
+		zap.String("calendarID", calendarID))
+
+	return &CalendarResponse{
+		Text: responseText,
+		Data: createdEvent,
+	}, nil
+}
+
+// handleDirectUpdateEvent processes direct update event calls with structured arguments
+func (a *CalendarAgent) handleDirectUpdateEvent(arguments map[string]interface{}) (*CalendarResponse, error) {
+	a.logger.Debug("handling direct update event request", zap.Any("arguments", arguments))
+
+	params, err := a.parseUpdateEventParams(arguments)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse update event parameters: %w", err)
+	}
+
+	a.logger.Info("parsed update event parameters",
+		zap.String("eventID", params.EventID),
+		zap.String("title", params.Title),
+		zap.String("startTime", params.StartTime),
+		zap.String("endTime", params.EndTime),
+		zap.String("location", params.Location))
+
+	// Determine calendar ID
+	calendarID := params.CalendarID
+	if calendarID == "" {
+		calendarID = os.Getenv("GOOGLE_CALENDAR_ID")
+		if calendarID == "" {
+			calendarID = "primary"
+		}
+	}
+
+	// Create the updated event structure
+	event := &calendar.Event{}
+
+	// Update fields only if they are provided
+	if params.Title != "" {
+		event.Summary = params.Title
+	}
+	if params.Description != "" {
+		event.Description = params.Description
+	}
+	if params.Location != "" {
+		event.Location = params.Location
+	}
+
+	// Parse and update start time if provided
+	if params.StartTime != "" {
+		startTime, err := time.Parse(time.RFC3339, params.StartTime)
+		if err != nil {
+			a.logger.Error("failed to parse start_time", zap.String("start_time", params.StartTime), zap.Error(err))
+			return nil, fmt.Errorf("invalid start_time format: %w", err)
+		}
+		event.Start = &calendar.EventDateTime{
+			DateTime: startTime.Format(time.RFC3339),
+		}
+	}
+
+	// Parse and update end time if provided
+	if params.EndTime != "" {
+		endTime, err := time.Parse(time.RFC3339, params.EndTime)
+		if err != nil {
+			a.logger.Error("failed to parse end_time", zap.String("end_time", params.EndTime), zap.Error(err))
+			return nil, fmt.Errorf("invalid end_time format: %w", err)
+		}
+		event.End = &calendar.EventDateTime{
+			DateTime: endTime.Format(time.RFC3339),
+		}
+	}
+
+	a.logger.Debug("created calendar event object for direct update tool call",
+		zap.String("eventID", params.EventID),
+		zap.String("calendarID", calendarID))
+
+	updatedEvent, err := a.calendarService.UpdateEvent(calendarID, params.EventID, event)
+	if err != nil {
+		a.logger.Error("failed to update event in calendar service for direct tool call",
+			zap.Error(err),
+			zap.String("calendarID", calendarID),
+			zap.String("eventID", params.EventID))
+		return nil, fmt.Errorf("failed to update calendar event: %w", err)
+	}
+
+	responseText := "✅ Event updated successfully!\n\n"
+	responseText += "Event ID: " + updatedEvent.Id + "\n"
+	if updatedEvent.Summary != "" {
+		responseText += "Title: " + updatedEvent.Summary + "\n"
+	}
+	if updatedEvent.Start != nil && updatedEvent.Start.DateTime != "" {
+		startTime, _ := time.Parse(time.RFC3339, updatedEvent.Start.DateTime)
+		responseText += "Date: " + startTime.Format("Monday, January 2, 2006") + "\n"
+		if updatedEvent.End != nil && updatedEvent.End.DateTime != "" {
+			endTime, _ := time.Parse(time.RFC3339, updatedEvent.End.DateTime)
+			responseText += fmt.Sprintf("Time: %s - %s\n",
+				startTime.Format("3:04 PM"),
+				endTime.Format("3:04 PM"))
+		}
+	}
+	if updatedEvent.Location != "" {
+		responseText += "Location: " + updatedEvent.Location + "\n"
+	}
+
+	a.logger.Info("successfully updated event via direct tool call",
+		zap.String("eventId", updatedEvent.Id),
+		zap.String("title", updatedEvent.Summary),
+		zap.String("calendarID", calendarID))
+
+	return &CalendarResponse{
+		Text: responseText,
+		Data: updatedEvent,
+	}, nil
+}
+
+// handleDirectDeleteEvent processes direct delete event calls with structured arguments
+func (a *CalendarAgent) handleDirectDeleteEvent(arguments map[string]interface{}) (*CalendarResponse, error) {
+	a.logger.Debug("handling direct delete event request", zap.Any("arguments", arguments))
+
+	params, err := a.parseDeleteEventParams(arguments)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse delete event parameters: %w", err)
+	}
+
+	a.logger.Info("parsed delete event parameters",
+		zap.String("eventID", params.EventID),
+		zap.String("calendarID", params.CalendarID),
+		zap.String("title", params.Title),
+		zap.String("date", params.Date))
+
+	// Determine calendar ID
+	calendarID := params.CalendarID
+	if calendarID == "" {
+		calendarID = os.Getenv("GOOGLE_CALENDAR_ID")
+		if calendarID == "" {
+			calendarID = "primary"
+		}
+	}
+
+	// Optionally get event details before deletion for confirmation message
+	var eventTitle string
+	if params.EventID != "" {
+		event, err := a.calendarService.GetEvent(calendarID, params.EventID)
+		if err != nil {
+			a.logger.Warn("could not retrieve event details before deletion",
+				zap.String("eventID", params.EventID),
+				zap.String("calendarID", calendarID),
+				zap.Error(err))
+		} else {
+			eventTitle = event.Summary
+		}
+	}
+
+	a.logger.Debug("deleting calendar event via direct tool call",
+		zap.String("eventID", params.EventID),
+		zap.String("calendarID", calendarID))
+
+	err = a.calendarService.DeleteEvent(calendarID, params.EventID)
+	if err != nil {
+		a.logger.Error("failed to delete event in calendar service for direct tool call",
+			zap.Error(err),
+			zap.String("calendarID", calendarID),
+			zap.String("eventID", params.EventID))
+		return nil, fmt.Errorf("failed to delete calendar event: %w", err)
+	}
+
+	responseText := "✅ Event deleted successfully!\n\n"
+	responseText += "Event ID: " + params.EventID + "\n"
+	if eventTitle != "" {
+		responseText += "Title: " + eventTitle + "\n"
+	}
+
+	a.logger.Info("successfully deleted event via direct tool call",
+		zap.String("eventId", params.EventID),
+		zap.String("title", eventTitle),
+		zap.String("calendarID", calendarID))
+
+	return &CalendarResponse{
+		Text: responseText,
+		Data: map[string]string{
+			"event_id":    params.EventID,
+			"calendar_id": calendarID,
+			"status":      "deleted",
+		},
+	}, nil
+}
+
+// ListEventsParams represents type-safe parameters for list events operations
+type ListEventsParams struct {
+	StartDate  string `json:"start_date"`
+	EndDate    string `json:"end_date"`
+	CalendarID string `json:"calendar_id,omitempty"`
+	MaxResults int    `json:"max_results,omitempty"`
+	Query      string `json:"query,omitempty"`
+}
+
+// CreateEventParams represents type-safe parameters for create event operations
+type CreateEventParams struct {
+	Title       string `json:"title"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+	Date        string `json:"date,omitempty"`
+	Location    string `json:"location,omitempty"`
+	Description string `json:"description,omitempty"`
+	CalendarID  string `json:"calendar_id,omitempty"`
+}
+
+// UpdateEventParams represents type-safe parameters for update event operations
+type UpdateEventParams struct {
+	EventID     string `json:"event_id"`
+	Title       string `json:"title,omitempty"`
+	StartTime   string `json:"start_time,omitempty"`
+	EndTime     string `json:"end_time,omitempty"`
+	Date        string `json:"date,omitempty"`
+	Location    string `json:"location,omitempty"`
+	Description string `json:"description,omitempty"`
+	CalendarID  string `json:"calendar_id,omitempty"`
+}
+
+// DeleteEventParams represents type-safe parameters for delete event operations
+type DeleteEventParams struct {
+	EventID    string `json:"event_id"`
+	CalendarID string `json:"calendar_id,omitempty"`
+	Title      string `json:"title,omitempty"`
+	Date       string `json:"date,omitempty"`
+}
+
+// SearchEventsParams represents type-safe parameters for search events operations
+type SearchEventsParams struct {
+	Query      string `json:"query"`
+	StartDate  string `json:"start_date,omitempty"`
+	EndDate    string `json:"end_date,omitempty"`
+	CalendarID string `json:"calendar_id,omitempty"`
+	MaxResults int    `json:"max_results,omitempty"`
+}
+
+// AvailabilityParams represents type-safe parameters for availability operations
+type AvailabilityParams struct {
+	StartDate  string `json:"start_date"`
+	EndDate    string `json:"end_date"`
+	Duration   int    `json:"duration,omitempty"` // in minutes
+	CalendarID string `json:"calendar_id,omitempty"`
+}
+
+// parseListEventsParams safely parses arguments into ListEventsParams struct
+func (a *CalendarAgent) parseListEventsParams(arguments map[string]interface{}) (*ListEventsParams, error) {
+	params := &ListEventsParams{}
+
+	if startDate, ok := arguments["start_date"].(string); ok {
+		params.StartDate = startDate
+	} else {
+		return nil, fmt.Errorf("missing or invalid start_date parameter")
+	}
+
+	if endDate, ok := arguments["end_date"].(string); ok {
+		params.EndDate = endDate
+	} else {
+		return nil, fmt.Errorf("missing or invalid end_date parameter")
+	}
+
+	if calendarID, ok := arguments["calendar_id"].(string); ok {
+		params.CalendarID = calendarID
+	}
+
+	if maxResults, ok := arguments["max_results"].(float64); ok {
+		params.MaxResults = int(maxResults)
+	}
+
+	if query, ok := arguments["query"].(string); ok {
+		params.Query = query
+	}
+
+	return params, nil
+}
+
+// parseCreateEventParams safely parses arguments into CreateEventParams struct
+func (a *CalendarAgent) parseCreateEventParams(arguments map[string]interface{}) (*CreateEventParams, error) {
+	params := &CreateEventParams{}
+
+	if title, ok := arguments["title"].(string); ok {
+		params.Title = title
+	} else {
+		return nil, fmt.Errorf("missing or invalid title parameter")
+	}
+
+	if startTime, ok := arguments["start_time"].(string); ok {
+		params.StartTime = startTime
+	}
+
+	if endTime, ok := arguments["end_time"].(string); ok {
+		params.EndTime = endTime
+	}
+
+	if date, ok := arguments["date"].(string); ok {
+		params.Date = date
+	}
+
+	if location, ok := arguments["location"].(string); ok {
+		params.Location = location
+	}
+
+	if description, ok := arguments["description"].(string); ok {
+		params.Description = description
+	}
+
+	if calendarID, ok := arguments["calendar_id"].(string); ok {
+		params.CalendarID = calendarID
+	}
+
+	return params, nil
+}
+
+// parseUpdateEventParams safely parses arguments into UpdateEventParams struct
+func (a *CalendarAgent) parseUpdateEventParams(arguments map[string]interface{}) (*UpdateEventParams, error) {
+	params := &UpdateEventParams{}
+
+	if eventID, ok := arguments["event_id"].(string); ok {
+		params.EventID = eventID
+	} else {
+		return nil, fmt.Errorf("missing or invalid event_id parameter")
+	}
+
+	if title, ok := arguments["title"].(string); ok {
+		params.Title = title
+	}
+
+	if startTime, ok := arguments["start_time"].(string); ok {
+		params.StartTime = startTime
+	}
+
+	if endTime, ok := arguments["end_time"].(string); ok {
+		params.EndTime = endTime
+	}
+
+	if date, ok := arguments["date"].(string); ok {
+		params.Date = date
+	}
+
+	if location, ok := arguments["location"].(string); ok {
+		params.Location = location
+	}
+
+	if description, ok := arguments["description"].(string); ok {
+		params.Description = description
+	}
+
+	if calendarID, ok := arguments["calendar_id"].(string); ok {
+		params.CalendarID = calendarID
+	}
+
+	return params, nil
+}
+
+// parseDeleteEventParams safely parses arguments into DeleteEventParams struct
+func (a *CalendarAgent) parseDeleteEventParams(arguments map[string]interface{}) (*DeleteEventParams, error) {
+	params := &DeleteEventParams{}
+
+	if eventID, ok := arguments["event_id"].(string); ok {
+		params.EventID = eventID
+	} else {
+		return nil, fmt.Errorf("missing or invalid event_id parameter")
+	}
+
+	if calendarID, ok := arguments["calendar_id"].(string); ok {
+		params.CalendarID = calendarID
+	}
+
+	if title, ok := arguments["title"].(string); ok {
+		params.Title = title
+	}
+
+	if date, ok := arguments["date"].(string); ok {
+		params.Date = date
+	}
+
+	return params, nil
+}
+
+// parseSearchEventsParams safely parses arguments into SearchEventsParams struct
+func (a *CalendarAgent) parseSearchEventsParams(arguments map[string]interface{}) (*SearchEventsParams, error) {
+	params := &SearchEventsParams{}
+
+	if query, ok := arguments["query"].(string); ok {
+		params.Query = query
+	} else {
+		return nil, fmt.Errorf("missing or invalid query parameter")
+	}
+
+	if startDate, ok := arguments["start_date"].(string); ok {
+		params.StartDate = startDate
+	}
+
+	if endDate, ok := arguments["end_date"].(string); ok {
+		params.EndDate = endDate
+	}
+
+	if calendarID, ok := arguments["calendar_id"].(string); ok {
+		params.CalendarID = calendarID
+	}
+
+	if maxResults, ok := arguments["max_results"].(float64); ok {
+		params.MaxResults = int(maxResults)
+	}
+
+	return params, nil
+}
+
+// parseAvailabilityParams safely parses arguments into AvailabilityParams struct
+func (a *CalendarAgent) parseAvailabilityParams(arguments map[string]interface{}) (*AvailabilityParams, error) {
+	params := &AvailabilityParams{}
+
+	if startDate, ok := arguments["start_date"].(string); ok {
+		params.StartDate = startDate
+	} else {
+		return nil, fmt.Errorf("missing or invalid start_date parameter")
+	}
+
+	if endDate, ok := arguments["end_date"].(string); ok {
+		params.EndDate = endDate
+	} else {
+		return nil, fmt.Errorf("missing or invalid end_date parameter")
+	}
+
+	if duration, ok := arguments["duration"].(float64); ok {
+		params.Duration = int(duration)
+	}
+
+	if calendarID, ok := arguments["calendar_id"].(string); ok {
+		params.CalendarID = calendarID
+	}
+
+	return params, nil
+}
+
+// handleSearchEventsRequestWithParams processes search events requests with structured parameters
+func (a *CalendarAgent) handleSearchEventsRequestWithParams(arguments map[string]interface{}) (*CalendarResponse, error) {
+	a.logger.Debug("handling search events request with params", zap.Any("arguments", arguments))
+
+	params, err := a.parseSearchEventsParams(arguments)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse search events parameters: %w", err)
+	}
+
+	// For now, return a simple response
+	return &CalendarResponse{
+		Text: fmt.Sprintf("Search functionality for '%s' is not yet implemented", params.Query),
+	}, nil
+}
+
+// handleGetAvailabilityRequestWithParams processes availability requests with structured parameters
+func (a *CalendarAgent) handleGetAvailabilityRequestWithParams(arguments map[string]interface{}) (*CalendarResponse, error) {
+	a.logger.Debug("handling get availability request with params", zap.Any("arguments", arguments))
+
+	params, err := a.parseAvailabilityParams(arguments)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse availability parameters: %w", err)
+	}
+
+	// For now, return a simple response
+	return &CalendarResponse{
+		Text: fmt.Sprintf("Availability checking from %s to %s is not yet implemented", params.StartDate, params.EndDate),
+	}, nil
 }

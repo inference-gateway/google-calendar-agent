@@ -10,6 +10,21 @@ import (
 )
 
 type FakeCalendarService struct {
+	CheckConflictsStub        func(string, time.Time, time.Time) ([]*calendar.Event, error)
+	checkConflictsMutex       sync.RWMutex
+	checkConflictsArgsForCall []struct {
+		arg1 string
+		arg2 time.Time
+		arg3 time.Time
+	}
+	checkConflictsReturns struct {
+		result1 []*calendar.Event
+		result2 error
+	}
+	checkConflictsReturnsOnCall map[int]struct {
+		result1 []*calendar.Event
+		result2 error
+	}
 	CreateEventStub        func(string, *calendar.Event) (*calendar.Event, error)
 	createEventMutex       sync.RWMutex
 	createEventArgsForCall []struct {
@@ -94,6 +109,72 @@ type FakeCalendarService struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeCalendarService) CheckConflicts(arg1 string, arg2 time.Time, arg3 time.Time) ([]*calendar.Event, error) {
+	fake.checkConflictsMutex.Lock()
+	ret, specificReturn := fake.checkConflictsReturnsOnCall[len(fake.checkConflictsArgsForCall)]
+	fake.checkConflictsArgsForCall = append(fake.checkConflictsArgsForCall, struct {
+		arg1 string
+		arg2 time.Time
+		arg3 time.Time
+	}{arg1, arg2, arg3})
+	stub := fake.CheckConflictsStub
+	fakeReturns := fake.checkConflictsReturns
+	fake.recordInvocation("CheckConflicts", []interface{}{arg1, arg2, arg3})
+	fake.checkConflictsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeCalendarService) CheckConflictsCallCount() int {
+	fake.checkConflictsMutex.RLock()
+	defer fake.checkConflictsMutex.RUnlock()
+	return len(fake.checkConflictsArgsForCall)
+}
+
+func (fake *FakeCalendarService) CheckConflictsCalls(stub func(string, time.Time, time.Time) ([]*calendar.Event, error)) {
+	fake.checkConflictsMutex.Lock()
+	defer fake.checkConflictsMutex.Unlock()
+	fake.CheckConflictsStub = stub
+}
+
+func (fake *FakeCalendarService) CheckConflictsArgsForCall(i int) (string, time.Time, time.Time) {
+	fake.checkConflictsMutex.RLock()
+	defer fake.checkConflictsMutex.RUnlock()
+	argsForCall := fake.checkConflictsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeCalendarService) CheckConflictsReturns(result1 []*calendar.Event, result2 error) {
+	fake.checkConflictsMutex.Lock()
+	defer fake.checkConflictsMutex.Unlock()
+	fake.CheckConflictsStub = nil
+	fake.checkConflictsReturns = struct {
+		result1 []*calendar.Event
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeCalendarService) CheckConflictsReturnsOnCall(i int, result1 []*calendar.Event, result2 error) {
+	fake.checkConflictsMutex.Lock()
+	defer fake.checkConflictsMutex.Unlock()
+	fake.CheckConflictsStub = nil
+	if fake.checkConflictsReturnsOnCall == nil {
+		fake.checkConflictsReturnsOnCall = make(map[int]struct {
+			result1 []*calendar.Event
+			result2 error
+		})
+	}
+	fake.checkConflictsReturnsOnCall[i] = struct {
+		result1 []*calendar.Event
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeCalendarService) CreateEvent(arg1 string, arg2 *calendar.Event) (*calendar.Event, error) {
@@ -479,6 +560,8 @@ func (fake *FakeCalendarService) UpdateEventReturnsOnCall(i int, result1 *calend
 func (fake *FakeCalendarService) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.checkConflictsMutex.RLock()
+	defer fake.checkConflictsMutex.RUnlock()
 	fake.createEventMutex.RLock()
 	defer fake.createEventMutex.RUnlock()
 	fake.deleteEventMutex.RLock()

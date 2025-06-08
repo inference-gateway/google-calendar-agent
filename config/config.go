@@ -24,6 +24,9 @@ type Config struct {
 
 	// Application Configuration
 	App AppConfig `env:", prefix=APP_"`
+
+	// LLM Configuration
+	LLM LLMConfig `env:", prefix=LLM_"`
 }
 
 // GoogleConfig holds Google Calendar API related configuration
@@ -119,6 +122,32 @@ type AppConfig struct {
 	RequestTimeout time.Duration `env:"REQUEST_TIMEOUT, default=30s"`
 }
 
+// LLMConfig holds LLM provider configuration for natural language processing
+// Supports both Inference Gateway and OpenAI-compatible API endpoints
+type LLMConfig struct {
+	// GatewayURL is the URL of the Inference Gateway or OpenAI-compatible API endpoint
+	GatewayURL string `env:"GATEWAY_URL, default=http://localhost:8080/v1"`
+
+	// Provider is the LLM provider to use through the Inference Gateway
+	// Supported providers: openai, anthropic, groq, ollama, deepseek, cohere, cloudflare
+	Provider string `env:"PROVIDER, default=groq"`
+
+	// Model is the specific model to use (e.g., gpt-4o, claude-3-opus, deepseek-r1-distill-llama-70b)
+	Model string `env:"MODEL, default=deepseek-r1-distill-llama-70b"`
+
+	// Timeout is the timeout for LLM requests
+	Timeout time.Duration `env:"TIMEOUT, default=30s"`
+
+	// MaxTokens is the maximum number of tokens to generate
+	MaxTokens int `env:"MAX_TOKENS, default=2048"`
+
+	// Temperature controls randomness in generation (0.0 to 2.0)
+	Temperature float64 `env:"TEMPERATURE, default=0.7"`
+
+	// Enabled determines if LLM functionality is enabled
+	Enabled bool `env:"ENABLED, default=true"`
+}
+
 // Load loads configuration from environment variables
 func Load(ctx context.Context) (*Config, error) {
 	var cfg Config
@@ -152,14 +181,12 @@ func LoadWithLookuper(ctx context.Context, lookuper envconfig.Lookuper) (*Config
 
 // Validate validates the configuration values
 func (c *Config) Validate() error {
-	// Validate Google configuration
 	if !c.App.DemoMode {
 		if c.Google.ServiceAccountJSON == "" && c.Google.CredentialsPath == "" {
 			return fmt.Errorf("either GOOGLE_CALENDAR_SA_JSON or GOOGLE_APPLICATION_CREDENTIALS must be provided when not in demo mode")
 		}
 	}
 
-	// Validate TLS configuration
 	if c.Server.EnableTLS {
 		if c.TLS.CertPath == "" {
 			return fmt.Errorf("TLS_CERT_PATH is required when TLS is enabled")
@@ -169,7 +196,6 @@ func (c *Config) Validate() error {
 		}
 	}
 
-	// Validate log level
 	validLogLevels := map[string]bool{
 		"debug": true,
 		"info":  true,
@@ -180,7 +206,6 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("invalid log level '%s', must be one of: debug, info, warn, error", c.Logging.Level)
 	}
 
-	// Validate server mode
 	validModes := map[string]bool{
 		"debug":   true,
 		"release": true,
@@ -190,7 +215,6 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("invalid server mode '%s', must be one of: debug, release, test", c.Server.Mode)
 	}
 
-	// Validate TLS version
 	if c.Server.EnableTLS {
 		validTLSVersions := map[string]bool{
 			"1.2": true,
@@ -198,6 +222,38 @@ func (c *Config) Validate() error {
 		}
 		if !validTLSVersions[c.TLS.MinVersion] {
 			return fmt.Errorf("invalid TLS version '%s', must be one of: 1.2, 1.3", c.TLS.MinVersion)
+		}
+	}
+
+	if c.LLM.Enabled {
+		if c.LLM.GatewayURL == "" {
+			return fmt.Errorf("LLM_GATEWAY_URL is required when LLM is enabled")
+		}
+		if c.LLM.Provider == "" {
+			return fmt.Errorf("LLM_PROVIDER is required when LLM is enabled")
+		}
+
+		validProviders := map[string]bool{
+			"openai":     true,
+			"anthropic":  true,
+			"groq":       true,
+			"ollama":     true,
+			"deepseek":   true,
+			"cohere":     true,
+			"cloudflare": true,
+		}
+		if !validProviders[c.LLM.Provider] {
+			return fmt.Errorf("invalid LLM provider '%s', must be one of: openai, anthropic, groq, ollama, deepseek, cohere, cloudflare", c.LLM.Provider)
+		}
+
+		if c.LLM.Model == "" {
+			return fmt.Errorf("LLM_MODEL is required when LLM is enabled")
+		}
+		if c.LLM.Temperature < 0.0 || c.LLM.Temperature > 2.0 {
+			return fmt.Errorf("LLM_TEMPERATURE must be between 0.0 and 2.0, got %f", c.LLM.Temperature)
+		}
+		if c.LLM.MaxTokens <= 0 {
+			return fmt.Errorf("LLM_MAX_TOKENS must be greater than 0, got %d", c.LLM.MaxTokens)
 		}
 	}
 

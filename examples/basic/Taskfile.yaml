@@ -1,0 +1,147 @@
+version: "3"
+
+vars:
+  DOCKER_COMPOSE_FILE: docker-compose.yaml
+
+tasks:
+  help:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  up:
+    desc: Start all services using Docker Compose
+    cmds:
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} up -d
+
+  down:
+    desc: Stop all services
+    cmds:
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} down
+
+  restart:
+    desc: Restart all services
+    cmds:
+      - task: down
+      - task: up
+
+  logs:
+    desc: Show logs for all services
+    cmds:
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} logs -f
+
+  logs-gateway:
+    desc: Show logs for inference gateway
+    cmds:
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} logs -f inference-gateway
+
+  logs-agent:
+    desc: Show logs for calendar agent
+    cmds:
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} logs -f google-calendar-agent
+
+  status:
+    desc: Show status of all services
+    cmds:
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} ps
+
+  health:
+    desc: Check health of all services
+    cmds:
+      - echo "Checking Inference Gateway health..."
+      - curl -f http://localhost:8080/health || echo "Inference Gateway health check failed"
+      - echo "Checking Calendar Agent health..."
+      - curl -f http://localhost:8081/health || echo "Calendar Agent health check failed"
+
+  test-gateway:
+    desc: Test Inference Gateway with a simple request
+    cmds:
+      - |
+        curl -X POST http://localhost:8080/v1/chat/completions \
+          -H "Content-Type: application/json" \
+          -d '{
+            "model": "deepseek/deepseek-chat",
+            "messages": [
+              {
+                "role": "user",
+                "content": "Hello, can you help me with my calendar?"
+              }
+            ]
+          }'
+
+  test-agent:
+    desc: Test Calendar Agent directly
+    cmds:
+      - |
+        curl -X POST http://localhost:8081/a2a \
+          -H "Content-Type: application/json" \
+          -d '{
+            "input": "List my events for today",
+            "input_mode": "text/plain",
+            "output_mode": "text/plain"
+          }'
+
+  agent-info:
+    desc: Get agent information
+    cmds:
+      - curl http://localhost:8081/.well-known/agent.json | jq
+
+  clean:
+    desc: Stop services and remove volumes and networks
+    cmds:
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} down -v
+
+  clean-all:
+    desc: Stop services and remove volumes, networks, and images
+    cmds:
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} down -v --rmi all
+
+  pull:
+    desc: Pull latest images
+    cmds:
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} pull
+
+  build:
+    desc: Build services (if using local builds)
+    cmds:
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} build
+
+  debug:
+    desc: Start services with debug logging
+    cmds:
+      - |
+        LOG_LEVEL=debug \
+        APP_DEBUG=true \
+        SERVER_GIN_MODE=debug \
+        docker-compose -f {{.DOCKER_COMPOSE_FILE}} up
+
+  validate-env:
+    desc: Validate environment configuration
+    cmds:
+      - |
+        if [ ! -f .env ]; then
+          echo "Error: .env file not found. Run 'task setup' first."
+          exit 1
+        fi
+        echo "Environment file exists."
+        if grep -q "GROQ_API_KEY=" .env || grep -q "OPENAI_API_KEY=" .env || grep -q "ANTHROPIC_API_KEY=" .env; then
+          echo "LLM provider API key found."
+        else
+          echo "Warning: No LLM provider API key found. Please configure at least one provider in .env"
+        fi
+
+  demo:
+    desc: Start in demo mode (no Google Calendar integration required)
+    cmds:
+      - |
+        DEMO_MODE=true \
+        docker-compose -f {{.DOCKER_COMPOSE_FILE}} up
+
+  prod:
+    desc: Start in production mode
+    cmds:
+      - |
+        APP_ENVIRONMENT=prod \
+        SERVER_GIN_MODE=release \
+        LOG_LEVEL=info \
+        docker-compose -f {{.DOCKER_COMPOSE_FILE}} up -d
