@@ -39,6 +39,9 @@ type GoogleConfig struct {
 
 	// ReadOnly determines if the calendar should be accessed in read-only mode
 	ReadOnly bool `env:"CALENDAR_READ_ONLY, default=false"`
+
+	// TimeZone is the default timezone for interpreting user time inputs (e.g., "Europe/Berlin", "America/New_York")
+	TimeZone string `env:"CALENDAR_TIMEZONE, default=UTC"`
 }
 
 // ServerConfig holds HTTP server related configuration

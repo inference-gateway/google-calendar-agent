@@ -268,6 +268,20 @@ func TestCalendarAgent_HandleMessageSend_Success(t *testing.T) {
 				mockService.ListCalendarsReturns(tc.mockCalendars, tc.mockError)
 			}
 
+			if strings.Contains(tc.messageText, "schedule") || strings.Contains(tc.messageText, "create") {
+				mockEvent := &calendar.Event{
+					Id:      "test-event-id",
+					Summary: "Meeting",
+					Start: &calendar.EventDateTime{
+						DateTime: time.Now().Add(24 * time.Hour).Format(time.RFC3339),
+					},
+					End: &calendar.EventDateTime{
+						DateTime: time.Now().Add(25 * time.Hour).Format(time.RFC3339),
+					},
+				}
+				mockService.CreateEventReturns(mockEvent, tc.mockError)
+			}
+
 			params := createMessageSendParams(tc.messageText)
 			request := createTestJSONRPCRequest("message/send", params)
 			requestBody, err := json.Marshal(request)
@@ -710,21 +724,21 @@ func TestCalendarAgent_ParseEventDetails(t *testing.T) {
 		{
 			name:            "simple time reference",
 			text:            "meeting at 3pm",
-			expectedTitle:   "",
+			expectedTitle:   "Meeting",
 			expectValidTime: true,
 			expectValidDate: false,
 		},
 		{
 			name:            "date reference only",
 			text:            "meeting tomorrow",
-			expectedTitle:   "",
+			expectedTitle:   "Meeting",
 			expectValidTime: false,
 			expectValidDate: true,
 		},
 		{
 			name:            "no time or date",
 			text:            "schedule a meeting",
-			expectedTitle:   "",
+			expectedTitle:   "Meeting",
 			expectValidTime: false,
 			expectValidDate: false,
 		},

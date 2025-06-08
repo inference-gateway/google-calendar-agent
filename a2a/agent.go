@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/api/calendar/v3"
 
+	"github.com/inference-gateway/google-calendar-agent/config"
 	"github.com/inference-gateway/google-calendar-agent/google"
 )
 
@@ -22,6 +23,7 @@ import (
 type CalendarAgent struct {
 	calendarService google.CalendarService
 	logger          *zap.Logger
+	config          *config.Config
 }
 
 // NewCalendarAgent creates a new calendar agent
@@ -29,6 +31,16 @@ func NewCalendarAgent(calendarService google.CalendarService, logger *zap.Logger
 	return &CalendarAgent{
 		calendarService: calendarService,
 		logger:          logger,
+		config:          nil,
+	}
+}
+
+// NewCalendarAgentWithConfig creates a new calendar agent with configuration
+func NewCalendarAgentWithConfig(calendarService google.CalendarService, logger *zap.Logger, cfg *config.Config) *CalendarAgent {
+	return &CalendarAgent{
+		calendarService: calendarService,
+		logger:          logger,
+		config:          cfg,
 	}
 }
 
@@ -132,7 +144,7 @@ func (a *CalendarAgent) handleMessageSend(c *gin.Context, req JSONRPCRequest) {
 			continue
 		}
 
-		if partType, exists := part["type"]; exists && partType == "text" {
+		if partKind, exists := part["kind"]; exists && partKind == "text" {
 			if text, textExists := part["text"].(string); textExists {
 				messageText = text
 				a.logger.Debug("found text part",
@@ -466,7 +478,6 @@ func (a *CalendarAgent) isListCalendarsRequest(text string) bool {
 func (a *CalendarAgent) isCreateEventRequest(text string) bool {
 	a.logger.Debug("checking if request is create event", zap.String("text", text))
 
-	// Check for update patterns first to avoid false positives
 	updatePatterns := []string{"reschedule", "move", "change", "update", "modify", "edit"}
 	for _, pattern := range updatePatterns {
 		if strings.Contains(text, pattern) {
@@ -732,8 +743,17 @@ func (a *CalendarAgent) handleCreateEventRequest(text string) (*CalendarResponse
 		zap.Time("endTime", eventDetails.EndTime),
 		zap.String("location", eventDetails.Location))
 
+	calendarID := os.Getenv("GOOGLE_CALENDAR_ID")
+	if calendarID == "" {
+		calendarID = "primary"
+		a.logger.Debug("calendar id not specified in environment, using default",
+			zap.String("calendarID", calendarID))
+	} else {
+		a.logger.Debug("using calendar id from environment",
+			zap.String("calendarID", calendarID))
+	}
+
 	event := &calendar.Event{
-		Id:      uuid.New().String(),
 		Summary: eventDetails.Title,
 		Start: &calendar.EventDateTime{
 			DateTime: eventDetails.StartTime.Format(time.RFC3339),
@@ -744,25 +764,35 @@ func (a *CalendarAgent) handleCreateEventRequest(text string) (*CalendarResponse
 		Location: eventDetails.Location,
 	}
 
-	a.logger.Debug("created calendar event object", zap.String("eventId", event.Id))
+	a.logger.Debug("created calendar event object", zap.String("eventSummary", event.Summary))
+
+	createdEvent, err := a.calendarService.CreateEvent(calendarID, event)
+	if err != nil {
+		a.logger.Error("failed to create event in calendar service",
+			zap.Error(err),
+			zap.String("calendarID", calendarID),
+			zap.String("eventSummary", event.Summary))
+		return nil, fmt.Errorf("failed to create calendar event: %w", err)
+	}
 
 	responseText := "✅ Event created successfully!\n\n"
-	responseText += "Title: " + event.Summary + "\n"
+	responseText += "Title: " + createdEvent.Summary + "\n"
 	responseText += "Date: " + eventDetails.StartTime.Format("Monday, January 2, 2006") + "\n"
 	responseText += fmt.Sprintf("Time: %s - %s\n",
 		eventDetails.StartTime.Format("3:04 PM"),
 		eventDetails.EndTime.Format("3:04 PM"))
-	if event.Location != "" {
-		responseText += "Location: " + event.Location + "\n"
+	if createdEvent.Location != "" {
+		responseText += "Location: " + createdEvent.Location + "\n"
 	}
 
-	a.logger.Info("successfully created event response",
-		zap.String("eventId", event.Id),
-		zap.String("title", event.Summary))
+	a.logger.Info("successfully created event",
+		zap.String("eventId", createdEvent.Id),
+		zap.String("title", createdEvent.Summary),
+		zap.String("calendarID", calendarID))
 
 	return &CalendarResponse{
 		Text: responseText,
-		Data: event,
+		Data: createdEvent,
 	}, nil
 }
 
@@ -810,22 +840,51 @@ func (a *CalendarAgent) parseEventDetails(text string) EventDetails {
 
 	details := EventDetails{}
 
+	// Enhanced title patterns to handle various formats
 	titlePatterns := []string{
+		// Quoted titles
 		`(?i)create(?:\s+(?:an?|the))?\s+(?:event|meeting|appointment)(?:\s+(?:for|called|titled|named))?\s+"([^"]+)"`,
 		`(?i)schedule(?:\s+(?:an?|the))?\s+(?:event|meeting|appointment)(?:\s+(?:for|called|titled|named))?\s+"([^"]+)"`,
 		`(?i)(?:event|meeting|appointment)(?:\s+(?:for|called|titled|named))?\s+"([^"]+)"`,
+
+		// Meeting with someone - extract the person/organization name
+		`(?i)(?:create|schedule|book|add)(?:\s+(?:an?|the))?\s+(?:meeting|appointment)\s+(?:today\s+)?(?:at\s+\d{1,2}(?::\d{2})?\s+)?with\s+([^,\s]+(?:\s+[^,\s]+)*)`,
+		`(?i)(?:meeting|appointment)\s+(?:today\s+)?(?:at\s+\d{1,2}(?::\d{2})?\s+)?with\s+([^,\s]+(?:\s+[^,\s]+)*)`,
+
+		// Simple meeting patterns
+		`(?i)(?:create|schedule|book|add)\s+(?:an?|the)?\s*(meeting|appointment)`,
 	}
 
 	for i, pattern := range titlePatterns {
 		re := regexp.MustCompile(pattern)
 		if matches := re.FindStringSubmatch(text); len(matches) > 1 {
-			details.Title = matches[1]
+			extractedTitle := strings.TrimSpace(matches[1])
+
+			if i >= 3 && i <= 4 {
+				details.Title = fmt.Sprintf("Meeting with %s", extractedTitle)
+			} else if i == 5 {
+				details.Title = "Meeting"
+			} else {
+				details.Title = extractedTitle
+			}
+
 			a.logger.Debug("extracted title using pattern",
 				zap.Int("patternIndex", i),
 				zap.String("pattern", pattern),
 				zap.String("extractedTitle", details.Title))
 			break
 		}
+	}
+
+	if details.Title == "" {
+		if strings.Contains(strings.ToLower(text), "meeting") {
+			details.Title = "Meeting"
+		} else if strings.Contains(strings.ToLower(text), "appointment") {
+			details.Title = "Appointment"
+		} else {
+			details.Title = "Event"
+		}
+		a.logger.Debug("no title pattern matched, using default", zap.String("defaultTitle", details.Title))
 	}
 
 	if timeStr := a.extractTime(text); timeStr != "" {
@@ -933,6 +992,20 @@ func (a *CalendarAgent) parseTime(timeStr string) (time.Time, error) {
 	timeStr = strings.TrimSpace(timeStr)
 	now := time.Now()
 
+	var loc *time.Location
+	if a.config != nil && a.config.Google.TimeZone != "" {
+		var err error
+		loc, err = time.LoadLocation(a.config.Google.TimeZone)
+		if err != nil {
+			a.logger.Warn("failed to load configured timezone, using UTC",
+				zap.String("configuredTimezone", a.config.Google.TimeZone),
+				zap.Error(err))
+			loc = time.UTC
+		}
+	} else {
+		loc = time.UTC
+	}
+
 	formats := []string{
 		"3:04 PM",
 		"3:04pm",
@@ -945,12 +1018,13 @@ func (a *CalendarAgent) parseTime(timeStr string) (time.Time, error) {
 
 	for i, format := range formats {
 		if t, err := time.Parse(format, timeStr); err == nil {
-			result := time.Date(now.Year(), now.Month(), now.Day(), t.Hour(), t.Minute(), 0, 0, now.Location())
+			result := time.Date(now.Year(), now.Month(), now.Day(), t.Hour(), t.Minute(), 0, 0, loc)
 			a.logger.Debug("successfully parsed time using format",
 				zap.String("component", "time-parser"),
 				zap.String("operation", "parse-time"),
 				zap.Int("formatIndex", i),
 				zap.String("format", format),
+				zap.String("timezone", loc.String()),
 				zap.Time("result", result))
 			return result, nil
 		}
@@ -962,11 +1036,12 @@ func (a *CalendarAgent) parseTime(timeStr string) (time.Time, error) {
 				hour += 12
 			}
 		}
-		result := time.Date(now.Year(), now.Month(), now.Day(), hour, 0, 0, 0, now.Location())
+		result := time.Date(now.Year(), now.Month(), now.Day(), hour, 0, 0, 0, loc)
 		a.logger.Debug("parsed time using hour-only format",
 			zap.String("component", "time-parser"),
 			zap.String("operation", "parse-time"),
 			zap.Int("parsedHour", hour),
+			zap.String("timezone", loc.String()),
 			zap.Time("result", result))
 		return result, nil
 	}
