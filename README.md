@@ -72,18 +72,6 @@ This agent provides a natural language interface to Google Calendar through the 
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Request Flow
-
-```
-User Input → A2A Protocol → Natural Language Parser → Calendar Service → Google API
-    ↓             ↓                    ↓                     ↓              ↓
-"Schedule      JSON-RPC         Pattern Matching        Calendar        Create
-meeting       Request          & Event Parsing         Interface       Event
-tomorrow"     Validation                               Abstraction      Call
-    ↓             ↓                    ↓                     ↓              ↓
-Response ← A2A Response ← Formatted Response ← Service Response ← API Response
-```
-
 ## Features
 
 ### Core Capabilities
@@ -94,6 +82,26 @@ Response ← A2A Response ← Formatted Response ← Service Response ← API Re
 - **✏️ Event Updates**: Modify existing events (time, location, title)
 - **🗑️ Event Deletion**: Cancel and remove events from calendar
 - **🔄 Demo Mode**: Test functionality without Google API credentials
+
+### 🧠 LLM-Powered Natural Language Processing
+
+- **Advanced Intent Recognition**: Uses LLM to understand complex, conversational requests
+- **Intelligent Question Handling**: When requests are ambiguous, the LLM asks clarifying questions
+- **Multi-Provider Support**: Supports OpenAI, Anthropic, Groq, Ollama, DeepSeek, Cohere, and Cloudflare models
+- **Automatic Fallback**: Falls back to pattern matching if LLM processing fails
+- **Tool-Based Operations**: Uses function calling for structured calendar operations
+- **Smart Clarification**: Detects when more information is needed and asks relevant questions
+
+#### Question and Clarification Examples
+
+The LLM can intelligently handle ambiguous requests and ask for clarification:
+
+| User Input                   | LLM Response                                                                                                                                                                                                                                                                       |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "Schedule something"         | "I'd be happy to help you schedule something! Could you please provide more details like what type of event, when you'd like it scheduled, and how long it should be?"                                                                                                             |
+| "Create a meeting with John" | "I can help you create a meeting with John! When would you like to schedule this meeting? Please provide the date and time."                                                                                                                                                       |
+| "What's the weather like?"   | "I'm a calendar assistant focused on helping you manage your schedule and calendar events. While I can't answer weather questions, I'd be happy to help you organize your time! Would you like to schedule an appointment, check your availability, or list your upcoming events?" |
+| "How do I use this?"         | "I'm your calendar assistant! I can help you with creating events, listing your events, updating events, deleting events, and checking availability. Just tell me what you'd like to do in natural language!"                                                                      |
 
 ### Supported Commands
 

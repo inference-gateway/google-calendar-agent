@@ -1,6 +1,7 @@
 package a2a
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/inference-gateway/google-calendar-agent/config"
 	"github.com/inference-gateway/google-calendar-agent/google"
+	"github.com/inference-gateway/google-calendar-agent/llm"
 )
 
 // CalendarAgent handles A2A calendar requests
@@ -24,6 +26,7 @@ type CalendarAgent struct {
 	calendarService google.CalendarService
 	logger          *zap.Logger
 	config          *config.Config
+	llmService      llm.Service
 }
 
 // NewCalendarAgent creates a new calendar agent
@@ -32,6 +35,7 @@ func NewCalendarAgent(calendarService google.CalendarService, logger *zap.Logger
 		calendarService: calendarService,
 		logger:          logger,
 		config:          nil,
+		llmService:      nil,
 	}
 }
 
@@ -41,6 +45,17 @@ func NewCalendarAgentWithConfig(calendarService google.CalendarService, logger *
 		calendarService: calendarService,
 		logger:          logger,
 		config:          cfg,
+		llmService:      nil,
+	}
+}
+
+// NewCalendarAgentWithLLM creates a new calendar agent with configuration and LLM service
+func NewCalendarAgentWithLLM(calendarService google.CalendarService, logger *zap.Logger, cfg *config.Config, llmSvc llm.Service) *CalendarAgent {
+	return &CalendarAgent{
+		calendarService: calendarService,
+		logger:          logger,
+		config:          cfg,
+		llmService:      llmSvc,
 	}
 }
 
@@ -160,7 +175,7 @@ func (a *CalendarAgent) handleMessageSend(c *gin.Context, req JSONRPCRequest) {
 		zap.String("text", messageText),
 		zap.Any("requestId", req.ID))
 
-	response, err := a.processCalendarRequest(messageText)
+	response, err := a.processCalendarRequestWithLLM(c.Request.Context(), messageText)
 	if err != nil {
 		a.logger.Error("failed to process calendar request",
 			zap.Error(err),
@@ -544,7 +559,6 @@ func (a *CalendarAgent) isDeleteEventRequest(text string) bool {
 func (a *CalendarAgent) handleListEventsRequest(text string) (*CalendarResponse, error) {
 	a.logger.Debug("handling list events request", zap.String("text", text))
 
-	// Check which service implementation is being used
 	a.logger.Info("using calendar service for list events",
 		zap.String("component", "calendar-processor"),
 		zap.String("operation", "list-events"),
@@ -1149,4 +1163,145 @@ func (a *CalendarAgent) getNextWeekday(from time.Time, weekday time.Weekday) tim
 		zap.Time("result", result))
 
 	return result
+}
+
+// processCalendarRequestWithLLM processes calendar requests using LLM service for enhanced natural language understanding
+func (a *CalendarAgent) processCalendarRequestWithLLM(ctx context.Context, messageText string) (*CalendarResponse, error) {
+	if a.llmService == nil || !a.llmService.IsEnabled() {
+		a.logger.Debug("LLM service not available, falling back to pattern matching")
+		return a.processCalendarRequest(messageText)
+	}
+
+	requestStartTime := time.Now()
+	a.logger.Debug("processing calendar request with LLM",
+		zap.String("component", "llm-processor"),
+		zap.String("operation", "process-request"),
+		zap.String("input", messageText),
+		zap.Int("inputLength", len(messageText)),
+		zap.Time("startTime", requestStartTime))
+
+	result, err := a.llmService.ProcessNaturalLanguage(ctx, messageText)
+	if err != nil {
+		a.logger.Warn("LLM processing failed, falling back to pattern matching",
+			zap.Error(err))
+		return a.processCalendarRequest(messageText)
+	}
+
+	processingDuration := time.Since(requestStartTime)
+	a.logger.Info("LLM processing completed",
+		zap.String("intent", result.Intent),
+		zap.Float64("confidence", result.Confidence),
+		zap.Duration("processingTime", processingDuration))
+
+	var response *CalendarResponse
+	switch result.Intent {
+	case "list_calendars":
+		response, err = a.handleListCalendarsRequestWithParams(result.Parameters)
+	case "list_events":
+		response, err = a.handleListEventsRequestWithParams(result.Parameters)
+	case "create_event":
+		response, err = a.handleCreateEventRequestWithParams(result.Parameters)
+	case "update_event":
+		response, err = a.handleUpdateEventRequestWithParams(result.Parameters)
+	case "delete_event":
+		response, err = a.handleDeleteEventRequestWithParams(result.Parameters)
+	case "search_events":
+		response, err = a.handleSearchEventsRequestWithParams(result.Parameters)
+	case "get_availability":
+		response, err = a.handleGetAvailabilityRequestWithParams(result.Parameters)
+	case "question", "clarification", "unknown":
+		a.logger.Info("LLM provided clarification or question",
+			zap.String("intent", result.Intent),
+			zap.Float64("confidence", result.Confidence))
+		response = &CalendarResponse{
+			Text: result.Response,
+		}
+	default:
+		// If LLM intent is truly unsupported, check if there's a useful response
+		if result.Response != "" && result.Confidence > 0.3 {
+			a.logger.Info("LLM provided response for unknown intent, using it directly",
+				zap.String("intent", result.Intent),
+				zap.Float64("confidence", result.Confidence))
+			response = &CalendarResponse{
+				Text: result.Response,
+			}
+		} else {
+			// Fall back to pattern matching only if LLM response is not useful
+			a.logger.Debug("LLM response not useful, falling back to pattern matching",
+				zap.String("intent", result.Intent),
+				zap.Float64("confidence", result.Confidence))
+			return a.processCalendarRequest(messageText)
+		}
+	}
+
+	if err != nil {
+		a.logger.Error("failed to process LLM-identified request",
+			zap.String("intent", result.Intent),
+			zap.Error(err))
+		// Fallback to pattern matching on handler errors
+		return a.processCalendarRequest(messageText)
+	}
+
+	// Enhance response with LLM information if available
+	if result.Response != "" && response != nil {
+		// Use LLM-generated response as primary, with handler data as supplement
+		response.Text = result.Response
+	}
+
+	totalDuration := time.Since(requestStartTime)
+	a.logger.Info("successfully processed calendar request with LLM",
+		zap.String("component", "llm-processor"),
+		zap.String("intent", result.Intent),
+		zap.Float64("confidence", result.Confidence),
+		zap.Duration("totalTime", totalDuration))
+
+	return response, nil
+}
+
+// Helper methods for handling LLM-identified requests with extracted parameters
+func (a *CalendarAgent) handleListCalendarsRequestWithParams(params map[string]interface{}) (*CalendarResponse, error) {
+	// For list calendars, we don't need special parameters, just call the existing handler
+	return a.handleListCalendarsRequest("")
+}
+
+func (a *CalendarAgent) handleListEventsRequestWithParams(params map[string]interface{}) (*CalendarResponse, error) {
+	// Extract time range parameters if available
+	// For now, call the existing handler - this can be enhanced later to use LLM-extracted parameters
+	return a.handleListEventsRequest("")
+}
+
+func (a *CalendarAgent) handleCreateEventRequestWithParams(params map[string]interface{}) (*CalendarResponse, error) {
+	// Extract event creation parameters from LLM
+	// For now, call the existing handler - this can be enhanced later to use LLM-extracted parameters
+	return a.handleCreateEventRequest("")
+}
+
+func (a *CalendarAgent) handleUpdateEventRequestWithParams(params map[string]interface{}) (*CalendarResponse, error) {
+	// Extract event update parameters from LLM
+	// For now, call the existing handler - this can be enhanced later to use LLM-extracted parameters
+	return a.handleUpdateEventRequest("")
+}
+
+func (a *CalendarAgent) handleDeleteEventRequestWithParams(params map[string]interface{}) (*CalendarResponse, error) {
+	// Extract event deletion parameters from LLM
+	// For now, call the existing handler - this can be enhanced later to use LLM-extracted parameters
+	return a.handleDeleteEventRequest("")
+}
+
+func (a *CalendarAgent) handleSearchEventsRequestWithParams(params map[string]interface{}) (*CalendarResponse, error) {
+	// This is a new operation identified by LLM - implement search functionality
+	// For now, return a basic response
+	return &CalendarResponse{
+		Text: "🔍 Event search functionality is being enhanced with LLM capabilities.\n\n" +
+			"For now, you can use 'show my events' to list your events.",
+	}, nil
+}
+
+func (a *CalendarAgent) handleGetAvailabilityRequestWithParams(params map[string]interface{}) (*CalendarResponse, error) {
+	// This is a new operation identified by LLM - implement availability checking
+	// For now, return a basic response
+	return &CalendarResponse{
+		Text: "📅 Availability checking functionality is being enhanced with LLM capabilities.\n\n" +
+			"For now, you can use 'show my events' to check your schedule.",
+	}, nil
 }
