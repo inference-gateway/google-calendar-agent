@@ -8,7 +8,7 @@ This example demonstrates how to run the Google Calendar Agent with the Inferenc
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │                 │    │                 │    │                 │
 │   User/Client   │───▶│ Inference       │───▶│ Calendar Agent  │
-│                 │    │ Gateway         │    │ (Port 8081)     │
+│                 │    │ Gateway         │    │                 │
 │                 │    │ (Port 8080)     │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 │                       │
@@ -26,10 +26,9 @@ This example demonstrates how to run the Google Calendar Agent with the Inferenc
 
 1. User sends request to Inference Gateway (port 8080)
 2. Inference Gateway processes the request and determines if an agent is needed
-3. If calendar operations are required, Gateway calls the registered Calendar Agent (port 8081)
-4. Calendar Agent interacts with Google Calendar API for calendar operations
-5. Inference Gateway uses LLM providers for natural language processing
-6. Response flows back through Gateway to the user
+3. Calendar Agent interacts with Google Calendar API for calendar operations
+4. Inference Gateway uses LLM providers for natural language processing
+5. Response flows back through Gateway to the user
 
 ## Features
 
@@ -118,15 +117,14 @@ docker-compose ps
 ```bash
 # Test Inference Gateway
 curl http://localhost:8080/health
-
-# Test Calendar Agent
-curl http://localhost:8081/health
 ```
 
 #### Get Agent Information
 
+Set on the Inference Gateway `A2A_EXPOSE=true` and bring up the containers.
+
 ```bash
-curl http://localhost:8081/.well-known/agent.json
+curl http://localhost:8080/v1/a2a/agents
 ```
 
 #### Test A2A Protocol (Example)
@@ -136,22 +134,13 @@ curl http://localhost:8081/.well-known/agent.json
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek-r1-distill-llama-70b",
+    "model": "deepseek/deepseek-chat",
     "messages": [
       {
         "role": "user",
         "content": "List my events for today"
       }
     ]
-  }'
-
-# Direct agent testing (for debugging)
-curl -X POST http://localhost:8081/a2a \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input": "List my events for today",
-    "input_mode": "text/plain",
-    "output_mode": "text/plain"
   }'
 ```
 
@@ -280,13 +269,6 @@ LLM_MODEL=@cf/meta/llama-3.1-8b-instruct
 6. Share your calendar with the service account email
 7. Set `GOOGLE_CALENDAR_SA_JSON` to the JSON content (single line)
 
-### Option 2: OAuth Credentials
-
-1. Create OAuth 2.0 credentials in Google Cloud Console
-2. Download the credentials file
-3. Place it as `credentials.json` in the example directory
-4. Set `GOOGLE_CREDENTIALS_PATH=./credentials.json`
-
 ## API Usage Examples
 
 ### List Calendar Events
@@ -304,15 +286,6 @@ curl -X POST http://localhost:8080/v1/chat/completions \
       }
     ]
   }'
-
-# Direct agent call (for debugging)
-curl -X POST http://localhost:8081/a2a \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input": "What events do I have this week?",
-    "input_mode": "text/plain",
-    "output_mode": "application/json"
-  }'
 ```
 
 ### Create Calendar Event
@@ -322,22 +295,13 @@ curl -X POST http://localhost:8081/a2a \
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek-r1-distill-llama-70b",
+    "model": "deepseek/deepseek-chat",
     "messages": [
       {
         "role": "user",
         "content": "Schedule a team meeting tomorrow at 2 PM for 1 hour"
       }
     ]
-  }'
-
-# Direct agent call (for debugging)
-curl -X POST http://localhost:8081/a2a \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input": "Schedule a team meeting tomorrow at 2 PM for 1 hour",
-    "input_mode": "text/plain",
-    "output_mode": "text/plain"
   }'
 ```
 
@@ -348,22 +312,13 @@ curl -X POST http://localhost:8081/a2a \
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek-r1-distill-llama-70b",
+    "model": "deepseek/deepseek-chat",
     "messages": [
       {
         "role": "user",
         "content": "Move my 2 PM meeting to 3 PM"
       }
     ]
-  }'
-
-# Direct agent call (for debugging)
-curl -X POST http://localhost:8081/a2a \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input": "Move my 2 PM meeting to 3 PM",
-    "input_mode": "text/plain",
-    "output_mode": "text/plain"
   }'
 ```
 
@@ -374,22 +329,13 @@ curl -X POST http://localhost:8081/a2a \
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek-r1-distill-llama-70b",
+    "model": "deepseek/deepseek-chat",
     "messages": [
       {
         "role": "user",
         "content": "Cancel my meeting with John tomorrow"
       }
     ]
-  }'
-
-# Direct agent call (for debugging)
-curl -X POST http://localhost:8081/a2a \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input": "Cancel my meeting with John tomorrow",
-    "input_mode": "text/plain",
-    "output_mode": "text/plain"
   }'
 ```
 
@@ -416,7 +362,6 @@ docker-compose ps
 
 # Test connectivity
 curl http://localhost:8080/health
-curl http://localhost:8081/health
 ```
 
 #### Google Calendar Authentication Issues

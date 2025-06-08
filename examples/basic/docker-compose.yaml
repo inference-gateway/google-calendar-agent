@@ -14,8 +14,6 @@ services:
 
   google-calendar-agent:
     image: ghcr.io/inference-gateway/google-calendar-agent:0.2.0
-    ports:
-      - "8081:8080"
     env_file:
       - .env.agent
     restart: unless-stopped
