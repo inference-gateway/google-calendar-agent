@@ -2,6 +2,7 @@ package google
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -569,6 +570,219 @@ func TestCalendarService_EdgeCases(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.testFunc(t)
+		})
+	}
+}
+
+func TestCalendarService_CheckConflicts(t *testing.T) {
+	testCases := []struct {
+		name              string
+		calendarID        string
+		startTime         time.Time
+		endTime           time.Time
+		existingEvents    []*calendar.Event
+		listEventsError   error
+		expectedConflicts int
+		expectError       bool
+	}{
+		{
+			name:              "no conflicts - empty calendar",
+			calendarID:        "primary",
+			startTime:         time.Date(2025, 6, 15, 14, 0, 0, 0, time.UTC), // 2pm
+			endTime:           time.Date(2025, 6, 15, 15, 0, 0, 0, time.UTC), // 3pm
+			existingEvents:    []*calendar.Event{},
+			listEventsError:   nil,
+			expectedConflicts: 0,
+			expectError:       false,
+		},
+		{
+			name:       "no conflicts - events at different times",
+			calendarID: "primary",
+			startTime:  time.Date(2025, 6, 15, 14, 0, 0, 0, time.UTC), // 2pm-3pm
+			endTime:    time.Date(2025, 6, 15, 15, 0, 0, 0, time.UTC),
+			existingEvents: []*calendar.Event{
+				createTestEvent("event1", "Morning Meeting", "Team standup",
+					time.Date(2025, 6, 15, 10, 0, 0, 0, time.UTC), // 10am-11am
+					time.Date(2025, 6, 15, 11, 0, 0, 0, time.UTC)),
+				createTestEvent("event2", "Evening Meeting", "Client call",
+					time.Date(2025, 6, 15, 17, 0, 0, 0, time.UTC), // 5pm-6pm
+					time.Date(2025, 6, 15, 18, 0, 0, 0, time.UTC)),
+			},
+			listEventsError:   nil,
+			expectedConflicts: 0,
+			expectError:       false,
+		},
+		{
+			name:       "single conflict - exact time overlap",
+			calendarID: "primary",
+			startTime:  time.Date(2025, 6, 15, 14, 0, 0, 0, time.UTC), // 2pm-3pm
+			endTime:    time.Date(2025, 6, 15, 15, 0, 0, 0, time.UTC),
+			existingEvents: []*calendar.Event{
+				createTestEvent("conflict1", "Conflicting Meeting", "Overlap",
+					time.Date(2025, 6, 15, 14, 0, 0, 0, time.UTC), // 2pm-3pm (exact overlap)
+					time.Date(2025, 6, 15, 15, 0, 0, 0, time.UTC)),
+			},
+			listEventsError:   nil,
+			expectedConflicts: 1,
+			expectError:       false,
+		},
+		{
+			name:       "single conflict - partial overlap",
+			calendarID: "primary",
+			startTime:  time.Date(2025, 6, 15, 14, 0, 0, 0, time.UTC), // 2pm-3pm
+			endTime:    time.Date(2025, 6, 15, 15, 0, 0, 0, time.UTC),
+			existingEvents: []*calendar.Event{
+				createTestEvent("conflict1", "Overlapping Meeting", "Partial overlap",
+					time.Date(2025, 6, 15, 14, 30, 0, 0, time.UTC), // 2:30pm-4pm (partial overlap)
+					time.Date(2025, 6, 15, 16, 0, 0, 0, time.UTC)),
+			},
+			listEventsError:   nil,
+			expectedConflicts: 1,
+			expectError:       false,
+		},
+		{
+			name:       "multiple conflicts",
+			calendarID: "primary",
+			startTime:  time.Date(2025, 6, 15, 14, 0, 0, 0, time.UTC), // 2pm-4pm
+			endTime:    time.Date(2025, 6, 15, 16, 0, 0, 0, time.UTC),
+			existingEvents: []*calendar.Event{
+				createTestEvent("conflict1", "Meeting 1", "First conflict",
+					time.Date(2025, 6, 15, 13, 30, 0, 0, time.UTC), // 1:30pm-2:30pm
+					time.Date(2025, 6, 15, 14, 30, 0, 0, time.UTC)),
+				createTestEvent("conflict2", "Meeting 2", "Second conflict",
+					time.Date(2025, 6, 15, 15, 0, 0, 0, time.UTC), // 3pm-5pm
+					time.Date(2025, 6, 15, 17, 0, 0, 0, time.UTC)),
+			},
+			listEventsError:   nil,
+			expectedConflicts: 2,
+			expectError:       false,
+		},
+		{
+			name:       "cancelled events ignored",
+			calendarID: "primary",
+			startTime:  time.Date(2025, 6, 15, 14, 0, 0, 0, time.UTC),
+			endTime:    time.Date(2025, 6, 15, 15, 0, 0, 0, time.UTC),
+			existingEvents: []*calendar.Event{
+				{
+					Id:      "cancelled-event",
+					Summary: "Cancelled Meeting",
+					Status:  "cancelled", // Should be ignored
+					Start: &calendar.EventDateTime{
+						DateTime: time.Date(2025, 6, 15, 14, 0, 0, 0, time.UTC).Format(time.RFC3339),
+						TimeZone: "UTC",
+					},
+					End: &calendar.EventDateTime{
+						DateTime: time.Date(2025, 6, 15, 15, 0, 0, 0, time.UTC).Format(time.RFC3339),
+						TimeZone: "UTC",
+					},
+				},
+				createTestEvent("active-event", "Active Meeting", "Should conflict",
+					time.Date(2025, 6, 15, 14, 30, 0, 0, time.UTC), // Overlaps but is active
+					time.Date(2025, 6, 15, 15, 30, 0, 0, time.UTC)),
+			},
+			listEventsError:   nil,
+			expectedConflicts: 1, // Only active event should conflict
+			expectError:       false,
+		},
+		{
+			name:       "adjacent events - no conflict",
+			calendarID: "primary",
+			startTime:  time.Date(2025, 6, 15, 14, 0, 0, 0, time.UTC), // 2pm-3pm
+			endTime:    time.Date(2025, 6, 15, 15, 0, 0, 0, time.UTC),
+			existingEvents: []*calendar.Event{
+				createTestEvent("before", "Before Meeting", "Ends when new starts",
+					time.Date(2025, 6, 15, 13, 0, 0, 0, time.UTC), // 1pm-2pm (ends when new starts)
+					time.Date(2025, 6, 15, 14, 0, 0, 0, time.UTC)),
+				createTestEvent("after", "After Meeting", "Starts when new ends",
+					time.Date(2025, 6, 15, 15, 0, 0, 0, time.UTC), // 3pm-4pm (starts when new ends)
+					time.Date(2025, 6, 15, 16, 0, 0, 0, time.UTC)),
+			},
+			listEventsError:   nil,
+			expectedConflicts: 0,
+			expectError:       false,
+		},
+		{
+			name:              "list events error",
+			calendarID:        "primary",
+			startTime:         time.Date(2025, 6, 15, 14, 0, 0, 0, time.UTC),
+			endTime:           time.Date(2025, 6, 15, 15, 0, 0, 0, time.UTC),
+			existingEvents:    nil,
+			listEventsError:   fmt.Errorf("calendar API error"),
+			expectedConflicts: 0,
+			expectError:       true,
+		},
+		{
+			name:       "events with invalid time formats ignored",
+			calendarID: "primary",
+			startTime:  time.Date(2025, 6, 15, 14, 0, 0, 0, time.UTC),
+			endTime:    time.Date(2025, 6, 15, 15, 0, 0, 0, time.UTC),
+			existingEvents: []*calendar.Event{
+				{
+					Id:      "invalid-time-event",
+					Summary: "Invalid Time Event",
+					Status:  "confirmed",
+					Start: &calendar.EventDateTime{
+						DateTime: "invalid-time-format",
+					},
+					End: &calendar.EventDateTime{
+						DateTime: "also-invalid",
+					},
+				},
+				createTestEvent("valid-conflict", "Valid Conflict", "Should be detected",
+					time.Date(2025, 6, 15, 14, 30, 0, 0, time.UTC),
+					time.Date(2025, 6, 15, 15, 30, 0, 0, time.UTC)),
+			},
+			listEventsError:   nil,
+			expectedConflicts: 1,
+			expectError:       false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.listEventsError != nil {
+				assert.True(t, tc.expectError)
+				return
+			}
+
+			conflicts := make([]*calendar.Event, 0)
+
+			for _, event := range tc.existingEvents {
+				if event.Status == "cancelled" {
+					continue
+				}
+
+				eventStart, err := time.Parse(time.RFC3339, event.Start.DateTime)
+				if err != nil {
+					continue
+				}
+				eventEnd, err := time.Parse(time.RFC3339, event.End.DateTime)
+				if err != nil {
+					continue
+				}
+
+				if tc.startTime.Before(eventEnd) && eventStart.Before(tc.endTime) {
+					conflicts = append(conflicts, event)
+				}
+			}
+
+			assert.Len(t, conflicts, tc.expectedConflicts)
+
+			if tc.expectedConflicts > 0 {
+				for _, conflict := range conflicts {
+					assert.NotEmpty(t, conflict.Id)
+					assert.NotEmpty(t, conflict.Summary)
+					assert.NotEqual(t, "cancelled", conflict.Status)
+
+					conflictStart, err := time.Parse(time.RFC3339, conflict.Start.DateTime)
+					require.NoError(t, err)
+					conflictEnd, err := time.Parse(time.RFC3339, conflict.End.DateTime)
+					require.NoError(t, err)
+
+					overlaps := tc.startTime.Before(conflictEnd) && conflictStart.Before(tc.endTime)
+					assert.True(t, overlaps, "Detected conflict should actually overlap with proposed time")
+				}
+			}
 		})
 	}
 }
