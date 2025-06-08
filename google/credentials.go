@@ -13,13 +13,13 @@ import (
 func CreateCredentialsFile(l *zap.Logger) error {
 	jsonContent := os.Getenv("GOOGLE_CALENDAR_SA_JSON")
 	if jsonContent == "" {
-		l.Debug("google_calendar_sa_json environment variable not set, skipping credentials file creation")
+		l.Debug("GOOGLE_CALENDAR_SA_JSON environment variable not set, skipping credentials file creation")
 		return nil
 	}
 
 	var temp interface{}
 	if err := json.Unmarshal([]byte(jsonContent), &temp); err != nil {
-		return fmt.Errorf("invalid json content in google_calendar_sa_json: %w", err)
+		return fmt.Errorf("invalid json content in GOOGLE_CALENDAR_SA_JSON: %w", err)
 	}
 
 	credentialsPath := "/app/secrets/google-credentials.json"

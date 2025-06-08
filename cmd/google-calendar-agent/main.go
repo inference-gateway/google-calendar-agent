@@ -184,6 +184,43 @@ func main() {
 
 	r := gin.Default()
 
+	r.Use(func(c *gin.Context) {
+		if c.Request.URL.Path == "/a2a" && c.Request.Method != "POST" {
+			logger.Debug("unsupported method on /a2a endpoint",
+				zap.String("method", c.Request.Method),
+				zap.String("clientIP", c.ClientIP()),
+				zap.String("userAgent", c.GetHeader("User-Agent")))
+			c.JSON(http.StatusMethodNotAllowed, gin.H{
+				"error":           "Method Not Allowed",
+				"message":         "Only POST requests are supported on this endpoint",
+				"allowed_methods": []string{"POST"},
+				"endpoint":        "/a2a",
+			})
+			c.Abort()
+			return
+		}
+		c.Next()
+	})
+
+	r.NoRoute(func(c *gin.Context) {
+		logger.Debug("route not found",
+			zap.String("method", c.Request.Method),
+			zap.String("path", c.Request.URL.Path),
+			zap.String("clientIP", c.ClientIP()),
+			zap.String("userAgent", c.GetHeader("User-Agent")))
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "Not Found",
+			"message": "The requested endpoint does not exist",
+			"path":    c.Request.URL.Path,
+			"method":  c.Request.Method,
+			"available_endpoints": []string{
+				"GET /health",
+				"POST /a2a",
+				"GET /.well-known/agent.json",
+			},
+		})
+	})
+
 	r.GET("/health", func(c *gin.Context) {
 		logger.Debug("health check requested",
 			zap.String("clientIP", c.ClientIP()),
