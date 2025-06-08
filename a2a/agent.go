@@ -127,6 +127,10 @@ func (a *CalendarAgent) handleMessageSend(c *gin.Context, req JSONRPCRequest) {
 		zap.Any("requestId", req.ID),
 		zap.String("clientIP", c.ClientIP()))
 
+	a.logger.Debug("full request params",
+		zap.Any("params", req.Params),
+		zap.Any("requestId", req.ID))
+
 	paramsMap, ok := req.Params["message"].(map[string]interface{})
 	if !ok {
 		a.logger.Error("invalid params: missing message",
@@ -147,6 +151,7 @@ func (a *CalendarAgent) handleMessageSend(c *gin.Context, req JSONRPCRequest) {
 
 	a.logger.Debug("extracted message parts",
 		zap.Int("partCount", len(partsArray)),
+		zap.Any("parts", partsArray),
 		zap.Any("requestId", req.ID))
 
 	var messageText string
@@ -155,9 +160,15 @@ func (a *CalendarAgent) handleMessageSend(c *gin.Context, req JSONRPCRequest) {
 		if !ok {
 			a.logger.Debug("skipping invalid part",
 				zap.Int("partIndex", i),
+				zap.Any("part", partInterface),
 				zap.Any("requestId", req.ID))
 			continue
 		}
+
+		a.logger.Debug("processing part",
+			zap.Int("partIndex", i),
+			zap.Any("part", part),
+			zap.Any("requestId", req.ID))
 
 		if partKind, exists := part["kind"]; exists && partKind == "text" {
 			if text, textExists := part["text"].(string); textExists {
@@ -165,6 +176,7 @@ func (a *CalendarAgent) handleMessageSend(c *gin.Context, req JSONRPCRequest) {
 				a.logger.Debug("found text part",
 					zap.Int("partIndex", i),
 					zap.String("textLength", fmt.Sprintf("%d chars", len(text))),
+					zap.String("text", text),
 					zap.Any("requestId", req.ID))
 				break
 			}
