@@ -342,12 +342,6 @@ func (a *CalendarAgent) processCalendarRequest(messageText string) (*CalendarRes
 			zap.String("component", "calendar-processor"),
 			zap.String("requestType", requestType))
 		response, err = a.handleListEventsRequest(normalizedText)
-	case a.isCreateEventRequest(normalizedText):
-		requestType = "create-event"
-		a.logger.Info("identified as create event request",
-			zap.String("component", "calendar-processor"),
-			zap.String("requestType", requestType))
-		response, err = a.handleCreateEventRequest(normalizedText)
 	case a.isUpdateEventRequest(normalizedText):
 		requestType = "update-event"
 		a.logger.Info("identified as update event request",
@@ -360,6 +354,12 @@ func (a *CalendarAgent) processCalendarRequest(messageText string) (*CalendarRes
 			zap.String("component", "calendar-processor"),
 			zap.String("requestType", requestType))
 		response, err = a.handleDeleteEventRequest(normalizedText)
+	case a.isCreateEventRequest(normalizedText):
+		requestType = "create-event"
+		a.logger.Info("identified as create event request",
+			zap.String("component", "calendar-processor"),
+			zap.String("requestType", requestType))
+		response, err = a.handleCreateEventRequest(normalizedText)
 	default:
 		requestType = "help"
 		a.logger.Info("request did not match any specific pattern, returning help message",
@@ -466,8 +466,18 @@ func (a *CalendarAgent) isListCalendarsRequest(text string) bool {
 func (a *CalendarAgent) isCreateEventRequest(text string) bool {
 	a.logger.Debug("checking if request is create event", zap.String("text", text))
 
+	// Check for update patterns first to avoid false positives
+	updatePatterns := []string{"reschedule", "move", "change", "update", "modify", "edit"}
+	for _, pattern := range updatePatterns {
+		if strings.Contains(text, pattern) {
+			a.logger.Debug("found update pattern, not a create request", zap.String("pattern", pattern))
+			return false
+		}
+	}
+
 	patterns := []string{
-		"schedule", "create", "book", "add", "new meeting", "new appointment",
+		"schedule a", "schedule an", "schedule meeting", "schedule appointment",
+		"create", "book", "add", "new meeting", "new appointment",
 		"meeting with", "appointment with", "lunch with", "dinner with",
 	}
 
@@ -926,6 +936,7 @@ func (a *CalendarAgent) parseTime(timeStr string) (time.Time, error) {
 	formats := []string{
 		"3:04 PM",
 		"3:04pm",
+		"3 PM",
 		"3PM",
 		"3pm",
 		"15:04",
