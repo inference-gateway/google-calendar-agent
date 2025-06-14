@@ -7,6 +7,17 @@ tasks:
     cmds:
       - task --list
 
+  a2a:download:schema:
+    desc: "Download the latest A2A schema and convert to YAML"
+    cmds:
+      - mkdir -p a2a
+      - curl -o a2a/schema.yaml https://raw.githubusercontent.com/inference-gateway/schemas/refs/heads/main/a2a/a2a-schema.yaml
+
+  generate:
+    desc: "Generate Go code from the official A2A JSON RPC Schema"
+    cmds:
+      - go run github.com/inference-gateway/tools/cmd/generator@v0.1.1 -generator jsonrpc -package a2a a2a/schema.yaml a2a/generated_types.go
+
   tidy:
     desc: "Run go mod tidy to clean up dependencies"
     cmds:
