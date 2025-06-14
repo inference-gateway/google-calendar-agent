@@ -90,7 +90,6 @@ func TestConfig_GetTLSConfig(t *testing.T) {
 		})
 	}
 
-	// Test invalid cases that can't be loaded from environment variables
 	t.Run("invalid_tls_version_direct", func(t *testing.T) {
 		cfg := &Config{
 			Server: ServerConfig{EnableTLS: true},
@@ -166,7 +165,6 @@ func TestConfig_GetGoogleCredentialsOption(t *testing.T) {
 			lookuper := envconfig.MapLookuper(tc.envVars)
 			cfg, err := LoadWithLookuper(ctx, lookuper)
 			if tc.expectError && err != nil {
-				// If we expect an error during config load, that's fine
 				return
 			}
 			require.NoError(t, err)
@@ -246,7 +244,6 @@ func TestConfig_GetLogLevel(t *testing.T) {
 			lookuper := envconfig.MapLookuper(tc.envVars)
 			cfg, err := LoadWithLookuper(ctx, lookuper)
 			if err != nil {
-				// Skip if validation fails (e.g., invalid log level)
 				return
 			}
 			require.NotNil(t, cfg)
@@ -410,14 +407,12 @@ func TestConfig_ToMap(t *testing.T) {
 
 	configMap := cfg.ToMap()
 
-	// Test that the map structure is correct
 	assert.Contains(t, configMap, "google")
 	assert.Contains(t, configMap, "server")
 	assert.Contains(t, configMap, "logging")
 	assert.Contains(t, configMap, "tls")
 	assert.Contains(t, configMap, "app")
 
-	// Test some specific values
 	googleConfig := configMap["google"].(map[string]interface{})
 	assert.Equal(t, "test@example.com", googleConfig["calendar_id"])
 	assert.Equal(t, true, googleConfig["has_credentials"])

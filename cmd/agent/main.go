@@ -39,7 +39,6 @@ func main() {
 	}
 	defer func() {
 		if err := logger.Sync(); err != nil {
-			// Ignore sync errors on stderr/stdout
 			_ = err
 		}
 	}()
