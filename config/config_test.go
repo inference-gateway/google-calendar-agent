@@ -456,7 +456,6 @@ func TestConfig_Validate_LLM(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, cfg)
 
-				// Additional validations for successful cases
 				if tc.envVars["LLM_ENABLED"] == "true" {
 					assert.True(t, cfg.LLM.Enabled)
 					assert.Equal(t, tc.envVars["LLM_GATEWAY_URL"], cfg.LLM.GatewayURL)

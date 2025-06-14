@@ -33,7 +33,6 @@ func NewGoogleCalendarAgent(cfg *config.Config, logger *zap.Logger) (*GoogleCale
 		agent.isMockMode = true
 		logger.Info("Google Calendar agent initialized in mock mode")
 	} else {
-		// Try to create real Google Calendar service
 		ctx := context.Background()
 
 		var opts []option.ClientOption
@@ -117,7 +116,6 @@ func (g *GoogleCalendarAgent) handleListEvents(ctx context.Context, args map[str
 		return g.getMockEvents(), nil
 	}
 
-	// Parse arguments
 	timeMin := time.Now()
 	if val, ok := args["timeMin"].(string); ok && val != "" {
 		if parsedTime, err := time.Parse(time.RFC3339, val); err == nil {
@@ -125,7 +123,7 @@ func (g *GoogleCalendarAgent) handleListEvents(ctx context.Context, args map[str
 		}
 	}
 
-	timeMax := timeMin.Add(24 * time.Hour) // Default to next 24 hours
+	timeMax := timeMin.Add(24 * time.Hour)
 	if val, ok := args["timeMax"].(string); ok && val != "" {
 		if parsedTime, err := time.Parse(time.RFC3339, val); err == nil {
 			timeMax = parsedTime
@@ -196,7 +194,6 @@ func (g *GoogleCalendarAgent) handleCreateEvent(ctx context.Context, args map[st
 		return g.getMockCreateEvent(args), nil
 	}
 
-	// Parse and validate required fields
 	summary, ok := args["summary"].(string)
 	if !ok || summary == "" {
 		return "", fmt.Errorf("summary is required")
@@ -212,7 +209,6 @@ func (g *GoogleCalendarAgent) handleCreateEvent(ctx context.Context, args map[st
 		return "", fmt.Errorf("endTime is required")
 	}
 
-	// Parse times
 	startTime, err := time.Parse(time.RFC3339, startTimeStr)
 	if err != nil {
 		return "", fmt.Errorf("invalid startTime format: %w", err)
@@ -227,7 +223,6 @@ func (g *GoogleCalendarAgent) handleCreateEvent(ctx context.Context, args map[st
 		return "", fmt.Errorf("endTime must be after startTime")
 	}
 
-	// Create event
 	event := &calendar.Event{
 		Summary: summary,
 		Start: &calendar.EventDateTime{
@@ -238,7 +233,6 @@ func (g *GoogleCalendarAgent) handleCreateEvent(ctx context.Context, args map[st
 		},
 	}
 
-	// Add optional fields
 	if desc, ok := args["description"].(string); ok && desc != "" {
 		event.Description = desc
 	}
@@ -327,13 +321,11 @@ func (g *GoogleCalendarAgent) handleUpdateEvent(ctx context.Context, args map[st
 		return "", fmt.Errorf("eventId is required")
 	}
 
-	// Get existing event
 	existingEvent, err := g.calSvc.GetEvent(g.config.Google.CalendarID, eventId)
 	if err != nil {
 		return "", fmt.Errorf("failed to get existing event: %w", err)
 	}
 
-	// Update fields if provided
 	if summary, ok := args["summary"].(string); ok && summary != "" {
 		existingEvent.Summary = summary
 	}
