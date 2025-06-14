@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
-	"google.golang.org/api/calendar/v3"
+	assert "github.com/stretchr/testify/assert"
+	require "github.com/stretchr/testify/require"
+	zaptest "go.uber.org/zap/zaptest"
+	calendar "google.golang.org/api/calendar/v3"
 )
 
 func createTestEvent(id, summary, description string, startTime, endTime time.Time) *calendar.Event {

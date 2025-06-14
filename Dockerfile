@@ -11,7 +11,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -a -installsuffix cgo \
     -trimpath \
     -ldflags "-w -s -extldflags '-static' -X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE}" \
-    -o artifacts/agent ./cmd/google-calendar-agent/main.go
+    -o artifacts/agent ./main.go
 RUN upx --best --lzma artifacts/agent
 
 FROM gcr.io/distroless/static-debian12:nonroot
