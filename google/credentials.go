@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/inference-gateway/google-calendar-agent/config"
-	"go.uber.org/zap"
+	config "github.com/inference-gateway/google-calendar-agent/config"
+	zap "go.uber.org/zap"
 )
 
 // CreateCredentialsFile creates a Google credentials JSON file from configuration

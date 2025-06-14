@@ -1,7 +1,8 @@
 ---
 services:
   inference-gateway:
-    image: ghcr.io/inference-gateway/inference-gateway:0.10.0
+    image: ghcr.io/inference-gateway/inference-gateway:0.11.0
+    pull_policy: always
     ports:
       - "8080:8080"
     env_file:
@@ -10,14 +11,15 @@ services:
       google-calendar-agent-healthcheck:
         condition: service_healthy
     restart: unless-stopped
-    pull_policy: always
 
   google-calendar-agent:
-    image: ghcr.io/inference-gateway/google-calendar-agent:0.2.0
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    pull_policy: always
     env_file:
       - .env.agent
     restart: unless-stopped
-    pull_policy: always
 
   google-calendar-agent-healthcheck:
     image: curlimages/curl:latest
