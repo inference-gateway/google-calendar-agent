@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/inference-gateway/a2a/adk/server"
-	"github.com/inference-gateway/google-calendar-agent/config"
-	"github.com/inference-gateway/google-calendar-agent/google"
-	"go.uber.org/zap"
-	"google.golang.org/api/calendar/v3"
-	"google.golang.org/api/option"
+	server "github.com/inference-gateway/a2a/adk/server"
+	config "github.com/inference-gateway/google-calendar-agent/config"
+	google "github.com/inference-gateway/google-calendar-agent/google"
+	zap "go.uber.org/zap"
+	calendar "google.golang.org/api/calendar/v3"
+	option "google.golang.org/api/option"
 )
 
 // GoogleCalendarAgent wraps the Google Calendar service with A2A tools
@@ -110,7 +110,7 @@ func (g *GoogleCalendarAgent) registerListEventsTool(toolBox *server.DefaultTool
 	toolBox.AddTool(tool)
 }
 
-// handleListEvents handles the list events tool call
+// handleListEvents handles the list events tool call with A2A structured response
 func (g *GoogleCalendarAgent) handleListEvents(ctx context.Context, args map[string]interface{}) (string, error) {
 	if g.isMockMode {
 		return g.getMockEvents(), nil
@@ -135,14 +135,18 @@ func (g *GoogleCalendarAgent) handleListEvents(ctx context.Context, args map[str
 		return "", fmt.Errorf("failed to list events: %w", err)
 	}
 
-	result := map[string]interface{}{
-		"events": events,
-		"count":  len(events),
-		"mock":   false,
+	response := CalendarEventResponse{
+		Events:  events,
+		Message: fmt.Sprintf("Found %d events between %s and %s", len(events), timeMin.Format("2006-01-02 15:04"), timeMax.Format("2006-01-02 15:04")),
+		Success: true,
 	}
 
-	response, _ := json.Marshal(result)
-	return string(response), nil
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal response: %w", err)
+	}
+
+	return string(jsonResponse), nil
 }
 
 // registerCreateEventTool registers the create event tool
@@ -258,16 +262,18 @@ func (g *GoogleCalendarAgent) handleCreateEvent(ctx context.Context, args map[st
 		return "", fmt.Errorf("failed to create event: %w", err)
 	}
 
-	result := map[string]interface{}{
-		"success": true,
-		"eventId": createdEvent.Id,
-		"message": "Event created successfully",
-		"event":   createdEvent,
-		"mock":    false,
+	response := CalendarEventResponse{
+		Event:   createdEvent,
+		Message: fmt.Sprintf("Event '%s' created successfully", createdEvent.Summary),
+		Success: true,
 	}
 
-	response, _ := json.Marshal(result)
-	return string(response), nil
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal response: %w", err)
+	}
+
+	return string(jsonResponse), nil
 }
 
 // registerUpdateEventTool registers the update event tool

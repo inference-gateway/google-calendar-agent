@@ -3,6 +3,7 @@ module github.com/inference-gateway/google-calendar-agent
 go 1.24
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/inference-gateway/a2a v0.1.3
 	github.com/sethvargo/go-envconfig v1.3.0
 	github.com/stretchr/testify v1.10.0
@@ -34,7 +35,6 @@ require (
 	github.com/go-resty/resty/v2 v2.16.3 // indirect
 	github.com/goccy/go-json v0.10.4 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.2 // indirect
 	github.com/inference-gateway/sdk v1.8.1 // indirect
