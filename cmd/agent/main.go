@@ -76,7 +76,7 @@ func main() {
 			Temperature: cfg.LLM.Temperature,
 			MaxTokens:   cfg.LLM.MaxTokens,
 			CustomHeaders: map[string]string{
-				"X-A2A-Internal": "true",
+				"X-A2A-Bypass": "true",
 			},
 		}
 		logger.Info("Configuring agent with LLM client",
