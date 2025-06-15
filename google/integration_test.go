@@ -5,14 +5,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
-	"google.golang.org/api/calendar/v3"
-	"google.golang.org/api/option"
+	assert "github.com/stretchr/testify/assert"
+	require "github.com/stretchr/testify/require"
+	zaptest "go.uber.org/zap/zaptest"
+	calendar "google.golang.org/api/calendar/v3"
+	option "google.golang.org/api/option"
 
-	"github.com/inference-gateway/google-calendar-agent/config"
-	"github.com/inference-gateway/google-calendar-agent/google"
+	config "github.com/inference-gateway/google-calendar-agent/config"
+	google "github.com/inference-gateway/google-calendar-agent/google"
 )
 
 func TestCalendarServiceIntegration(t *testing.T) {

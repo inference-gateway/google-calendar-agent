@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/inference-gateway/google-calendar-agent/config"
-	"go.uber.org/zap"
-	"google.golang.org/api/calendar/v3"
-	"google.golang.org/api/option"
+	config "github.com/inference-gateway/google-calendar-agent/config"
+	zap "go.uber.org/zap"
+	calendar "google.golang.org/api/calendar/v3"
+	option "google.golang.org/api/option"
 )
 
 // CalendarService represents the interface for interacting with Google Calendar API

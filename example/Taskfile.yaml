@@ -106,15 +106,6 @@ tasks:
     cmds:
       - docker-compose -f {{.DOCKER_COMPOSE_FILE}} build
 
-  debug:
-    desc: Start services with debug logging
-    cmds:
-      - |
-        LOG_LEVEL=debug \
-        APP_DEBUG=true \
-        SERVER_GIN_MODE=debug \
-        docker-compose -f {{.DOCKER_COMPOSE_FILE}} up
-
   validate-env:
     desc: Validate environment configuration
     cmds:

@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/api/calendar/v3"
+	assert "github.com/stretchr/testify/assert"
+	calendar "google.golang.org/api/calendar/v3"
 
-	"github.com/inference-gateway/google-calendar-agent/google/mocks"
+	mocks "github.com/inference-gateway/google-calendar-agent/google/mocks"
 )
 
 func TestCalendarServiceMocking(t *testing.T) {
