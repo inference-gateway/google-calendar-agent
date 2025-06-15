@@ -63,11 +63,10 @@ func main() {
 		AgentDescription: "AI agent for Google Calendar operations including listing events, creating events, managing schedules, and finding available time slots",
 		Port:             cfg.Server.Port,
 		QueueConfig: &serverconfig.QueueConfig{
-			CleanupInterval: time.Minute * 5, // for testing purposes, adjust as needed
+			CleanupInterval: time.Minute * 5,
 		},
 	}
 
-	// Configure LLM client if enabled
 	if cfg.LLM.Enabled && cfg.LLM.GatewayURL != "" {
 		serverCfg.AgentConfig = &serverconfig.AgentConfig{
 			BaseURL:     cfg.LLM.GatewayURL,
@@ -89,16 +88,25 @@ func main() {
 		serverCfg.Debug = true
 	}
 
-	// Create agent with OpenAI-compatible interface
 	agentInstance, err := server.NewOpenAICompatibleAgentWithConfig(logger, serverCfg.AgentConfig)
 	if err != nil {
 		logger.Fatal("Failed to create OpenAI-compatible agent", zap.Error(err))
 	}
 
-	agentInstance.SetSystemPrompt("You are a helpful Google Calendar assistant. You can help users manage their calendar events, create new events, find available time slots, and answer questions about their schedule. ALWAYS use the available tools to interact with Google Calendar - never provide generic responses without using tools. When a user asks about their events, use the list_calendar_events tool. When they want to create events, use the create_calendar_event tool. When they need to find available time, use the find_available_time tool.")
+	currentTime := time.Now().Format("Monday, January 2, 2006 at 15:04 MST")
+	systemPrompt := fmt.Sprintf(`Today is %s. You are a helpful Google Calendar assistant.
+
+ALWAYS use the available tools to interact with Google Calendar - never provide generic responses without using tools.
+
+Tool Usage:
+- For listing events: use list_calendar_events
+- For creating events: use create_calendar_event  
+- For finding free time: use find_available_time
+
+IMPORTANT: After using any tool, you MUST provide a clear, helpful response to the user based on the tool results. Never leave your response empty.`, currentTime)
+	agentInstance.SetSystemPrompt(systemPrompt)
 	agentInstance.SetToolBox(toolBox)
 
-	// Build the A2A server with the configured agent
 	a2aServer := server.NewA2AServerBuilder(serverCfg, logger).
 		WithAgent(agentInstance).
 		Build()
