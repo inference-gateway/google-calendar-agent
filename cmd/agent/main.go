@@ -11,10 +11,10 @@ import (
 
 	server "github.com/inference-gateway/a2a/adk/server"
 	serverconfig "github.com/inference-gateway/a2a/adk/server/config"
-	"github.com/inference-gateway/google-calendar-agent/agent"
-	"github.com/inference-gateway/google-calendar-agent/config"
-	"github.com/inference-gateway/google-calendar-agent/internal/logging"
-	"go.uber.org/zap"
+	agent "github.com/inference-gateway/google-calendar-agent/agent"
+	config "github.com/inference-gateway/google-calendar-agent/config"
+	logging "github.com/inference-gateway/google-calendar-agent/internal/logging"
+	zap "go.uber.org/zap"
 )
 
 var (
@@ -49,40 +49,66 @@ func main() {
 		zap.Bool("demo_mode", cfg.App.DemoMode),
 		zap.String("log_level", cfg.Logging.Level))
 
-	agentService, err := agent.NewGoogleCalendarAgent(cfg, logger)
+	toolBox := server.NewDefaultToolBox()
+
+	calendarTools, err := agent.NewGoogleCalendarTools(cfg, logger)
 	if err != nil {
-		logger.Fatal("Failed to create Google Calendar agent service", zap.Error(err))
+		logger.Fatal("Failed to create Google Calendar tools", zap.Error(err))
 	}
 
-	toolBox := server.NewDefaultToolBox()
-	agentService.RegisterTools(toolBox)
+	calendarTools.RegisterTools(toolBox)
 
 	serverCfg := serverconfig.Config{
 		AgentName:        "Google Calendar Agent",
 		AgentDescription: "AI agent for Google Calendar operations including listing events, creating events, managing schedules, and finding available time slots",
 		Port:             cfg.Server.Port,
+		QueueConfig: &serverconfig.QueueConfig{
+			CleanupInterval: time.Minute * 5, // for testing purposes, adjust as needed
+		},
 	}
 
-	var a2aServer server.A2AServer
+	// Configure LLM client if enabled
 	if cfg.LLM.Enabled && cfg.LLM.GatewayURL != "" {
-		llmConfig := &serverconfig.LLMProviderClientConfig{
-			Provider: cfg.LLM.Provider,
-			Model:    cfg.LLM.Model,
-			APIKey:   "",
+		serverCfg.AgentConfig = &serverconfig.AgentConfig{
+			BaseURL:     cfg.LLM.GatewayURL,
+			Provider:    cfg.LLM.Provider,
+			APIKey:      "",
+			Model:       cfg.LLM.Model,
+			Temperature: cfg.LLM.Temperature,
+			MaxTokens:   cfg.LLM.MaxTokens,
+			CustomHeaders: map[string]string{
+				"X-A2A-Internal": "true",
+			},
 		}
-
-		a2aServer = server.SimpleA2AServerWithAgent(serverCfg, logger, llmConfig, toolBox)
-		logger.Info("✅ Google Calendar agent created with AI capabilities",
+		logger.Info("Configuring agent with LLM client",
+			zap.String("base_url", cfg.LLM.GatewayURL),
 			zap.String("provider", cfg.LLM.Provider),
 			zap.String("model", cfg.LLM.Model))
-	} else {
-		agentInstance := server.NewDefaultOpenAICompatibleAgent(logger)
-		agentInstance.SetSystemPrompt("You are a helpful Google Calendar assistant. You can help users manage their calendar events, create new events, find available time slots, and answer questions about their schedule. Use the available tools to interact with Google Calendar.")
-		agentInstance.SetToolBox(toolBox)
+	}
+	if cfg.IsDebugEnabled() {
+		serverCfg.Debug = true
+	}
 
-		a2aServer = server.NewA2AServerBuilder(serverCfg, logger).
-			WithAIPoweredAgent(agentInstance).
-			Build()
+	// Create agent with OpenAI-compatible interface
+	agentInstance, err := server.NewOpenAICompatibleAgentWithConfig(logger, serverCfg.AgentConfig)
+	if err != nil {
+		logger.Fatal("Failed to create OpenAI-compatible agent", zap.Error(err))
+	}
+
+	agentInstance.SetSystemPrompt("You are a helpful Google Calendar assistant. You can help users manage their calendar events, create new events, find available time slots, and answer questions about their schedule. ALWAYS use the available tools to interact with Google Calendar - never provide generic responses without using tools. When a user asks about their events, use the list_calendar_events tool. When they want to create events, use the create_calendar_event tool. When they need to find available time, use the find_available_time tool.")
+	agentInstance.SetToolBox(toolBox)
+
+	// Build the A2A server with the configured agent
+	a2aServer := server.NewA2AServerBuilder(serverCfg, logger).
+		WithAgent(agentInstance).
+		Build()
+
+	if cfg.LLM.Enabled && cfg.LLM.GatewayURL != "" {
+		logger.Info("✅ Google Calendar agent created with AI capabilities",
+			zap.String("provider", cfg.LLM.Provider),
+			zap.String("model", cfg.LLM.Model),
+			zap.String("gateway_url", cfg.LLM.GatewayURL))
+	} else {
 		logger.Info("✅ Google Calendar agent created with default capabilities")
 	}
 
@@ -110,10 +136,6 @@ func main() {
 		logger.Error("shutdown error", zap.Error(err))
 	}
 
-	if err := agentService.Close(shutdownCtx); err != nil {
-		logger.Error("Error during agent service shutdown", zap.Error(err))
-	}
-
 	logger.Info("✅ Goodbye!")
 }
 
@@ -138,7 +160,12 @@ func printStartupInfo(cfg *config.Config, logger *zap.Logger) {
     "params": {
       "message": {
         "role": "user",
-        "content": "List my calendar events for today"
+        "parts": [
+          {
+            "kind": "text",
+            "content": "List my calendar events for today"
+          }
+        ]
       }
     },
     "id": 1

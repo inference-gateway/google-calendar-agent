@@ -14,24 +14,24 @@ import (
 	option "google.golang.org/api/option"
 )
 
-// GoogleCalendarAgent wraps the Google Calendar service with A2A tools
-type GoogleCalendarAgent struct {
+// GoogleCalendarTools provides Google Calendar functionality as A2A tools
+type GoogleCalendarTools struct {
 	config     *config.Config
 	logger     *zap.Logger
 	calSvc     google.CalendarService
 	isMockMode bool
 }
 
-// NewGoogleCalendarAgent creates a new Google Calendar agent
-func NewGoogleCalendarAgent(cfg *config.Config, logger *zap.Logger) (*GoogleCalendarAgent, error) {
-	agent := &GoogleCalendarAgent{
+// NewGoogleCalendarTools creates a new Google Calendar tools instance
+func NewGoogleCalendarTools(cfg *config.Config, logger *zap.Logger) (*GoogleCalendarTools, error) {
+	tools := &GoogleCalendarTools{
 		config: cfg,
 		logger: logger,
 	}
 
 	if cfg.ShouldUseMockService() {
-		agent.isMockMode = true
-		logger.Info("Google Calendar agent initialized in mock mode")
+		tools.isMockMode = true
+		logger.Info("Google Calendar tools initialized in mock mode")
 	} else {
 		ctx := context.Background()
 
@@ -45,23 +45,23 @@ func NewGoogleCalendarAgent(cfg *config.Config, logger *zap.Logger) (*GoogleCale
 		calSvc, err := google.NewCalendarService(ctx, cfg, logger, opts...)
 		if err != nil {
 			if cfg.App.Environment == "dev" {
-				// In dev mode, fall back to mock if credentials are missing
 				logger.Warn("Failed to initialize Google Calendar service, falling back to mock mode", zap.Error(err))
-				agent.isMockMode = true
+				tools.isMockMode = true
 			} else {
 				return nil, fmt.Errorf("failed to create Google Calendar service: %w", err)
 			}
 		} else {
-			agent.calSvc = calSvc
+			tools.calSvc = calSvc
 			logger.Info("✅ Google Calendar service initialized successfully")
 		}
 	}
 
-	return agent, nil
+	return tools, nil
 }
 
 // RegisterTools registers all Google Calendar tools with the tools handler
-func (g *GoogleCalendarAgent) RegisterTools(toolBox *server.DefaultToolBox) {
+func (g *GoogleCalendarTools) RegisterTools(toolBox *server.DefaultToolBox) {
+	g.logger.Debug("Registering Google Calendar tools")
 	g.registerListEventsTool(toolBox)
 	g.registerCreateEventTool(toolBox)
 	g.registerUpdateEventTool(toolBox)
@@ -69,16 +69,12 @@ func (g *GoogleCalendarAgent) RegisterTools(toolBox *server.DefaultToolBox) {
 	g.registerGetEventTool(toolBox)
 	g.registerFindAvailableTimeTool(toolBox)
 	g.registerCheckConflictsTool(toolBox)
-}
-
-// Close performs cleanup
-func (g *GoogleCalendarAgent) Close(ctx context.Context) error {
-	g.logger.Info("Closing Google Calendar agent")
-	return nil
+	g.logger.Debug("Google Calendar tools registered successfully")
 }
 
 // registerListEventsTool registers the list events tool
-func (g *GoogleCalendarAgent) registerListEventsTool(toolBox *server.DefaultToolBox) {
+func (g *GoogleCalendarTools) registerListEventsTool(toolBox *server.DefaultToolBox) {
+	g.logger.Debug("Registering list_calendar_events tool")
 	tool := server.NewBasicTool(
 		"list_calendar_events",
 		"List upcoming events from Google Calendar",
@@ -108,13 +104,19 @@ func (g *GoogleCalendarAgent) registerListEventsTool(toolBox *server.DefaultTool
 		g.handleListEvents,
 	)
 	toolBox.AddTool(tool)
+	g.logger.Debug("list_calendar_events tool registered successfully")
 }
 
 // handleListEvents handles the list events tool call with A2A structured response
-func (g *GoogleCalendarAgent) handleListEvents(ctx context.Context, args map[string]interface{}) (string, error) {
+func (g *GoogleCalendarTools) handleListEvents(ctx context.Context, args map[string]interface{}) (string, error) {
+	g.logger.Debug("handleListEvents called with args", zap.Any("args", args))
+
 	if g.isMockMode {
+		g.logger.Debug("returning mock events")
 		return g.getMockEvents(), nil
 	}
+
+	g.logger.Debug("processing list events request in non-mock mode")
 
 	timeMin := time.Now()
 	if val, ok := args["timeMin"].(string); ok && val != "" {
@@ -150,7 +152,8 @@ func (g *GoogleCalendarAgent) handleListEvents(ctx context.Context, args map[str
 }
 
 // registerCreateEventTool registers the create event tool
-func (g *GoogleCalendarAgent) registerCreateEventTool(toolBox *server.DefaultToolBox) {
+func (g *GoogleCalendarTools) registerCreateEventTool(toolBox *server.DefaultToolBox) {
+	g.logger.Debug("Registering create_calendar_event tool")
 	tool := server.NewBasicTool(
 		"create_calendar_event",
 		"Create a new event in Google Calendar",
@@ -190,13 +193,19 @@ func (g *GoogleCalendarAgent) registerCreateEventTool(toolBox *server.DefaultToo
 		g.handleCreateEvent,
 	)
 	toolBox.AddTool(tool)
+	g.logger.Debug("create_calendar_event tool registered successfully")
 }
 
 // handleCreateEvent handles the create event tool call
-func (g *GoogleCalendarAgent) handleCreateEvent(ctx context.Context, args map[string]interface{}) (string, error) {
+func (g *GoogleCalendarTools) handleCreateEvent(ctx context.Context, args map[string]interface{}) (string, error) {
+	g.logger.Debug("handleCreateEvent called with args", zap.Any("args", args))
+
 	if g.isMockMode {
+		g.logger.Debug("returning mock create event response")
 		return g.getMockCreateEvent(args), nil
 	}
+
+	g.logger.Debug("processing create event request in non-mock mode")
 
 	summary, ok := args["summary"].(string)
 	if !ok || summary == "" {
@@ -277,7 +286,7 @@ func (g *GoogleCalendarAgent) handleCreateEvent(ctx context.Context, args map[st
 }
 
 // registerUpdateEventTool registers the update event tool
-func (g *GoogleCalendarAgent) registerUpdateEventTool(toolBox *server.DefaultToolBox) {
+func (g *GoogleCalendarTools) registerUpdateEventTool(toolBox *server.DefaultToolBox) {
 	tool := server.NewBasicTool(
 		"update_calendar_event",
 		"Update an existing event in Google Calendar",
@@ -317,7 +326,7 @@ func (g *GoogleCalendarAgent) registerUpdateEventTool(toolBox *server.DefaultToo
 }
 
 // handleUpdateEvent handles the update event tool call
-func (g *GoogleCalendarAgent) handleUpdateEvent(ctx context.Context, args map[string]interface{}) (string, error) {
+func (g *GoogleCalendarTools) handleUpdateEvent(ctx context.Context, args map[string]interface{}) (string, error) {
 	if g.isMockMode {
 		return g.getMockUpdateEvent(args), nil
 	}
@@ -374,7 +383,7 @@ func (g *GoogleCalendarAgent) handleUpdateEvent(ctx context.Context, args map[st
 }
 
 // registerDeleteEventTool registers the delete event tool
-func (g *GoogleCalendarAgent) registerDeleteEventTool(toolBox *server.DefaultToolBox) {
+func (g *GoogleCalendarTools) registerDeleteEventTool(toolBox *server.DefaultToolBox) {
 	tool := server.NewBasicTool(
 		"delete_calendar_event",
 		"Delete an event from Google Calendar",
@@ -394,7 +403,7 @@ func (g *GoogleCalendarAgent) registerDeleteEventTool(toolBox *server.DefaultToo
 }
 
 // handleDeleteEvent handles the delete event tool call
-func (g *GoogleCalendarAgent) handleDeleteEvent(ctx context.Context, args map[string]interface{}) (string, error) {
+func (g *GoogleCalendarTools) handleDeleteEvent(ctx context.Context, args map[string]interface{}) (string, error) {
 	if g.isMockMode {
 		return g.getMockDeleteEvent(args), nil
 	}
@@ -421,7 +430,7 @@ func (g *GoogleCalendarAgent) handleDeleteEvent(ctx context.Context, args map[st
 }
 
 // registerGetEventTool registers the get event tool
-func (g *GoogleCalendarAgent) registerGetEventTool(toolBox *server.DefaultToolBox) {
+func (g *GoogleCalendarTools) registerGetEventTool(toolBox *server.DefaultToolBox) {
 	tool := server.NewBasicTool(
 		"get_calendar_event",
 		"Get details of a specific event from Google Calendar",
@@ -441,7 +450,7 @@ func (g *GoogleCalendarAgent) registerGetEventTool(toolBox *server.DefaultToolBo
 }
 
 // handleGetEvent handles the get event tool call
-func (g *GoogleCalendarAgent) handleGetEvent(ctx context.Context, args map[string]interface{}) (string, error) {
+func (g *GoogleCalendarTools) handleGetEvent(ctx context.Context, args map[string]interface{}) (string, error) {
 	if g.isMockMode {
 		return g.getMockGetEvent(args), nil
 	}
@@ -467,7 +476,7 @@ func (g *GoogleCalendarAgent) handleGetEvent(ctx context.Context, args map[strin
 }
 
 // registerFindAvailableTimeTool registers the find available time tool
-func (g *GoogleCalendarAgent) registerFindAvailableTimeTool(toolBox *server.DefaultToolBox) {
+func (g *GoogleCalendarTools) registerFindAvailableTimeTool(toolBox *server.DefaultToolBox) {
 	tool := server.NewBasicTool(
 		"find_available_time",
 		"Find available time slots in the calendar",
@@ -497,7 +506,7 @@ func (g *GoogleCalendarAgent) registerFindAvailableTimeTool(toolBox *server.Defa
 }
 
 // handleFindAvailableTime handles the find available time tool call
-func (g *GoogleCalendarAgent) handleFindAvailableTime(ctx context.Context, args map[string]interface{}) (string, error) {
+func (g *GoogleCalendarTools) handleFindAvailableTime(ctx context.Context, args map[string]interface{}) (string, error) {
 	if g.isMockMode {
 		return g.getMockAvailableTime(args), nil
 	}
@@ -508,7 +517,7 @@ func (g *GoogleCalendarAgent) handleFindAvailableTime(ctx context.Context, args 
 }
 
 // registerCheckConflictsTool registers the check conflicts tool
-func (g *GoogleCalendarAgent) registerCheckConflictsTool(toolBox *server.DefaultToolBox) {
+func (g *GoogleCalendarTools) registerCheckConflictsTool(toolBox *server.DefaultToolBox) {
 	tool := server.NewBasicTool(
 		"check_conflicts",
 		"Check for scheduling conflicts in the specified time range",
@@ -532,7 +541,7 @@ func (g *GoogleCalendarAgent) registerCheckConflictsTool(toolBox *server.Default
 }
 
 // handleCheckConflicts handles the check conflicts tool call
-func (g *GoogleCalendarAgent) handleCheckConflicts(ctx context.Context, args map[string]interface{}) (string, error) {
+func (g *GoogleCalendarTools) handleCheckConflicts(ctx context.Context, args map[string]interface{}) (string, error) {
 	if g.isMockMode {
 		return g.getMockConflicts(args), nil
 	}
@@ -578,7 +587,7 @@ func (g *GoogleCalendarAgent) handleCheckConflicts(ctx context.Context, args map
 }
 
 // Mock response helpers
-func (g *GoogleCalendarAgent) getMockEvents() string {
+func (g *GoogleCalendarTools) getMockEvents() string {
 	mockEvents := []map[string]interface{}{
 		{
 			"id":      "mock-event-1",
@@ -602,7 +611,7 @@ func (g *GoogleCalendarAgent) getMockEvents() string {
 	return string(response)
 }
 
-func (g *GoogleCalendarAgent) getMockCreateEvent(args map[string]interface{}) string {
+func (g *GoogleCalendarTools) getMockCreateEvent(args map[string]interface{}) string {
 	result := map[string]interface{}{
 		"success":   true,
 		"eventId":   fmt.Sprintf("mock-created-event-%d", time.Now().Unix()),
@@ -616,7 +625,7 @@ func (g *GoogleCalendarAgent) getMockCreateEvent(args map[string]interface{}) st
 	return string(response)
 }
 
-func (g *GoogleCalendarAgent) getMockUpdateEvent(args map[string]interface{}) string {
+func (g *GoogleCalendarTools) getMockUpdateEvent(args map[string]interface{}) string {
 	result := map[string]interface{}{
 		"success": true,
 		"eventId": args["eventId"],
@@ -627,7 +636,7 @@ func (g *GoogleCalendarAgent) getMockUpdateEvent(args map[string]interface{}) st
 	return string(response)
 }
 
-func (g *GoogleCalendarAgent) getMockDeleteEvent(args map[string]interface{}) string {
+func (g *GoogleCalendarTools) getMockDeleteEvent(args map[string]interface{}) string {
 	result := map[string]interface{}{
 		"success": true,
 		"eventId": args["eventId"],
@@ -638,7 +647,7 @@ func (g *GoogleCalendarAgent) getMockDeleteEvent(args map[string]interface{}) st
 	return string(response)
 }
 
-func (g *GoogleCalendarAgent) getMockGetEvent(args map[string]interface{}) string {
+func (g *GoogleCalendarTools) getMockGetEvent(args map[string]interface{}) string {
 	result := map[string]interface{}{
 		"success": true,
 		"event": map[string]interface{}{
@@ -653,7 +662,7 @@ func (g *GoogleCalendarAgent) getMockGetEvent(args map[string]interface{}) strin
 	return string(response)
 }
 
-func (g *GoogleCalendarAgent) getMockAvailableTime(args map[string]interface{}) string {
+func (g *GoogleCalendarTools) getMockAvailableTime(args map[string]interface{}) string {
 	duration := 60
 	if val, ok := args["duration"].(float64); ok {
 		duration = int(val)
@@ -680,7 +689,7 @@ func (g *GoogleCalendarAgent) getMockAvailableTime(args map[string]interface{}) 
 	return string(response)
 }
 
-func (g *GoogleCalendarAgent) getMockConflicts(args map[string]interface{}) string {
+func (g *GoogleCalendarTools) getMockConflicts(args map[string]interface{}) string {
 	result := map[string]interface{}{
 		"hasConflicts":   false,
 		"conflictCount":  0,

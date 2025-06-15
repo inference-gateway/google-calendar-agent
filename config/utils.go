@@ -161,7 +161,7 @@ func (c *Config) ToMap() map[string]interface{} {
 		},
 		"app": map[string]interface{}{
 			"environment":      c.App.Environment,
-			"debug":            c.App.Debug,
+			"debug":            c.IsDebugEnabled(),
 			"demo_mode":        c.App.DemoMode,
 			"max_request_size": c.App.MaxRequestSize,
 			"request_timeout":  c.App.RequestTimeout.String(),

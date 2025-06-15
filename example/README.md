@@ -383,7 +383,6 @@ Enable debug logging for more detailed output:
 ```bash
 # In .env file
 LOG_LEVEL=debug
-APP_DEBUG=true
 SERVER_GIN_MODE=debug
 ```
 
