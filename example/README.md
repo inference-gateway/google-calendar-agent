@@ -1,14 +1,36 @@
 # Basic Example
 
-This example demonstrates how to run the Google Calendar Agent with the Inference Gateway using Docker Compose. The setup includes both services configured to work together, providing a complete AI-powered calendar management solution.
+This example demonstrates how to run the Google Calendar Agent with the Inference Gateway using Docker Compose. The setup includes both services configured to work together, providing a complete AI-powered calendar management solution, along with an interactive Go client for testing.
 
 ## Architecture
+
+### Option 1: Direct Connection to Calendar Agent
+
+```
+┌─────────────────┐    ┌─────────────────┐
+│                 │    │                 │
+│ Interactive Go  │───▶│ Calendar Agent  │
+│ Client          │    │ (Port 8081)     │
+│                 │    │                 │
+└─────────────────┘    └─────────────────┘
+                                │
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │                 │
+                       │ Google Calendar │
+                       │ API             │
+                       │                 │
+                       └─────────────────┘
+```
+
+### Option 2: Through Inference Gateway
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │                 │    │                 │    │                 │
-│   User/Client   │───▶│ Inference       │───▶│ Calendar Agent  │
-│                 │    │ Gateway         │    │                 │
+│ Interactive Go  │───▶│ Inference       │───▶│ Calendar Agent  │
+│ Client          │    │ Gateway         │    │                 │
 │                 │    │ (Port 8080)     │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 │                       │
@@ -23,6 +45,14 @@ This example demonstrates how to run the Google Calendar Agent with the Inferenc
 ```
 
 **Flow Description:**
+
+**Option 1 (Direct Connection):**
+
+1. Interactive client connects directly to Calendar Agent via A2A protocol
+2. Calendar Agent processes requests and interacts with Google Calendar API
+3. Responses are sent back directly to the client
+
+**Option 2 (Through Gateway):**
 
 1. User sends request to Inference Gateway (port 8080)
 2. Inference Gateway processes the request and determines if an agent is needed
@@ -143,6 +173,108 @@ curl -X POST http://localhost:8080/v1/chat/completions \
     ]
   }'
 ```
+
+### 5. Interactive Go Client
+
+The example includes an interactive Go client that demonstrates how to use the A2A ADK to communicate with the Google Calendar Agent.
+
+#### Setup
+
+```bash
+# Navigate to client directory
+cd client
+
+# Copy environment configuration
+cp .env.example .env
+
+# Edit configuration if needed
+nano .env
+```
+
+#### Configuration Options
+
+| Environment Variable | Description                          | Default                     |
+| -------------------- | ------------------------------------ | --------------------------- |
+| `A2A_SERVER_URL`     | A2A server endpoint                  | `http://localhost:8080/a2a` |
+| `POLL_INTERVAL`      | Polling interval for async responses | `1s`                        |
+| `MAX_POLL_TIMEOUT`   | Maximum time to wait for completion  | `60s`                       |
+| `LOG_LEVEL`          | Log level (debug, info, warn, error) | `info`                      |
+| `USE_ASYNC_MODE`     | Use async mode for better UX         | `true`                      |
+
+#### Running the Client
+
+```bash
+docker compose run --rm a2a-client
+```
+
+#### Example Usage
+
+The interactive client provides a command-line interface where you can type natural language queries:
+
+```
+🗓️  Google Calendar Agent - Interactive Client
+============================================================
+Type your questions or commands about your Google Calendar.
+Examples:
+  • What meetings do I have today?
+  • Schedule a meeting with John tomorrow at 2 PM
+  • Show my calendar for next week
+  • Cancel my 3 PM meeting
+  • help - Show more examples
+  • quit - Exit the client
+============================================================
+
+📅 You: What's on my calendar today?
+🤔 Thinking...
+🤖 Agent: Here are your events for today:
+
+1. Team Standup - 9:00 AM - 9:30 AM
+2. Project Review - 2:00 PM - 3:00 PM
+3. Client Call - 4:00 PM - 5:00 PM
+
+📅 You: Schedule a lunch meeting with Sarah tomorrow at 12 PM
+🤔 Thinking...
+🤖 Agent: I've scheduled a lunch meeting with Sarah for tomorrow at 12:00 PM.
+
+📅 You: help
+📖 Available Commands and Examples:
+--------------------------------------------------
+Calendar Queries:
+  • What's on my calendar today?
+  • Show me my meetings for tomorrow
+  • What meetings do I have this week?
+  • Do I have any free time on Friday?
+
+Event Management:
+  • Schedule a meeting with Sarah at 3 PM tomorrow
+  • Create a 1-hour lunch meeting next Tuesday
+  • Book a team standup every Monday at 9 AM
+  • Cancel my 2 PM meeting today
+  • Move my 4 PM meeting to 5 PM
+
+Time Management:
+  • When is my next meeting?
+  • How much free time do I have today?
+  • Find a 30-minute slot for a call this week
+
+Commands:
+  • help or h - Show this help message
+  • clear - Clear the screen
+  • quit, exit, or q - Exit the client
+--------------------------------------------------
+
+📅 You: quit
+👋 Goodbye!
+```
+
+#### Features
+
+- **Interactive Loop**: Continuous conversation with context preservation
+- **Async/Sync Support**: Configurable response handling with visual feedback
+- **Error Handling**: Graceful error handling with user-friendly messages
+- **Rich CLI**: Colorful interface with emojis and formatting
+- **Help System**: Built-in help and examples
+- **Configurable Logging**: Adjustable log levels for debugging
 
 ## Available Tasks
 

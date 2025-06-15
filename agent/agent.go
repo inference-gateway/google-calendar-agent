@@ -109,7 +109,11 @@ func (g *GoogleCalendarTools) registerListEventsTool(toolBox *server.DefaultTool
 
 // handleListEvents handles the list events tool call with A2A structured response
 func (g *GoogleCalendarTools) handleListEvents(ctx context.Context, args map[string]interface{}) (string, error) {
-	g.logger.Debug("handleListEvents called with args", zap.Any("args", args))
+	g.logger.Info("🔧 Tool called: list_calendar_events", zap.Any("args", args))
+
+	if ctx != nil {
+		g.logger.Debug("checking context for A2A information", zap.Any("context_type", fmt.Sprintf("%T", ctx)))
+	}
 
 	if g.isMockMode {
 		g.logger.Debug("returning mock events")

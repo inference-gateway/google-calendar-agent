@@ -11,6 +11,8 @@ services:
       google-calendar-agent-healthcheck:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - a2a-network
 
   google-calendar-agent:
     build:
@@ -22,6 +24,22 @@ services:
     env_file:
       - .env.agent
     restart: unless-stopped
+    networks:
+      - a2a-network
+
+  a2a-client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    stdin_open: true
+    tty: true
+    env_file:
+      - client/.env
+    depends_on:
+      google-calendar-agent-healthcheck:
+        condition: service_healthy
+    networks:
+      - a2a-network
 
   google-calendar-agent-healthcheck:
     image: curlimages/curl:latest
@@ -43,3 +61,9 @@ services:
       google-calendar-agent:
         condition: service_started
     restart: unless-stopped
+    networks:
+      - a2a-network
+
+networks:
+  a2a-network:
+    driver: bridge
