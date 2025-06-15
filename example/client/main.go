@@ -103,6 +103,8 @@ func (c *GoogleCalendarClient) StartInteractiveSession() {
 	fmt.Println("  • Cancel my 3 PM meeting")
 	fmt.Println("  • help - Show more examples")
 	fmt.Println("  • status - Show session status")
+	fmt.Println("  • debug - Show debug info and context ID")
+	fmt.Println("  • reset - Start a new conversation")
 	fmt.Println("  • quit - Exit the client")
 	fmt.Println(strings.Repeat("=", 60) + "\n")
 
@@ -136,6 +138,20 @@ func (c *GoogleCalendarClient) StartInteractiveSession() {
 			fmt.Printf("Debug mode: %s\n", c.config.LogLevel)
 			fmt.Printf("Async mode: %t\n", c.config.UseAsyncMode)
 			fmt.Printf("Server URL: %s\n", c.config.ServerURL)
+			if c.contextID != "" {
+				fmt.Printf("Current Context ID: %s\n", c.contextID)
+			} else {
+				fmt.Printf("No active context\n")
+			}
+			continue
+		case "reset", "new":
+			if c.contextID != "" {
+				c.logger.Info("🔄 resetting context", zap.String("old_context", c.contextID))
+				fmt.Printf("Context reset. Starting new conversation.\n")
+				c.contextID = ""
+			} else {
+				fmt.Printf("No active context to reset.\n")
+			}
 			continue
 		}
 
@@ -169,9 +185,12 @@ func (c *GoogleCalendarClient) processUserInput(input string) {
 
 	if c.contextID != "" {
 		message.ContextID = &c.contextID
-		c.logger.Info("using existing context", zap.String("context_id", c.contextID))
+		c.logger.Info("🔗 using existing context",
+			zap.String("context_id", c.contextID),
+			zap.String("message_id", messageID))
 	} else {
-		c.logger.Info("starting new conversation - no context available")
+		c.logger.Info("🆕 starting new conversation - no context available",
+			zap.String("message_id", messageID))
 	}
 
 	msgParams := adk.MessageSendParams{
@@ -212,13 +231,19 @@ func (c *GoogleCalendarClient) handleSyncResponse(msgParams adk.MessageSendParam
 	// Update context ID for conversation continuity
 	if task.ContextID != "" {
 		if c.contextID != task.ContextID {
-			c.logger.Info("context updated",
+			c.logger.Info("🔄 context updated",
 				zap.String("old_context", c.contextID),
-				zap.String("new_context", task.ContextID))
+				zap.String("new_context", task.ContextID),
+				zap.String("task_id", task.ID))
+		} else {
+			c.logger.Debug("✅ context ID unchanged",
+				zap.String("context_id", c.contextID),
+				zap.String("task_id", task.ID))
 		}
 		c.contextID = task.ContextID
 	} else {
-		c.logger.Warn("task completed but no context ID returned")
+		c.logger.Warn("⚠️ task completed but no context ID returned",
+			zap.String("task_id", task.ID))
 	}
 
 	c.displayTaskResult(&task)
@@ -242,13 +267,19 @@ func (c *GoogleCalendarClient) handleAsyncResponse(msgParams adk.MessageSendPara
 	// Update context ID immediately from the initial response
 	if task.ContextID != "" {
 		if c.contextID != task.ContextID {
-			c.logger.Info("context updated from initial response",
+			c.logger.Info("🔄 context updated from initial response",
 				zap.String("old_context", c.contextID),
-				zap.String("new_context", task.ContextID))
+				zap.String("new_context", task.ContextID),
+				zap.String("task_id", task.ID))
+		} else {
+			c.logger.Debug("✅ context ID unchanged from initial response",
+				zap.String("context_id", c.contextID),
+				zap.String("task_id", task.ID))
 		}
 		c.contextID = task.ContextID
 	} else {
-		c.logger.Warn("initial task response has no context ID")
+		c.logger.Warn("⚠️ initial task response has no context ID",
+			zap.String("task_id", task.ID))
 	}
 
 	// If already completed (shouldn't happen in async mode), display result
@@ -308,13 +339,19 @@ func (c *GoogleCalendarClient) pollForCompletion(task *adk.Task) {
 				// Update context ID from completed task
 				if updatedTask.ContextID != "" {
 					if c.contextID != updatedTask.ContextID {
-						c.logger.Info("context updated from completed task",
+						c.logger.Info("🔄 context updated from completed task",
 							zap.String("old_context", c.contextID),
-							zap.String("new_context", updatedTask.ContextID))
+							zap.String("new_context", updatedTask.ContextID),
+							zap.String("task_id", updatedTask.ID))
+					} else {
+						c.logger.Debug("✅ context ID unchanged from completed task",
+							zap.String("context_id", c.contextID),
+							zap.String("task_id", updatedTask.ID))
 					}
 					c.contextID = updatedTask.ContextID
 				} else {
-					c.logger.Warn("completed task has no context ID")
+					c.logger.Warn("⚠️ completed task has no context ID",
+						zap.String("task_id", updatedTask.ID))
 				}
 				c.displayTaskResult(&updatedTask)
 				return
@@ -483,6 +520,8 @@ func (c *GoogleCalendarClient) showHelp() {
 	fmt.Println("Commands:")
 	fmt.Println("  • help or h - Show this help message")
 	fmt.Println("  • status or s - Show current session status and context")
+	fmt.Println("  • debug - Show debug information including context ID")
+	fmt.Println("  • reset or new - Reset context and start a new conversation")
 	fmt.Println("  • clear - Clear the screen")
 	fmt.Println("  • quit, exit, or q - Exit the client")
 	fmt.Println(strings.Repeat("-", 50) + "\n")

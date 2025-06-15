@@ -22,7 +22,7 @@ tasks:
     desc: "Run go mod tidy to clean up dependencies"
     cmds:
       - echo "Running go mod tidy..."
-      - go mod tidy
+      - find . -name go.mod -execdir go mod tidy \;
 
   lint:
     desc: "Run linters on the codebase"

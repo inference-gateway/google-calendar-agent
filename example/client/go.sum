@@ -2,8 +2,8 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-github.com/inference-gateway/a2a v0.1.9-rc.4 h1:6ZIpkM5GB4ZJ26JC+f4Ixd+9ZLAFWMMYjNhI0xftuz8=
-github.com/inference-gateway/a2a v0.1.9-rc.4/go.mod h1:rj9JbIdgwLnaMidtEHtBriXu4bZNc17MCwyl+MFuiZo=
+github.com/inference-gateway/a2a v0.2.0-rc.3 h1:p3GC5dFYPCqdXg3K6l+vjr6vIxSYn1DtgCNy/ynpRGY=
+github.com/inference-gateway/a2a v0.2.0-rc.3/go.mod h1:rj9JbIdgwLnaMidtEHtBriXu4bZNc17MCwyl+MFuiZo=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/sethvargo/go-envconfig v1.3.0 h1:gJs+Fuv8+f05omTpwWIu6KmuseFAXKrIaOZSh8RMt0U=
