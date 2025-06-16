@@ -1,4 +1,4 @@
-package agent
+package toolbox
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	a2a "github.com/inference-gateway/google-calendar-agent/a2a"
 	zap "go.uber.org/zap"
 	calendar "google.golang.org/api/calendar/v3"
 )
@@ -44,7 +45,7 @@ func (g *GoogleCalendarTools) handleListEvents(ctx context.Context, args map[str
 		return "", fmt.Errorf("failed to list events: %w", err)
 	}
 
-	response := CalendarEventResponse{
+	response := a2a.CalendarEventResponse{
 		Events:  events,
 		Message: fmt.Sprintf("Found %d events between %s and %s", len(events), timeMin.Format("2006-01-02 15:04"), timeMax.Format("2006-01-02 15:04")),
 		Success: true,
@@ -133,7 +134,7 @@ func (g *GoogleCalendarTools) handleCreateEvent(ctx context.Context, args map[st
 		return "", fmt.Errorf("failed to create event: %w", err)
 	}
 
-	response := CalendarEventResponse{
+	response := a2a.CalendarEventResponse{
 		Event:   createdEvent,
 		Message: fmt.Sprintf("Event '%s' created successfully", createdEvent.Summary),
 		Success: true,

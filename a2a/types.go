@@ -1,10 +1,9 @@
-package agent
+package a2a
 
 import (
 	"fmt"
 
 	uuid "github.com/google/uuid"
-	a2a "github.com/inference-gateway/google-calendar-agent/a2a"
 	calendar "google.golang.org/api/calendar/v3"
 )
 
@@ -44,30 +43,30 @@ type ConflictInfo struct {
 }
 
 // CreateTextPart creates an A2A TextPart with the given content
-func CreateTextPart(text string) a2a.TextPart {
-	return a2a.TextPart{
+func CreateTextPart(text string) TextPart {
+	return TextPart{
 		Kind: "text",
 		Text: text,
 	}
 }
 
 // CreateDataPart creates an A2A DataPart with structured data
-func CreateDataPart(data map[string]interface{}) a2a.DataPart {
-	return a2a.DataPart{
+func CreateDataPart(data map[string]interface{}) DataPart {
+	return DataPart{
 		Kind: "data",
 		Data: data,
 	}
 }
 
 // CreateSuccessMessage creates a success message using A2A types
-func CreateSuccessMessage(taskID, content string, data map[string]interface{}) a2a.Message {
-	parts := []a2a.Part{CreateTextPart(content)}
+func CreateSuccessMessage(taskID, content string, data map[string]interface{}) Message {
+	parts := []Part{CreateTextPart(content)}
 
 	if data != nil {
 		parts = append(parts, CreateDataPart(data))
 	}
 
-	return a2a.Message{
+	return Message{
 		Kind:      "message",
 		MessageID: generateMessageID(),
 		Role:      "assistant",
@@ -77,28 +76,28 @@ func CreateSuccessMessage(taskID, content string, data map[string]interface{}) a
 }
 
 // CreateErrorMessage creates an error message using A2A types
-func CreateErrorMessage(taskID, errorMsg string) a2a.Message {
-	return a2a.Message{
+func CreateErrorMessage(taskID, errorMsg string) Message {
+	return Message{
 		Kind:      "message",
 		MessageID: generateMessageID(),
 		Role:      "assistant",
 		TaskID:    &taskID,
-		Parts: []a2a.Part{
+		Parts: []Part{
 			CreateTextPart("❌ Error: " + errorMsg),
 		},
 	}
 }
 
 // CreateTaskStatus creates a task status using A2A types
-func CreateTaskStatus(state a2a.TaskState, message *a2a.Message) a2a.TaskStatus {
-	return a2a.TaskStatus{
+func CreateTaskStatus(state TaskState, message *Message) TaskStatus {
+	return TaskStatus{
 		State:   state,
 		Message: message,
 	}
 }
 
 // CreateCalendarEventArtifact creates an A2A artifact for calendar events
-func CreateCalendarEventArtifact(event *calendar.Event, artifactType string) a2a.Artifact {
+func CreateCalendarEventArtifact(event *calendar.Event, artifactType string) Artifact {
 	metadata := map[string]interface{}{
 		"eventId":  event.Id,
 		"summary":  event.Summary,
@@ -108,12 +107,12 @@ func CreateCalendarEventArtifact(event *calendar.Event, artifactType string) a2a
 		"htmlLink": event.HtmlLink,
 	}
 
-	return a2a.Artifact{
+	return Artifact{
 		ArtifactID:  "artifact_" + event.Id,
 		Name:        &event.Summary,
 		Description: &artifactType,
 		Metadata:    metadata,
-		Parts: []a2a.Part{
+		Parts: []Part{
 			CreateDataPart(map[string]interface{}{
 				"event": event,
 			}),
@@ -122,7 +121,7 @@ func CreateCalendarEventArtifact(event *calendar.Event, artifactType string) a2a
 }
 
 // CreateCalendarEventsArtifact creates an A2A artifact for multiple calendar events
-func CreateCalendarEventsArtifact(events []*calendar.Event, description string) a2a.Artifact {
+func CreateCalendarEventsArtifact(events []*calendar.Event, description string) Artifact {
 	artifactName := fmt.Sprintf("Calendar Events (%d)", len(events))
 
 	metadata := map[string]interface{}{
@@ -130,12 +129,12 @@ func CreateCalendarEventsArtifact(events []*calendar.Event, description string) 
 		"type":       "event_list",
 	}
 
-	return a2a.Artifact{
+	return Artifact{
 		ArtifactID:  "artifact_events_" + generateUniqueID(),
 		Name:        &artifactName,
 		Description: &description,
 		Metadata:    metadata,
-		Parts: []a2a.Part{
+		Parts: []Part{
 			CreateDataPart(map[string]interface{}{
 				"events": events,
 			}),
@@ -144,7 +143,7 @@ func CreateCalendarEventsArtifact(events []*calendar.Event, description string) 
 }
 
 // CreateAvailabilityArtifact creates an A2A artifact for availability information
-func CreateAvailabilityArtifact(availableSlots []TimeSlot, description string) a2a.Artifact {
+func CreateAvailabilityArtifact(availableSlots []TimeSlot, description string) Artifact {
 	artifactName := fmt.Sprintf("Available Time Slots (%d)", len(availableSlots))
 
 	metadata := map[string]interface{}{
@@ -152,12 +151,12 @@ func CreateAvailabilityArtifact(availableSlots []TimeSlot, description string) a
 		"type":      "availability",
 	}
 
-	return a2a.Artifact{
+	return Artifact{
 		ArtifactID:  "artifact_availability_" + generateUniqueID(),
 		Name:        &artifactName,
 		Description: &description,
 		Metadata:    metadata,
-		Parts: []a2a.Part{
+		Parts: []Part{
 			CreateDataPart(map[string]interface{}{
 				"availableSlots": availableSlots,
 			}),
@@ -166,8 +165,8 @@ func CreateAvailabilityArtifact(availableSlots []TimeSlot, description string) a
 }
 
 // CreateTask creates a complete A2A task
-func CreateTask(contextID, taskID string, status a2a.TaskStatus, artifacts []a2a.Artifact, history []a2a.Message) a2a.Task {
-	return a2a.Task{
+func CreateTask(contextID, taskID string, status TaskStatus, artifacts []Artifact, history []Message) Task {
+	return Task{
 		ID:        taskID,
 		ContextID: contextID,
 		Kind:      "task",
