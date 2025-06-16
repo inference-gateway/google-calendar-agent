@@ -62,13 +62,13 @@ func main() {
 		AgentName:        "Google Calendar Agent",
 		AgentDescription: "AI agent for Google Calendar operations including listing events, creating events, managing schedules, and finding available time slots",
 		Port:             cfg.Server.Port,
-		QueueConfig: &serverconfig.QueueConfig{
+		QueueConfig: serverconfig.QueueConfig{
 			CleanupInterval: time.Minute * 5,
 		},
 	}
 
 	if cfg.LLM.Enabled && cfg.LLM.GatewayURL != "" {
-		serverCfg.AgentConfig = &serverconfig.AgentConfig{
+		serverCfg.AgentConfig = serverconfig.AgentConfig{
 			BaseURL:     cfg.LLM.GatewayURL,
 			Provider:    cfg.LLM.Provider,
 			APIKey:      "",
@@ -88,7 +88,7 @@ func main() {
 		serverCfg.Debug = true
 	}
 
-	agentInstance, err := server.NewOpenAICompatibleAgentWithConfig(logger, serverCfg.AgentConfig)
+	agentInstance, err := server.NewOpenAICompatibleAgentWithConfig(logger, &serverCfg.AgentConfig)
 	if err != nil {
 		logger.Fatal("Failed to create OpenAI-compatible agent", zap.Error(err))
 	}
