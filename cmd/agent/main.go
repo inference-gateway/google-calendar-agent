@@ -88,11 +88,6 @@ func main() {
 		serverCfg.Debug = true
 	}
 
-	agentInstance, err := server.NewOpenAICompatibleAgentWithConfig(logger, &serverCfg.AgentConfig)
-	if err != nil {
-		logger.Fatal("Failed to create OpenAI-compatible agent", zap.Error(err))
-	}
-
 	currentTime := time.Now().Format("Monday, January 2, 2006 at 15:04 MST")
 	systemPrompt := fmt.Sprintf(`Today is %s. You are a helpful Google Calendar assistant.
 
@@ -104,8 +99,16 @@ Tool Usage:
 - For finding free time: use find_available_time
 
 IMPORTANT: After using any tool, you MUST provide a clear, helpful response to the user based on the tool results. Never leave your response empty.`, currentTime)
-	agentInstance.SetSystemPrompt(systemPrompt)
-	agentInstance.SetToolBox(toolBox)
+
+	agentInstance, err := server.NewAgentBuilder(logger).
+		WithConfig(&serverCfg.AgentConfig).
+		WithSystemPrompt(systemPrompt).
+		WithToolBox(toolBox).
+		WithMaxChatCompletion(10).
+		Build()
+	if err != nil {
+		logger.Fatal("Failed to create OpenAI-compatible agent", zap.Error(err))
+	}
 
 	a2aServer := server.NewA2AServerBuilder(serverCfg, logger).
 		WithAgent(agentInstance).
