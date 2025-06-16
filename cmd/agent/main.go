@@ -79,6 +79,7 @@ func main() {
 				"X-A2A-Bypass": "true",
 			},
 			MaxChatCompletionIterations: 20,
+			MaxConversationHistory:      20,
 			MaxRetries:                  10,
 		}
 		logger.Info("Configuring agent with LLM client",
