@@ -1,2 +1,0 @@
-- [ ] Add the A2A types back
-- [ ] Create a template for generating A2A agents based on this project - perhaps a different repo as a template that a cli can clone and let the dev focus on the business logic
