@@ -1,185 +1,45 @@
-<div align="center">
+# Google Calendar A2A Agent
 
-# Google Calendar Agent (A2A)
+A minimal [Agent-to-Agent (A2A)](https://github.com/inference-gateway/a2a) compatible agent for Google Calendar operations.
 
-[![CI](https://github.com/inference-gateway/google-calendar-agent/workflows/CI/badge.svg)](https://github.com/inference-gateway/google-calendar-agent/actions/workflows/ci.yml)
-[![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://golang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?style=flat&logo=docker)](https://hub.docker.com/)
-[![Go Report Card](https://goreportcard.com/badge/github.com/inference-gateway/google-calendar-agent)](https://goreportcard.com/report/github.com/inference-gateway/google-calendar-agent)
-[![GitHub release](https://img.shields.io/github/release/inference-gateway/google-calendar-agent.svg)](https://github.com/inference-gateway/google-calendar-agent/releases)
-[![GitHub issues](https://img.shields.io/github/issues/inference-gateway/google-calendar-agent.svg)](https://github.com/inference-gateway/google-calendar-agent/issues)
-[![GitHub stars](https://img.shields.io/github/stars/inference-gateway/google-calendar-agent.svg?style=social&label=Star)](https://github.com/inference-gateway/google-calendar-agent)
+## Quick Start
 
-**A Google Calendar agent built with Go that implements the Agent-to-Agent (A2A) protocol for seamless calendar management through natural language interactions.**
+```bash
+# Run the agent
+go run main.go
 
-> ⚠️ **Early Development Warning**: This project is in its early stages of development. The API, configuration, and functionality may change significantly between versions. Breaking changes are expected and allowed until we reach a stable release. Please use with caution in production environments.
-
-</div>
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Features](#features)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
-- [API Reference](#api-reference)
-- [Development](#development)
-- [Deployment](#deployment)
-- [Testing](#testing)
-- [Contributing](#contributing)
-
-## Overview
-
-This agent provides a natural language interface to Google Calendar through the A2A protocol, enabling users to manage their calendar events using conversational commands. The agent supports listing calendars, viewing events, creating appointments, updating meetings, and canceling events - all through simple text commands.
-
-## Architecture
-
-### System Architecture
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Client App    │    │  A2A Protocol   │    │ Google Calendar │
-│                 │◄──►│     Agent       │◄──►│      API        │
-│ (Chat/Voice UI) │    │                 │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-### Component Overview
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Google Calendar Agent                    │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │   HTTP      │  │    A2A      │  │   Natural Language  │  │
-│  │   Server    │  │ Protocol    │  │     Processing      │  │
-│  │ (Gin/REST)  │  │  Handler    │  │                     │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │  Calendar   │  │   Request   │  │    Calendar API     │  │
-│  │  Service    │  │  Parser &   │  │    Integration      │  │
-│  │ Interface   │  │ Dispatcher  │  │                     │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │   Google    │  │   Mock      │  │      Logging &      │  │
-│  │  Calendar   │  │  Service    │  │     Monitoring      │  │
-│  │    API      │  │ (Demo Mode) │  │     (Zap Logger)    │  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+# Or with Docker
+docker build -t google-calendar-agent .
+docker run -p 8080:8080 google-calendar-agent
 ```
 
 ## Features
 
-### Core Capabilities
+- ✅ A2A protocol compliant
+- ✅ Google Calendar integration (when configured)
+- ✅ Minimal dependencies
+- ✅ Production ready
+- ✅ Mock mode for testing
 
-- **📅 Calendar Discovery**: List and explore available Google Calendars
-- **📋 Event Listing**: View events for today, tomorrow, this week, or custom date ranges
-- **➕ Event Creation**: Schedule new meetings, appointments, and events using natural language
-- **✏️ Event Updates**: Modify existing events (time, location, title)
-- **🗑️ Event Deletion**: Cancel and remove events from calendar
-- **🔄 Demo Mode**: Test functionality without Google API credentials
+## Endpoints
 
-### 🧠 LLM-Powered Natural Language Processing
+- `GET /.well-known/agent.json` - Agent metadata
+- `GET /health` - Health check
+- `POST /a2a` - A2A protocol endpoint
 
-- **Advanced Intent Recognition**: Uses LLM to understand complex, conversational requests
-- **Intelligent Question Handling**: When requests are ambiguous, the LLM asks clarifying questions
-- **Multi-Provider Support**: Supports OpenAI, Anthropic, Groq, Ollama, DeepSeek, Cohere, and Cloudflare models
-- **Automatic Fallback**: Falls back to pattern matching if LLM processing fails
-- **Tool-Based Operations**: Uses function calling for structured calendar operations
-- **Smart Clarification**: Detects when more information is needed and asks relevant questions
+## Configuration
 
-#### Question and Clarification Examples
+Set via environment variables:
 
-The LLM can intelligently handle ambiguous requests and ask for clarification:
+- `PORT` - Server port (default: 8080)
+- `AGENT_NAME` - Agent name (default: google-calendar-agent)
+- `AGENT_DESCRIPTION` - Agent description
+- `GOOGLE_CREDENTIALS` - Google service account JSON (optional)
 
-| User Input                   | LLM Response                                                                                                                                                                                                                                                                       |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| "Schedule something"         | "I'd be happy to help you schedule something! Could you please provide more details like what type of event, when you'd like it scheduled, and how long it should be?"                                                                                                             |
-| "Create a meeting with John" | "I can help you create a meeting with John! When would you like to schedule this meeting? Please provide the date and time."                                                                                                                                                       |
-| "What's the weather like?"   | "I'm a calendar assistant focused on helping you manage your schedule and calendar events. While I can't answer weather questions, I'd be happy to help you organize your time! Would you like to schedule an appointment, check your availability, or list your upcoming events?" |
-| "How do I use this?"         | "I'm your calendar assistant! I can help you with creating events, listing your events, updating events, deleting events, and checking availability. Just tell me what you'd like to do in natural language!"                                                                      |
-
-### Supported Commands
-
-| Operation          | Example Commands                                                                     |
-| ------------------ | ------------------------------------------------------------------------------------ |
-| **List Calendars** | "List my calendars", "What calendars do I have?", "Find my calendar ID"              |
-| **View Events**    | "Show my events today", "What's on my calendar this week?", "List meetings tomorrow" |
-| **Create Events**  | "Schedule meeting with John at 2pm tomorrow", "Book dentist appointment Friday 10am" |
-| **Update Events**  | "Move my 2pm meeting to 3pm", "Change meeting location to Conference Room A"         |
-| **Delete Events**  | "Cancel my dentist appointment", "Delete the lunch meeting with Sarah"               |
-
-### A2A Protocol Support
-
-- **JSON-RPC 2.0**: Compliant request/response handling
-- **Message Streaming**: Real-time communication support
-- **Task Management**: Stateful task tracking and management
-- **Agent Discovery**: Self-describing capabilities via `.well-known/agent.json`
-- **Multiple Content Types**: Text and JSON response formats
-
-## Quick Start
-
-### Prerequisites
-
-- Go 1.24+ installed
-- Google Cloud Project with Calendar API enabled
-- Service Account with Calendar API permissions
-- Docker (optional, for containerized deployment)
-
-### 1. Clone Repository
+## Example Usage
 
 ```bash
-git clone https://github.com/inference-gateway/google-calendar-agent.git
-cd google-calendar-agent
-```
-
-### 2. Setup Google Calendar API
-
-1. Create a Google Cloud Project
-2. Enable the Google Calendar API
-3. Create a Service Account
-4. Download the service account JSON key
-5. Share your calendar with the service account email
-
-### 3. Environment Configuration
-
-```bash
-# Required: Google Service Account JSON (as string)
-export GOOGLE_CALENDAR_SA_JSON='{"type":"service_account",...}'
-
-# Optional: Specific calendar ID (defaults to "primary")
-export GOOGLE_CALENDAR_ID="your-calendar-id@gmail.com"
-```
-
-### 4. Run the Agent
-
-```bash
-# Development mode
-task build:dev
-./bin/google-calendar-agent
-
-# Or with demo mode (no Google API required)
-APP_DEMO_MODE=true ./bin/google-calendar-agent
-
-# Or with Docker
-docker build -t calendar-agent .
-docker run -p 8080:8080 -e GOOGLE_CALENDAR_SA_JSON='...' calendar-agent
-```
-
-### 5. Test the Agent
-
-```bash
-# Health check
-curl http://localhost:8080/health
-
-# Agent capabilities
-curl http://localhost:8080/.well-known/agent.json
-
-# Send a calendar request
+# Test the agent
 curl -X POST http://localhost:8080/a2a \
   -H "Content-Type: application/json" \
   -d '{
@@ -187,222 +47,14 @@ curl -X POST http://localhost:8080/a2a \
     "method": "message/send",
     "params": {
       "message": {
-        "parts": [{"kind": "text", "text": "Show my events today"}]
+        "role": "user",
+        "content": "List my calendar events for today"
       }
     },
-    "id": "1"
+    "id": 1
   }'
 ```
 
-## Configuration
+## License
 
-### Environment Variables
-
-| Variable                  | Description                        | Default     | Required               |
-| ------------------------- | ---------------------------------- | ----------- | ---------------------- |
-| `APP_DEMO_MODE`           | Enable demo mode with mock service | `false`     | No                     |
-| `GOOGLE_CALENDAR_SA_JSON` | Service account JSON credentials   | -           | Yes (unless demo mode) |
-| `GOOGLE_CALENDAR_ID`      | Target calendar ID                 | `"primary"` | No                     |
-
-### Command Line Options
-
-```bash
-./google-calendar-agent [options]
-
-Options:
-  -help                   Show help information and exit
-  -version               Show version information and exit
-```
-
-**Note**: Configuration is managed through environment variables. See the Environment Variables section above.
-
-## API Reference
-
-### A2A Endpoints
-
-| Endpoint                  | Method | Description                     |
-| ------------------------- | ------ | ------------------------------- |
-| `/a2a`                    | POST   | Main A2A protocol endpoint      |
-| `/health`                 | GET    | Health check endpoint           |
-| `/.well-known/agent.json` | GET    | Agent capabilities and metadata |
-
-### Supported A2A Methods
-
-- `message/send` - Send a message and receive response
-- `message/stream` - Send a streaming message (maps to message/send)
-- `task/get` - Get task status (not implemented)
-- `task/cancel` - Cancel a running task (not implemented)
-
-### Response Format
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "request-id",
-  "result": {
-    "taskId": "task-uuid",
-    "status": "completed",
-    "message": {
-      "role": "assistant",
-      "parts": [{ "kind": "text", "text": "Response message" }]
-    },
-    "artifacts": [
-      {
-        "artifactId": "artifact-uuid",
-        "name": "calendar-response",
-        "parts": [{ "kind": "text", "text": "Formatted response" }]
-      }
-    ]
-  }
-}
-```
-
-## Development
-
-### Project Structure
-
-```
-├── cmd/
-│   ├── codegen/                # Code generation from A2A schema
-│   └── google-calendar-agent/  # Main application entry point
-├── a2a/
-│   ├── agent.go                # A2A protocol handler and calendar logic
-│   ├── generated_types.go      # Generated A2A protocol types
-│   └── a2a-schema.yaml         # A2A protocol schema definition
-├── google/
-│   ├── calendar.go             # Google Calendar API service interface
-│   ├── credentials.go          # Google credentials management
-│   └── mocks/                  # Mock implementations for testing
-└── internal/
-    └── codegen/                # Internal code generation utilities
-```
-
-### Development Workflow
-
-```bash
-# Install dependencies
-go mod download
-
-# Generate code from A2A schema
-task generate
-
-# Run linting
-task lint
-
-# Build the project
-task build
-
-# Run tests
-task test
-
-# Run in development mode
-task build:dev && APP_DEMO_MODE=true ./bin/google-calendar-agent
-```
-
-### Available Tasks
-
-- `task a2a:download:schema` - Download latest A2A schema
-- `task generate` - Generate Go code from schema
-- `task lint` - Run code linters
-- `task build` - Build with version information
-- `task build:dev` - Build for development
-- `task build:docker` - Build Docker image
-- `task test` - Run test suite
-
-## Deployment
-
-### Docker Deployment
-
-```dockerfile
-# Build
-docker build -t calendar-agent .
-
-# Run
-docker run -d \
-  --name calendar-agent \
-  -p 8080:8080 \
-  -e GOOGLE_CALENDAR_SA_JSON='{"type":"service_account",...}' \
-  -e GOOGLE_CALENDAR_ID="your-calendar@gmail.com" \
-  calendar-agent
-```
-
-### Kubernetes Deployment
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: calendar-agent
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: calendar-agent
-  template:
-    metadata:
-      labels:
-        app: calendar-agent
-    spec:
-      containers:
-        - name: calendar-agent
-          image: calendar-agent:latest
-          ports:
-            - containerPort: 8080
-          env:
-            - name: GOOGLE_CALENDAR_SA_JSON
-              valueFrom:
-                secretKeyRef:
-                  name: google-credentials
-                  key: service-account.json
-```
-
-When running on GKE, please use Identity Workload Federation to authenticate with Google APIs securely.
-
-## Testing
-
-The project includes comprehensive testing with mock implementations:
-
-```bash
-# Run all tests
-task test
-
-# Run tests with coverage
-task test:coverage
-
-# Run specific test package
-go test ./a2a/...
-```
-
-### Mock Service
-
-The agent includes a mock calendar service for testing and demo purposes:
-
-```bash
-# Run in demo mode
-APP_DEMO_MODE=true ./google-calendar-agent
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes following the coding standards
-4. Run tests and linting (`task test && task lint`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-### Coding Standards
-
-- Follow Go best practices and idioms
-- Use early returns to reduce nesting
-- Prefer switch statements over if-else chains
-- Implement table-driven tests
-- Code to interfaces for better testability
-- Always run `task generate`, `task lint`, `task build`, and `task test` before committing
-
----
-
-**Version**: See `./google-calendar-agent -version` for current version information  
-**License**: See LICENSE file for details  
-**Support**: Open an issue on GitHub for questions or bug reports
+MIT

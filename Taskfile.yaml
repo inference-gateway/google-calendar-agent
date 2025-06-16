@@ -10,28 +10,19 @@ tasks:
   a2a:download:schema:
     desc: "Download the latest A2A schema and convert to YAML"
     cmds:
-      - curl -o a2a/a2a-schema.json https://raw.githubusercontent.com/google-a2a/A2A/main/specification/json/a2a.json
-      - |
-        echo "Converting A2A JSON schema to YAML format"
-        NODE_PATH=/usr/lib/node_modules node -e "
-          const fs = require('fs');
-          const yaml = require('js-yaml');
-          const json = JSON.parse(fs.readFileSync('a2a/a2a-schema.json', 'utf8'));
-          fs.writeFileSync('a2a/a2a-schema.yaml', yaml.dump(json, {lineWidth: -1}));
-        "
+      - mkdir -p a2a
+      - curl -o a2a/schema.yaml https://raw.githubusercontent.com/inference-gateway/schemas/refs/heads/main/a2a/a2a-schema.yaml
 
   generate:
     desc: "Generate Go code from the official A2A JSON RPC Schema"
     cmds:
-      - echo "Generating Go code from JSON RPC Schema..."
-      - go run cmd/codegen/main.go -output a2a/generated_types.go
-      - go generate ./...
+      - go run github.com/inference-gateway/tools/cmd/generator@v0.1.1 -generator jsonrpc -package a2a a2a/schema.yaml a2a/generated_types.go
 
   tidy:
     desc: "Run go mod tidy to clean up dependencies"
     cmds:
       - echo "Running go mod tidy..."
-      - go mod tidy
+      - find . -name go.mod -execdir go mod tidy \;
 
   lint:
     desc: "Run linters on the codebase"
@@ -47,13 +38,13 @@ tasks:
         VERSION=$(git describe --tags --always --dirty)
         COMMIT=$(git rev-parse HEAD)
         DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        go build -ldflags "-X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE}" -o bin/google-calendar-agent cmd/google-calendar-agent/main.go
+        go build -ldflags "-X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE}" -o dist/agent ./cmd/agent
 
   build:dev:
     desc: "Build the project for development (no version information)"
     cmds:
       - echo "Building the project for development..."
-      - go build -o bin/google-calendar-agent cmd/google-calendar-agent/main.go
+      - go build -o dist/agent ./cmd/agent
 
   build:docker:
     desc: "Build the Docker image with version information"
@@ -67,8 +58,8 @@ tasks:
           --build-arg VERSION="${VERSION}" \
           --build-arg COMMIT="${COMMIT}" \
           --build-arg DATE="${DATE}" \
-          -t google-calendar-agent:latest \
-          -t google-calendar-agent:${VERSION} \
+          -t ghcr.io/inference-gateway/google-calendar-agent:latest \
+          -t ghcr.io/inference-gateway/google-calendar-agent:${VERSION} \
           .
 
   test:
@@ -77,16 +68,15 @@ tasks:
       - echo "Running tests..."
       - go test ./...
 
-  test:converage:
+  test:coverage:
     desc: "Run tests with coverage"
     cmds:
       - echo "Running tests with coverage..."
-      - go test -coverprofile=coverage.out ./google && go tool cover -func=coverage.out
+      - go test -cover ./...
 
   clean:
     desc: "Clean up build artifacts"
     cmds:
       - echo "Cleaning up..."
-      - rm -rf bin/
-      - rm -f *.out
       - rm -rf dist/
+      - rm -f *.out

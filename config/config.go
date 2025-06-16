@@ -109,9 +109,6 @@ type AppConfig struct {
 	// Environment specifies the deployment environment (dev, staging, prod)
 	Environment string `env:"ENVIRONMENT, default=dev"`
 
-	// Debug enables debug mode
-	Debug bool `env:"DEBUG, default=false"`
-
 	// DemoMode enables demo mode with mock services
 	DemoMode bool `env:"DEMO_MODE, default=false"`
 
@@ -277,7 +274,7 @@ func (c *Config) IsDevelopment() bool {
 
 // IsDebugEnabled returns true if debug mode is enabled
 func (c *Config) IsDebugEnabled() bool {
-	return c.App.Debug || c.Logging.Level == "debug" || c.IsDevelopment()
+	return c.Logging.Level == "debug" || c.IsDevelopment()
 }
 
 // ShouldUseMockService returns true if mock services should be used

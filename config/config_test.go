@@ -14,7 +14,8 @@ func TestConfig_Load_DefaultValues(t *testing.T) {
 	ctx := context.Background()
 
 	lookuper := envconfig.MapLookuper(map[string]string{
-		"APP_DEMO_MODE": "true",
+		"APP_DEMO_MODE":   "true",
+		"APP_ENVIRONMENT": "prod",
 	})
 
 	cfg, err := LoadWithLookuper(ctx, lookuper)
@@ -32,8 +33,8 @@ func TestConfig_Load_DefaultValues(t *testing.T) {
 	assert.Equal(t, "stdout", cfg.Logging.Output)
 	assert.Equal(t, true, cfg.Logging.EnableCaller)
 	assert.Equal(t, true, cfg.Logging.EnableStacktrace)
-	assert.Equal(t, "dev", cfg.App.Environment)
-	assert.Equal(t, false, cfg.App.Debug)
+	assert.Equal(t, "prod", cfg.App.Environment)
+	assert.Equal(t, false, cfg.IsDebugEnabled())
 	assert.Equal(t, true, cfg.App.DemoMode)
 	assert.Equal(t, int64(1048576), cfg.App.MaxRequestSize)
 	assert.Equal(t, time.Second*30, cfg.App.RequestTimeout)
@@ -122,7 +123,7 @@ func TestConfig_Load_CustomValues(t *testing.T) {
 			name: "app_configuration",
 			envVars: map[string]string{
 				"APP_ENVIRONMENT":                "production",
-				"APP_DEBUG":                      "true",
+				"LOG_LEVEL":                      "debug",
 				"APP_DEMO_MODE":                  "false",
 				"APP_MAX_REQUEST_SIZE":           "2097152",
 				"APP_REQUEST_TIMEOUT":            "60s",
@@ -130,7 +131,7 @@ func TestConfig_Load_CustomValues(t *testing.T) {
 			},
 			expected: func(t *testing.T, cfg *Config) {
 				assert.Equal(t, "production", cfg.App.Environment)
-				assert.Equal(t, true, cfg.App.Debug)
+				assert.Equal(t, true, cfg.IsDebugEnabled())
 				assert.Equal(t, false, cfg.App.DemoMode)
 				assert.Equal(t, int64(2097152), cfg.App.MaxRequestSize)
 				assert.Equal(t, time.Minute, cfg.App.RequestTimeout)
@@ -456,7 +457,6 @@ func TestConfig_Validate_LLM(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, cfg)
 
-				// Additional validations for successful cases
 				if tc.envVars["LLM_ENABLED"] == "true" {
 					assert.True(t, cfg.LLM.Enabled)
 					assert.Equal(t, tc.envVars["LLM_GATEWAY_URL"], cfg.LLM.GatewayURL)
@@ -510,7 +510,7 @@ func TestConfig_HelperMethods(t *testing.T) {
 		{
 			name: "is_debug_enabled_explicit",
 			envVars: map[string]string{
-				"APP_DEBUG":     "true",
+				"LOG_LEVEL":     "debug",
 				"APP_DEMO_MODE": "true",
 			},
 			testFunc: func(t *testing.T, cfg *Config) {
