@@ -81,27 +81,33 @@ func main() {
 			MaxChatCompletionIterations: 20,
 			MaxConversationHistory:      20,
 			MaxRetries:                  10,
+			Timeout:                     cfg.LLM.Timeout,
 		}
 		logger.Info("Configuring agent with LLM client",
 			zap.String("base_url", cfg.LLM.GatewayURL),
 			zap.String("provider", cfg.LLM.Provider),
-			zap.String("model", cfg.LLM.Model))
+			zap.String("model", cfg.LLM.Model),
+			zap.Duration("timeout", cfg.LLM.Timeout))
 	}
 	if cfg.IsDebugEnabled() {
 		serverCfg.Debug = true
 	}
 
 	currentTime := time.Now().Format("Monday, January 2, 2006 at 15:04 MST")
-	systemPrompt := fmt.Sprintf(`Today is %s. You are a helpful Google Calendar assistant.
+	systemPrompt := fmt.Sprintf(`Today is %s. You are a Google Calendar assistant.
 
-ALWAYS use the available tools to interact with Google Calendar - never provide generic responses without using tools.
+ALWAYS use tools - never provide responses without tool interactions.
 
-Tool Usage:
-- For listing events: use list_calendar_events
-- For creating events: use create_calendar_event  
-- For finding free time: use find_available_time
+Available tools:
+- list_calendar_events - List events
+- create_calendar_event - Create events (ALWAYS check conflicts first with check_conflicts)
+- update_calendar_event - Update events
+- delete_calendar_event - Delete events
+- get_calendar_event - Get event details
+- find_available_time - Find free time slots
+- check_conflicts - Check scheduling conflicts
 
-IMPORTANT: After using any tool, you MUST provide a clear, helpful response to the user based on the tool results. Never leave your response empty.`, currentTime)
+IMPORTANT: Before creating any event, MUST check for conflicts first. Always provide clear responses based on tool results.`, currentTime)
 
 	agentInstance, err := server.NewAgentBuilder(logger).
 		WithConfig(&serverCfg.AgentConfig).

@@ -26,11 +26,12 @@ type Config struct {
 }
 
 type GoogleCalendarClient struct {
-	client    client.A2AClient
-	config    Config
-	logger    *zap.Logger
-	ctx       context.Context
-	contextID string
+	client     client.A2AClient
+	config     Config
+	logger     *zap.Logger
+	ctx        context.Context
+	contextID  string
+	lastTaskID string
 }
 
 func main() {
@@ -103,6 +104,8 @@ func (c *GoogleCalendarClient) StartInteractiveSession() {
 	fmt.Println("  • Cancel my 3 PM meeting")
 	fmt.Println("  • help - Show more examples")
 	fmt.Println("  • status - Show session status")
+	fmt.Println("  • tasks - Show context information")
+	fmt.Println("  • connect - Connect to existing context ID")
 	fmt.Println("  • debug - Show debug info and context ID")
 	fmt.Println("  • reset - Start a new conversation")
 	fmt.Println("  • quit - Exit the client")
@@ -152,6 +155,12 @@ func (c *GoogleCalendarClient) StartInteractiveSession() {
 			} else {
 				fmt.Printf("No active context to reset.\n")
 			}
+			continue
+		case "tasks", "t":
+			c.showTasks()
+			continue
+		case "connect":
+			c.connectToContext()
 			continue
 		}
 
@@ -241,6 +250,7 @@ func (c *GoogleCalendarClient) handleSyncResponse(msgParams adk.MessageSendParam
 				zap.String("task_id", task.ID))
 		}
 		c.contextID = task.ContextID
+		c.lastTaskID = task.ID
 	} else {
 		c.logger.Warn("⚠️ task completed but no context ID returned",
 			zap.String("task_id", task.ID))
@@ -277,6 +287,7 @@ func (c *GoogleCalendarClient) handleAsyncResponse(msgParams adk.MessageSendPara
 				zap.String("task_id", task.ID))
 		}
 		c.contextID = task.ContextID
+		c.lastTaskID = task.ID
 	} else {
 		c.logger.Warn("⚠️ initial task response has no context ID",
 			zap.String("task_id", task.ID))
@@ -349,6 +360,7 @@ func (c *GoogleCalendarClient) pollForCompletion(task *adk.Task) {
 							zap.String("task_id", updatedTask.ID))
 					}
 					c.contextID = updatedTask.ContextID
+					c.lastTaskID = updatedTask.ID
 				} else {
 					c.logger.Warn("⚠️ completed task has no context ID",
 						zap.String("task_id", updatedTask.ID))
@@ -520,6 +532,8 @@ func (c *GoogleCalendarClient) showHelp() {
 	fmt.Println("Commands:")
 	fmt.Println("  • help or h - Show this help message")
 	fmt.Println("  • status or s - Show current session status and context")
+	fmt.Println("  • tasks or t - Show current context information")
+	fmt.Println("  • connect - Connect to an existing context ID")
 	fmt.Println("  • debug - Show debug information including context ID")
 	fmt.Println("  • reset or new - Reset context and start a new conversation")
 	fmt.Println("  • clear - Clear the screen")
@@ -547,6 +561,131 @@ func (c *GoogleCalendarClient) showStatus() {
 	fmt.Printf("Async Mode: %v\n", c.config.UseAsyncMode)
 	fmt.Printf("Log Level: %s\n", c.config.LogLevel)
 	fmt.Println(strings.Repeat("-", 30) + "\n")
+}
+
+// showTasks displays information about the current context and conversation history
+func (c *GoogleCalendarClient) showTasks() {
+	if c.contextID == "" {
+		fmt.Println("❌ No active context ID. Start a conversation first to generate tasks.")
+		return
+	}
+
+	fmt.Printf("🔍 Current context information:\n")
+	fmt.Printf("  Context ID: %s\n", c.contextID)
+
+	// Try to get conversation history from the last task
+	if c.lastTaskID != "" {
+		fmt.Printf("\n� Conversation History:\n")
+		fmt.Printf("%s\n", strings.Repeat("-", 50))
+
+		taskResp, err := c.client.GetTask(c.ctx, adk.TaskQueryParams{
+			ID: c.lastTaskID,
+		})
+
+		if err != nil {
+			c.logger.Debug("failed to get task for conversation history", zap.Error(err))
+			fmt.Printf("❌ Unable to retrieve conversation history: %v\n", err)
+		} else {
+			var task adk.Task
+			if err := c.parseTaskFromResponse(taskResp.Result, &task); err != nil {
+				c.logger.Debug("failed to parse task response for history", zap.Error(err))
+				fmt.Printf("❌ Failed to parse conversation history\n")
+			} else {
+				c.displayConversationHistory(&task)
+			}
+		}
+	} else {
+		fmt.Printf("\n💬 No conversation history available yet.\n")
+		fmt.Printf("   Start a conversation to see the history here.\n")
+	}
+
+	fmt.Printf("\n💡 Tips:\n")
+	fmt.Printf("  • Use 'status' to see current session state\n")
+	fmt.Printf("  • Use 'connect' to connect to an existing context ID\n")
+	fmt.Printf("  • Use 'debug' to see detailed session information\n")
+	fmt.Printf("  • Use 'reset' to start a new conversation context\n")
+	fmt.Println()
+}
+
+// displayConversationHistory displays the conversation history from a task
+func (c *GoogleCalendarClient) displayConversationHistory(task *adk.Task) {
+	if len(task.History) == 0 {
+		fmt.Println("📭 No conversation history found in this task.")
+		return
+	}
+
+	fmt.Printf("💬 Found %d message(s) in conversation:\n\n", len(task.History))
+
+	for i, msg := range task.History {
+		timestamp := ""
+		if msg.MessageID != "" {
+			timestamp = fmt.Sprintf(" [%s]", msg.MessageID[:8]) // Show first 8 chars of message ID
+		}
+
+		var roleIcon string
+		switch msg.Role {
+		case "user":
+			roleIcon = "👤"
+		case "assistant":
+			roleIcon = "🤖"
+		default:
+			roleIcon = "❓"
+		}
+
+		text := c.extractTextFromMessage(&msg)
+		if text == "" {
+			text = "(No text content)"
+		}
+
+		// Truncate very long messages for overview
+		if len(text) > 200 {
+			text = text[:197] + "..."
+		}
+
+		roleTitle := strings.ToUpper(string(msg.Role[0])) + msg.Role[1:]
+		fmt.Printf("%d. %s %s%s:\n", i+1, roleIcon, roleTitle, timestamp)
+		fmt.Printf("   %s\n\n", text)
+	}
+
+	fmt.Printf("Task ID: %s\n", task.ID)
+	fmt.Printf("Task Status: %s\n", task.Status.State)
+	fmt.Printf("%s\n", strings.Repeat("-", 50))
+}
+
+// connectToContext allows connecting to an existing context ID
+func (c *GoogleCalendarClient) connectToContext() {
+	fmt.Print("Enter Context ID to connect to: ")
+	scanner := bufio.NewScanner(os.Stdin)
+
+	if !scanner.Scan() {
+		fmt.Println("❌ Failed to read input")
+		return
+	}
+
+	contextInput := strings.TrimSpace(scanner.Text())
+	if contextInput == "" {
+		fmt.Println("❌ Context ID cannot be empty")
+		return
+	}
+
+	// Validate the context ID format (basic validation)
+	if len(contextInput) < 10 {
+		fmt.Println("❌ Invalid context ID format")
+		return
+	}
+
+	// Set the new context ID
+	oldContextID := c.contextID
+	c.contextID = contextInput
+	c.lastTaskID = "" // Reset task ID since we're connecting to a different context
+
+	c.logger.Info("🔗 connected to context",
+		zap.String("old_context", oldContextID),
+		zap.String("new_context", c.contextID))
+
+	fmt.Printf("✅ Connected to context: %s\n", c.contextID)
+	fmt.Println("💡 You can now use 'tasks' to see the conversation history for this context")
+	fmt.Println("   or continue the conversation by sending messages.")
 }
 
 func boolPtr(b bool) *bool {
