@@ -3,7 +3,7 @@ module a2a-client
 go 1.24
 
 require (
-	github.com/inference-gateway/a2a v0.2.0-rc.4
+	github.com/inference-gateway/a2a v0.2.0-rc.5
 	github.com/sethvargo/go-envconfig v1.3.0
 	go.uber.org/zap v1.27.0
 )
