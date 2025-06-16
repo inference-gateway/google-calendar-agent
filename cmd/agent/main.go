@@ -78,6 +78,8 @@ func main() {
 			CustomHeaders: map[string]string{
 				"X-A2A-Bypass": "true",
 			},
+			MaxChatCompletionIterations: 20,
+			MaxRetries:                  10,
 		}
 		logger.Info("Configuring agent with LLM client",
 			zap.String("base_url", cfg.LLM.GatewayURL),
@@ -104,6 +106,7 @@ IMPORTANT: After using any tool, you MUST provide a clear, helpful response to t
 		WithConfig(&serverCfg.AgentConfig).
 		WithSystemPrompt(systemPrompt).
 		WithToolBox(toolBox).
+		WithMaxConversationHistory(20).
 		WithMaxChatCompletion(10).
 		Build()
 	if err != nil {
