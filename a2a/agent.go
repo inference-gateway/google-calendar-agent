@@ -1,8 +1,7 @@
-package agent
+package a2a
 
 import (
-	"github.com/inference-gateway/a2a/adk/server/config"
-	"github.com/inference-gateway/google-calendar-agent/a2a"
+	config "github.com/inference-gateway/a2a/adk/server/config"
 )
 
 // GoogleCalendarAgentInfo provides custom agent information for the Google Calendar agent
@@ -10,19 +9,23 @@ type GoogleCalendarAgentInfo struct{}
 
 // GetAgentCard returns custom agent card information
 func (g *GoogleCalendarAgentInfo) GetAgentCard(baseConfig config.Config) interface{} {
-	return a2a.AgentCard{
+	return AgentCard{
 		Name:        baseConfig.AgentName,
 		Description: baseConfig.AgentDescription,
 		Version:     "1.0.0",
 		URL:         "https://github.com/inference-gateway/google-calendar-agent",
-		Capabilities: a2a.AgentCapabilities{
-			Streaming:              boolPtr(false),
-			PushNotifications:      boolPtr(false),
+		Provider: &AgentProvider{
+			Organization: "Inference Gateway",
+			URL:          "https://github.com/inference-gateway",
+		},
+		Capabilities: AgentCapabilities{
+			Streaming:              boolPtr(true),
+			PushNotifications:      boolPtr(true),
 			StateTransitionHistory: boolPtr(true),
 		},
 		DefaultInputModes:  []string{"text"},
 		DefaultOutputModes: []string{"text", "json"},
-		Skills: []a2a.AgentSkill{
+		Skills: []AgentSkill{
 			{
 				ID:          "list_calendar_events",
 				Name:        "List Calendar Events",
@@ -114,10 +117,6 @@ func (g *GoogleCalendarAgentInfo) GetAgentCard(baseConfig config.Config) interfa
 				InputModes:  []string{"text"},
 				OutputModes: []string{"text", "json"},
 			},
-		},
-		Provider: &a2a.AgentProvider{
-			Organization: "Inference Gateway",
-			URL:          "https://github.com/inference-gateway",
 		},
 	}
 }

@@ -11,9 +11,9 @@ import (
 
 	server "github.com/inference-gateway/a2a/adk/server"
 	serverconfig "github.com/inference-gateway/a2a/adk/server/config"
-	agent "github.com/inference-gateway/google-calendar-agent/agent"
 	config "github.com/inference-gateway/google-calendar-agent/config"
 	logging "github.com/inference-gateway/google-calendar-agent/internal/logging"
+	toolbox "github.com/inference-gateway/google-calendar-agent/toolbox"
 	zap "go.uber.org/zap"
 )
 
@@ -51,7 +51,7 @@ func main() {
 
 	toolBox := server.NewDefaultToolBox()
 
-	calendarTools, err := agent.NewGoogleCalendarTools(cfg, logger)
+	calendarTools, err := toolbox.NewGoogleCalendarTools(cfg, logger)
 	if err != nil {
 		logger.Fatal("Failed to create Google Calendar tools", zap.Error(err))
 	}
