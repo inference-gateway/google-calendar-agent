@@ -89,7 +89,18 @@ func main() {
 			zap.String("model", cfg.LLM.Model),
 			zap.Duration("timeout", cfg.LLM.Timeout))
 	} else if cfg.App.DemoMode {
-		logger.Info("LLM disabled in demo mode - agent will use pattern matching only")
+		serverCfg.AgentConfig = serverconfig.AgentConfig{
+			Provider:                    "demo",
+			Model:                       "demo-model",
+			APIKey:                      "demo-key",
+			Temperature:                 0.7,
+			MaxTokens:                   4096,
+			MaxChatCompletionIterations: 20,
+			MaxConversationHistory:      20,
+			MaxRetries:                  3,
+			Timeout:                     time.Second * 30,
+		}
+		logger.Info("LLM configured in demo mode - agent will use mock responses")
 	}
 	if cfg.IsDebugEnabled() {
 		serverCfg.Debug = true
@@ -113,7 +124,10 @@ IMPORTANT: Before creating any event, MUST check for conflicts first. Always pro
 
 	var a2aServer server.A2AServer
 	if cfg.App.DemoMode {
+		demoHandler := toolbox.NewDemoTaskHandler(toolBox, logger)
+
 		a2aServer = server.NewA2AServerBuilder(serverCfg, logger).
+			WithTaskHandler(demoHandler).
 			Build()
 	} else {
 		agentInstance, err := server.NewAgentBuilder(logger).
