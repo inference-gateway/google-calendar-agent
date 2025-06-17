@@ -67,7 +67,7 @@ func main() {
 		},
 	}
 
-	if cfg.LLM.Enabled && cfg.LLM.GatewayURL != "" {
+	if cfg.LLM.Enabled && cfg.LLM.GatewayURL != "" && !cfg.App.DemoMode {
 		serverCfg.AgentConfig = serverconfig.AgentConfig{
 			BaseURL:     cfg.LLM.GatewayURL,
 			Provider:    cfg.LLM.Provider,
@@ -88,6 +88,8 @@ func main() {
 			zap.String("provider", cfg.LLM.Provider),
 			zap.String("model", cfg.LLM.Model),
 			zap.Duration("timeout", cfg.LLM.Timeout))
+	} else if cfg.App.DemoMode {
+		logger.Info("LLM disabled in demo mode - agent will use pattern matching only")
 	}
 	if cfg.IsDebugEnabled() {
 		serverCfg.Debug = true
@@ -109,26 +111,34 @@ Available tools:
 
 IMPORTANT: Before creating any event, MUST check for conflicts first. Always provide clear responses based on tool results.`, currentTime)
 
-	agentInstance, err := server.NewAgentBuilder(logger).
-		WithConfig(&serverCfg.AgentConfig).
-		WithSystemPrompt(systemPrompt).
-		WithToolBox(toolBox).
-		WithMaxConversationHistory(20).
-		WithMaxChatCompletion(10).
-		Build()
-	if err != nil {
-		logger.Fatal("Failed to create OpenAI-compatible agent", zap.Error(err))
+	var a2aServer server.A2AServer
+	if cfg.App.DemoMode {
+		a2aServer = server.NewA2AServerBuilder(serverCfg, logger).
+			Build()
+	} else {
+		agentInstance, err := server.NewAgentBuilder(logger).
+			WithConfig(&serverCfg.AgentConfig).
+			WithSystemPrompt(systemPrompt).
+			WithToolBox(toolBox).
+			WithMaxConversationHistory(20).
+			WithMaxChatCompletion(10).
+			Build()
+		if err != nil {
+			logger.Fatal("Failed to create OpenAI-compatible agent", zap.Error(err))
+		}
+
+		a2aServer = server.NewA2AServerBuilder(serverCfg, logger).
+			WithAgent(agentInstance).
+			Build()
 	}
 
-	a2aServer := server.NewA2AServerBuilder(serverCfg, logger).
-		WithAgent(agentInstance).
-		Build()
-
-	if cfg.LLM.Enabled && cfg.LLM.GatewayURL != "" {
+	if cfg.LLM.Enabled && cfg.LLM.GatewayURL != "" && !cfg.App.DemoMode {
 		logger.Info("✅ Google Calendar agent created with AI capabilities",
 			zap.String("provider", cfg.LLM.Provider),
 			zap.String("model", cfg.LLM.Model),
 			zap.String("gateway_url", cfg.LLM.GatewayURL))
+	} else if cfg.App.DemoMode {
+		logger.Info("✅ Google Calendar agent created in demo mode (AI disabled)")
 	} else {
 		logger.Info("✅ Google Calendar agent created with default capabilities")
 	}
@@ -203,7 +213,7 @@ func printStartupInfo(cfg *config.Config, logger *zap.Logger) {
 	fmt.Println("• check_conflicts - Check for scheduling conflicts")
 
 	if cfg.App.DemoMode {
-		fmt.Println("\n⚠️  Running in DEMO MODE - using mock services")
+		fmt.Println("\n⚠️  Running in DEMO MODE - using mock services (AI disabled)")
 	} else if cfg.Google.ServiceAccountJSON == "" && cfg.Google.CredentialsPath == "" {
 		fmt.Println("\n⚠️  Google credentials not configured - some features may be limited")
 		fmt.Println("   Set GOOGLE_CALENDAR_SA_JSON or GOOGLE_APPLICATION_CREDENTIALS")
@@ -212,5 +222,7 @@ func printStartupInfo(cfg *config.Config, logger *zap.Logger) {
 	if !cfg.LLM.Enabled {
 		fmt.Println("\n💡 LLM disabled - agent will have limited AI capabilities")
 		fmt.Println("   Set LLM_ENABLED=true and configure LLM settings for full AI features")
+	} else if cfg.App.DemoMode {
+		fmt.Println("\n💡 LLM disabled in demo mode - agent will use pattern matching only")
 	}
 }
