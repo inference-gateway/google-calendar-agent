@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.5](https://github.com/inference-gateway/google-calendar-agent/compare/v0.2.4...v0.2.5) (2025-06-17)
+
+### 🐛 Bug Fixes
+
+* Implement demo mode task handler with mock responses ([e1c9924](https://github.com/inference-gateway/google-calendar-agent/commit/e1c9924b6d16ebcc724e76970fc1ed7c5564bf1a))
+
 ## [0.2.4](https://github.com/inference-gateway/google-calendar-agent/compare/v0.2.3...v0.2.4) (2025-06-17)
 
 ### 🐛 Bug Fixes
