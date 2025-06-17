@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.4](https://github.com/inference-gateway/google-calendar-agent/compare/v0.2.3...v0.2.4) (2025-06-17)
+
+### 🐛 Bug Fixes
+
+* Correct main path for google-calendar-agent build ([8221f8b](https://github.com/inference-gateway/google-calendar-agent/commit/8221f8bb09760fdb286bb3951daa4d9313dd3177))
+* Use agent only if we are not in demo mode ([cd1ec98](https://github.com/inference-gateway/google-calendar-agent/commit/cd1ec98fc90c1cb437ae63274094aef8ff5e4ce4))
+
 ## [0.2.3](https://github.com/inference-gateway/google-calendar-agent/compare/v0.2.2...v0.2.3) (2025-06-17)
 
 ### ♻️ Improvements
