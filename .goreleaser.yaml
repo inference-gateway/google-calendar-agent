@@ -13,7 +13,7 @@ before:
 
 builds:
   - id: google-calendar-agent
-    main: ./cmd/google-calendar-agent
+    main: ./cmd/agent
     env:
       - CGO_ENABLED=0
     goos:
