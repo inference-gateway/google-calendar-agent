@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.6](https://github.com/inference-gateway/google-calendar-agent/compare/v0.2.5...v0.2.6) (2025-06-18)
+
+### 🐛 Bug Fixes
+
+* Refactor agent card retrieval and update dependencies ([fcae906](https://github.com/inference-gateway/google-calendar-agent/commit/fcae9065e7b873d39f073e3cd84ce78f2f8de617))
+
 ## [0.2.5](https://github.com/inference-gateway/google-calendar-agent/compare/v0.2.4...v0.2.5) (2025-06-17)
 
 ### 🐛 Bug Fixes
