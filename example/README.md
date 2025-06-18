@@ -65,17 +65,17 @@ This example demonstrates how to run the Google Calendar Agent with the Inferenc
 
 ```bash
 # Test connection and get agent capabilities
-docker run --rm a2a-debugger connect
-docker run --rm a2a-debugger agent-card
+docker compose run --rm a2a-debugger connect
+docker compose run --rm a2a-debugger agent-card
 
 # Submit tasks directly to the agent
-docker run --rm a2a-debugger tasks submit "List my events for today"
-docker run --rm a2a-debugger tasks submit "Create a meeting tomorrow at 2 PM"
+docker compose run --rm a2a-debugger tasks submit "List my events for today"
+docker compose run --rm a2a-debugger tasks submit "Create a meeting tomorrow at 2 PM"
 
 # Monitor and debug
-docker run --rm a2a-debugger tasks list
-docker run --rm a2a-debugger tasks get <task-id>
-docker run --rm a2a-debugger tasks history <context-id>
+docker compose run --rm a2a-debugger tasks list
+docker compose run --rm a2a-debugger tasks get <task-id>
+docker compose run --rm a2a-debugger tasks history <context-id>
 ```
 
 **Benefits of Direct Access:**
