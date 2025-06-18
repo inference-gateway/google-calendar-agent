@@ -1,31 +1,29 @@
 package a2a
 
 import (
+	adk "github.com/inference-gateway/a2a/adk"
 	config "github.com/inference-gateway/a2a/adk/server/config"
 )
 
-// GoogleCalendarAgentInfo provides custom agent information for the Google Calendar agent
-type GoogleCalendarAgentInfo struct{}
-
 // GetAgentCard returns custom agent card information
-func (g *GoogleCalendarAgentInfo) GetAgentCard(baseConfig config.Config) interface{} {
-	return AgentCard{
+func GetAgentCard(baseConfig config.Config) adk.AgentCard {
+	return adk.AgentCard{
 		Name:        baseConfig.AgentName,
 		Description: baseConfig.AgentDescription,
 		Version:     "1.0.0",
 		URL:         "https://github.com/inference-gateway/google-calendar-agent",
-		Provider: &AgentProvider{
+		Provider: &adk.AgentProvider{
 			Organization: "Inference Gateway",
 			URL:          "https://github.com/inference-gateway",
 		},
-		Capabilities: AgentCapabilities{
+		Capabilities: adk.AgentCapabilities{
 			Streaming:              boolPtr(true),
 			PushNotifications:      boolPtr(true),
 			StateTransitionHistory: boolPtr(true),
 		},
 		DefaultInputModes:  []string{"text"},
 		DefaultOutputModes: []string{"text", "json"},
-		Skills: []AgentSkill{
+		Skills: []adk.AgentSkill{
 			{
 				ID:          "list_calendar_events",
 				Name:        "List Calendar Events",

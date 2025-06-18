@@ -11,10 +11,12 @@ import (
 
 	server "github.com/inference-gateway/a2a/adk/server"
 	serverconfig "github.com/inference-gateway/a2a/adk/server/config"
+	zap "go.uber.org/zap"
+
+	a2a "github.com/inference-gateway/google-calendar-agent/a2a"
 	config "github.com/inference-gateway/google-calendar-agent/config"
 	logging "github.com/inference-gateway/google-calendar-agent/internal/logging"
 	toolbox "github.com/inference-gateway/google-calendar-agent/toolbox"
-	zap "go.uber.org/zap"
 )
 
 var (
@@ -122,12 +124,14 @@ Available tools:
 
 IMPORTANT: Before creating any event, MUST check for conflicts first. Always provide clear responses based on tool results.`, currentTime)
 
+	agentCard := a2a.GetAgentCard(serverCfg)
 	var a2aServer server.A2AServer
 	if cfg.App.DemoMode {
 		demoHandler := toolbox.NewDemoTaskHandler(toolBox, logger)
 
 		a2aServer = server.NewA2AServerBuilder(serverCfg, logger).
 			WithTaskHandler(demoHandler).
+			WithAgentCard(agentCard).
 			Build()
 	} else {
 		agentInstance, err := server.NewAgentBuilder(logger).
@@ -143,6 +147,7 @@ IMPORTANT: Before creating any event, MUST check for conflicts first. Always pro
 
 		a2aServer = server.NewA2AServerBuilder(serverCfg, logger).
 			WithAgent(agentInstance).
+			WithAgentCard(agentCard).
 			Build()
 	}
 

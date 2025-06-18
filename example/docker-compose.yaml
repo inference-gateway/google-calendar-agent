@@ -27,20 +27,6 @@ services:
     networks:
       - a2a-network
 
-  a2a-client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    stdin_open: true
-    tty: true
-    env_file:
-      - client/.env
-    depends_on:
-      google-calendar-agent-healthcheck:
-        condition: service_healthy
-    networks:
-      - a2a-network
-
   google-calendar-agent-healthcheck:
     image: curlimages/curl:latest
     entrypoint:
@@ -61,6 +47,23 @@ services:
       google-calendar-agent:
         condition: service_started
     restart: unless-stopped
+    networks:
+      - a2a-network
+
+  a2a-debugger:
+    image: ghcr.io/inference-gateway/a2a-debugger:latest
+    pull_policy: always
+    entrypoint:
+      - /a2a
+      - --config
+      - /config/.a2a.yaml
+    command:
+      - config
+      - set
+      - server-url
+      - http://google-calendar-agent:8080
+    volumes:
+      - ./config:/config
     networks:
       - a2a-network
 
