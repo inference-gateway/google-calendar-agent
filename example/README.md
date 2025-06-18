@@ -32,6 +32,60 @@ This example demonstrates how to run the Google Calendar Agent with the Inferenc
 4. Inference Gateway uses LLM providers for natural language processing
 5. Response flows back through Gateway to the user
 
+### Direct Access with A2A Debugger
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│                 │    │                 │    │                 |
+│ A2A Debugger    │───▶│ Calendar Agent  │───▶│ Google Calendar │
+│ CLI Tool        │    │ (A2A Server)    │    │ API             │
+│                 │    │ (Port 8080)     │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+        │                       │
+        │                       │
+        ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐
+│                 │    │                 │
+│ Task Management │    │ LLM Engine      │
+│ • List tasks    │    │ (Optional)      │
+│ • View history  │    │ For AI features │
+│ • Submit tasks  │    │                 │
+└─────────────────┘    └─────────────────┘
+```
+
+**Direct Access Flow:**
+
+1. **A2A Debugger** connects directly to the Calendar Agent's A2A server endpoint
+2. **Submit Tasks**: Send JSON-RPC 2.0 requests directly to the agent
+3. **Task Management**: List, monitor, and retrieve task details and conversation history
+4. **Real-time Debugging**: View agent responses, tool calls, and execution flow
+5. **Agent Tools**: Direct access to calendar operations without gateway overhead
+
+**A2A Debugger Commands:**
+
+```bash
+# Test connection and get agent capabilities
+docker run --rm a2a-debugger connect
+docker run --rm a2a-debugger agent-card
+
+# Submit tasks directly to the agent
+docker run --rm a2a-debugger tasks submit "List my events for today"
+docker run --rm a2a-debugger tasks submit "Create a meeting tomorrow at 2 PM"
+
+# Monitor and debug
+docker run --rm a2a-debugger tasks list
+docker run --rm a2a-debugger tasks get <task-id>
+docker run --rm a2a-debugger tasks history <context-id>
+```
+
+**Benefits of Direct Access:**
+
+- **Faster Response**: No gateway overhead for debugging
+- **Direct Tool Access**: Immediate access to calendar operations
+- **Enhanced Debugging**: Full visibility into agent internals
+- **Task Monitoring**: Real-time task status and conversation history
+- **Development Workflow**: Perfect for agent development and testing
+
 ## Features
 
 - **Google Calendar Agent**: Manages calendar events with natural language processing
