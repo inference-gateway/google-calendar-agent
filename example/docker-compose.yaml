@@ -19,8 +19,6 @@ services:
       context: ..
       dockerfile: Dockerfile
     pull_policy: always
-    ports:
-      - "8081:8080"
     env_file:
       - .env.agent
     restart: unless-stopped
