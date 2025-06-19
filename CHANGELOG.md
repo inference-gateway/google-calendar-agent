@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0-rc.1](https://github.com/inference-gateway/google-calendar-agent/compare/v0.2.6...v0.3.0-rc.1) (2025-06-19)
+
+### ✨ Features
+
+* Update a2a dependency to v0.4.0-rc.1 ([091934e](https://github.com/inference-gateway/google-calendar-agent/commit/091934e2234d855a5161504f81dd1f8de652e047))
+
+### 📚 Documentation
+
+* Example cleanup ([#10](https://github.com/inference-gateway/google-calendar-agent/issues/10)) ([398ef0d](https://github.com/inference-gateway/google-calendar-agent/commit/398ef0de716468e5fc009df7a778367408fd7031))
+
 ## [0.2.6](https://github.com/inference-gateway/google-calendar-agent/compare/v0.2.5...v0.2.6) (2025-06-18)
 
 ### 🐛 Bug Fixes
