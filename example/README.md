@@ -71,6 +71,7 @@ docker compose run --rm a2a-debugger agent-card
 # Submit tasks directly to the agent
 docker compose run --rm a2a-debugger tasks submit "List my events for today"
 docker compose run --rm a2a-debugger tasks submit "Create a meeting tomorrow at 2 PM"
+docker compose run --rm a2a-debugger tasks submit-streaming "List my events for today?"
 
 # Monitor and debug
 docker compose run --rm a2a-debugger tasks list
