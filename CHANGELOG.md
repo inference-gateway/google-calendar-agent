@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0-rc.3](https://github.com/inference-gateway/google-calendar-agent/compare/v0.3.0-rc.2...v0.3.0-rc.3) (2025-06-20)
+
+### 🐛 Bug Fixes
+
+* Update a2a dependency to v0.4.0-rc.10 ([c61de63](https://github.com/inference-gateway/google-calendar-agent/commit/c61de637259fb18e6cb4dbadb4c444986f729050))
+* Update a2a dependency to v0.4.0-rc.8 and add streaming task submission example ([941810c](https://github.com/inference-gateway/google-calendar-agent/commit/941810c528d9ad0b8b681c83325637a5784bdf55))
+* Update a2a dependency to v0.4.0-rc.9 ([1ba62be](https://github.com/inference-gateway/google-calendar-agent/commit/1ba62be567f6cabea644a83d9d46bd9ed5667200))
+
+### 🔧 Miscellaneous
+
+* Update inference-gateway and google-calendar-agent images to latest version ([3e9d1b5](https://github.com/inference-gateway/google-calendar-agent/commit/3e9d1b56607ef6530129391d3984858cd2f7873f))
+
 ## [0.3.0-rc.2](https://github.com/inference-gateway/google-calendar-agent/compare/v0.3.0-rc.1...v0.3.0-rc.2) (2025-06-19)
 
 ### 🐛 Bug Fixes
