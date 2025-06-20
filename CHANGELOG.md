@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0](https://github.com/inference-gateway/google-calendar-agent/compare/v0.2.6...v0.3.0) (2025-06-20)
+
+### ✨ Features
+
+* Add Streaming ([#11](https://github.com/inference-gateway/google-calendar-agent/issues/11)) ([1887fab](https://github.com/inference-gateway/google-calendar-agent/commit/1887fab0ce0009bc16b724e3f289da75ef340ba9))
+
+### 📚 Documentation
+
+* Example cleanup ([#10](https://github.com/inference-gateway/google-calendar-agent/issues/10)) ([398ef0d](https://github.com/inference-gateway/google-calendar-agent/commit/398ef0de716468e5fc009df7a778367408fd7031))
+
 ## [0.3.0-rc.3](https://github.com/inference-gateway/google-calendar-agent/compare/v0.3.0-rc.2...v0.3.0-rc.3) (2025-06-20)
 
 ### 🐛 Bug Fixes
