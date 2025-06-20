@@ -50,7 +50,7 @@ plugins:
       verifyConditions: true
 
   - - "@semantic-release/exec"
-    - prepareCmd: 'sed -i ''s/^Version:     .*$/Version:     "${nextRelease.version}"/'' a2a/agent.go'
+    - prepareCmd: 'sed -i ''s/Version:     ".*"/Version:     "${nextRelease.version}"/'' a2a/agent.go'
 
   - - "@semantic-release/git"
     - assets:
