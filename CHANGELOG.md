@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.1](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.0...v0.4.1) (2025-06-20)
+
+### 🐛 Bug Fixes
+
+* Improve the sed command to replace the hardcoded version when releasing ([b72d243](https://github.com/inference-gateway/google-calendar-agent/commit/b72d243a373cba9410f05c8815a1fc09f5107cad))
+
 ## [0.4.0](https://github.com/inference-gateway/google-calendar-agent/compare/v0.3.0...v0.4.0) (2025-06-20)
 
 ### ✨ Features
