@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0](https://github.com/inference-gateway/google-calendar-agent/compare/v0.3.0...v0.4.0) (2025-06-20)
+
+### ✨ Features
+
+* Add AgentURL to configuration and update agent card URL ([0cdd79c](https://github.com/inference-gateway/google-calendar-agent/commit/0cdd79c7e5b6195f3a26e4dfdc5742cb3610d805))
+* Add exec plugin for version update and include agent.go in release assets ([94fbca0](https://github.com/inference-gateway/google-calendar-agent/commit/94fbca0657e4b2c1acae1099b2f41aa9c781fa01))
+
 ## [0.3.0](https://github.com/inference-gateway/google-calendar-agent/compare/v0.2.6...v0.3.0) (2025-06-20)
 
 ### ✨ Features
