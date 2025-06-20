@@ -117,6 +117,9 @@ type AppConfig struct {
 
 	// RequestTimeout sets the maximum duration for handling requests
 	RequestTimeout time.Duration `env:"REQUEST_TIMEOUT, default=30s"`
+
+	// AgentURL is the URL of the agent, used in agent card metadata
+	AgentURL string `env:"AGENT_URL, default=http://google-calendar-agent.agents.svc.cluster.local:8080"`
 }
 
 // LLMConfig holds LLM provider configuration for natural language processing

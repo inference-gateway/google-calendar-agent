@@ -10,8 +10,8 @@ func GetAgentCard(baseConfig config.Config) adk.AgentCard {
 	return adk.AgentCard{
 		Name:        baseConfig.AgentName,
 		Description: baseConfig.AgentDescription,
-		Version:     "1.0.0",
-		URL:         "https://github.com/inference-gateway/google-calendar-agent",
+		Version:     "0.3.0",
+		URL:         baseConfig.AgentURL,
 		Provider: &adk.AgentProvider{
 			Organization: "Inference Gateway",
 			URL:          "https://github.com/inference-gateway",

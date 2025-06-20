@@ -26,8 +26,6 @@ var (
 )
 
 func main() {
-	fmt.Printf("🗓️  Starting Google Calendar A2A Agent v%s (commit: %s, built: %s)\n", version, commit, date)
-
 	ctx := context.Background()
 
 	cfg, err := config.Load(ctx)
@@ -45,11 +43,17 @@ func main() {
 		}
 	}()
 
-	logger.Info("Configuration loaded successfully",
+	logger.Info("Starting Google Calendar A2A Agent",
+		zap.String("version", version),
+		zap.String("commit", commit),
+		zap.String("date", date),
 		zap.String("environment", cfg.App.Environment),
-		zap.Bool("debug", cfg.IsDebugEnabled()),
 		zap.Bool("demo_mode", cfg.App.DemoMode),
-		zap.String("log_level", cfg.Logging.Level))
+		zap.String("agent_url", cfg.App.AgentURL),
+		zap.String("port", cfg.Server.Port),
+		zap.Bool("debug", cfg.IsDebugEnabled()),
+		zap.String("log_level", cfg.Logging.Level),
+	)
 
 	toolBox := server.NewDefaultToolBox()
 
@@ -63,6 +67,7 @@ func main() {
 	serverCfg := serverconfig.Config{
 		AgentName:        "Google Calendar Agent",
 		AgentDescription: "AI agent for Google Calendar operations including listing events, creating events, managing schedules, and finding available time slots",
+		AgentURL:         cfg.App.AgentURL,
 		Port:             cfg.Server.Port,
 		QueueConfig: serverconfig.QueueConfig{
 			CleanupInterval: time.Minute * 5,
