@@ -12,7 +12,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -trimpath \
     -ldflags "-w -s -extldflags '-static' -X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE}" \
     -o dist/agent ./cmd/agent/main.go
-# RUN upx --best --lzma dist/agent
+RUN upx --best --lzma dist/agent
 
 FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=builder /app/dist/agent /agent
