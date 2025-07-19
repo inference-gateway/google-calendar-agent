@@ -4,7 +4,7 @@ go 1.24
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/inference-gateway/a2a v0.4.0
+	github.com/inference-gateway/a2a v0.6.2
 	github.com/sethvargo/go-envconfig v1.3.0
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
@@ -37,7 +37,7 @@ require (
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.2 // indirect
-	github.com/inference-gateway/sdk v1.8.1 // indirect
+	github.com/inference-gateway/sdk v1.9.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
