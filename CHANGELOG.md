@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.2](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.1...v0.4.2) (2025-07-19)
+
+### 🐛 Bug Fixes
+
+* Enable UPX compression for the built agent binary ([151b3a1](https://github.com/inference-gateway/google-calendar-agent/commit/151b3a1e178675e1d0b74e6bda1ebdae5eb7634e))
+* Update dependencies for a2a and sdk to latest versions ([68c0b7c](https://github.com/inference-gateway/google-calendar-agent/commit/68c0b7c6b7012038f7c479bd9fcec3a212c00934))
+
 ## [0.4.1](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.0...v0.4.1) (2025-06-20)
 
 ### 🐛 Bug Fixes
