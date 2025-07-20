@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.3](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.2...v0.4.3) (2025-07-20)
+
+### ♻️ Improvements
+
+* Replace local ldflags with library ldflags  ([#12](https://github.com/inference-gateway/google-calendar-agent/issues/12)) ([3256050](https://github.com/inference-gateway/google-calendar-agent/commit/325605094a1b86b56b23d651eee6fac991b4d3e3))
+
 ## [0.4.2](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.1...v0.4.2) (2025-07-19)
 
 ### 🐛 Bug Fixes
