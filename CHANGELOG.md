@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.6](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.5...v0.4.6) (2025-07-20)
+
+### 🐛 Bug Fixes
+
+* Consolidate ldflags for cleaner configuration in .goreleaser.yaml - keep it in one line ([8ff7b9c](https://github.com/inference-gateway/google-calendar-agent/commit/8ff7b9cd30e5e28817cb0293fef19417a058aebb))
+
 ## [0.4.5](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.4...v0.4.5) (2025-07-20)
 
 ### 🐛 Bug Fixes
