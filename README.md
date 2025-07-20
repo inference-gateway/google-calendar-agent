@@ -69,9 +69,6 @@ Configure the agent via environment variables:
 
 #### Agent Identity
 
-- `ADK_AGENT_NAME` - Agent name (default: `google-calendar-agent`)
-- `ADK_AGENT_DESCRIPTION` - Agent description (default: `A Google Calendar integration agent`)
-- `ADK_AGENT_VERSION` - Agent version (default: `1.0.0`)
 - `ADK_AGENT_URL` - Agent URL (default: `http://localhost:8080`)
 
 #### Server Configuration
