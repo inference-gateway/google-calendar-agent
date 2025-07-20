@@ -20,9 +20,8 @@ import (
 )
 
 var (
-	version = "dev"
-	commit  = "unknown"
-	date    = "unknown"
+	commit = "unknown"
+	date   = "unknown"
 )
 
 func main() {
@@ -44,7 +43,7 @@ func main() {
 	}()
 
 	logger.Info("Starting Google Calendar A2A Agent",
-		zap.String("version", version),
+		zap.String("version", server.BuildAgentVersion),
 		zap.String("commit", commit),
 		zap.String("date", date),
 		zap.String("environment", cfg.App.Environment),
@@ -65,10 +64,8 @@ func main() {
 	calendarTools.RegisterTools(toolBox)
 
 	serverCfg := serverconfig.Config{
-		AgentName:        "Google Calendar Agent",
-		AgentDescription: "AI agent for Google Calendar operations including listing events, creating events, managing schedules, and finding available time slots",
-		AgentURL:         cfg.App.AgentURL,
-		Port:             cfg.Server.Port,
+		AgentURL: cfg.App.AgentURL,
+		Port:     cfg.Server.Port,
 		QueueConfig: serverconfig.QueueConfig{
 			CleanupInterval: time.Minute * 5,
 		},
@@ -155,6 +152,11 @@ IMPORTANT: Before creating any event, MUST check for conflicts first. Always pro
 			WithAgentCard(agentCard).
 			Build()
 	}
+
+	logger.Info("Agent metadata",
+		zap.String("agent_name", server.BuildAgentName),
+		zap.String("agent_description", server.BuildAgentDescription),
+		zap.String("agent_version", server.BuildAgentVersion))
 
 	if cfg.LLM.Enabled && cfg.LLM.GatewayURL != "" && !cfg.App.DemoMode {
 		logger.Info("✅ Google Calendar agent created with AI capabilities",
