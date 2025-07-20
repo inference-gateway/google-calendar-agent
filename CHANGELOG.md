@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.5](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.4...v0.4.5) (2025-07-20)
+
+### 🐛 Bug Fixes
+
+* Update ldflags for improved build metadata and descriptions ([d84d652](https://github.com/inference-gateway/google-calendar-agent/commit/d84d652629fe14e2ca70c573ee524b60bc6a651f))
+
 ## [0.4.4](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.3...v0.4.4) (2025-07-20)
 
 ### 🐛 Bug Fixes
