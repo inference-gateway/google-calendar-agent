@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	adk "github.com/inference-gateway/a2a/adk"
 	server "github.com/inference-gateway/a2a/adk/server"
 	serverconfig "github.com/inference-gateway/a2a/adk/server/config"
 	zap "go.uber.org/zap"
@@ -27,6 +28,21 @@ var (
 func main() {
 	ctx := context.Background()
 
+	cfg, logger := mustInitialize(ctx)
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			log.Printf("Failed to sync logger: %v", err)
+		}
+	}()
+
+	logStartup(cfg, logger)
+
+	a2aServer := createServer(cfg, logger)
+
+	runServer(ctx, a2aServer, logger)
+}
+
+func mustInitialize(ctx context.Context) (*config.Config, *zap.Logger) {
 	cfg, err := config.Load(ctx)
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
@@ -36,83 +52,53 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create logger: %v", err)
 	}
-	defer func() {
-		if err := logger.Sync(); err != nil {
-			_ = err
-		}
-	}()
 
+	return cfg, logger
+}
+
+func logStartup(cfg *config.Config, logger *zap.Logger) {
 	logger.Info("Starting Google Calendar A2A Agent",
 		zap.String("version", server.BuildAgentVersion),
 		zap.String("commit", commit),
 		zap.String("date", date),
-		zap.String("environment", cfg.App.Environment),
-		zap.Bool("demo_mode", cfg.App.DemoMode),
-		zap.String("agent_url", cfg.App.AgentURL),
-		zap.String("port", cfg.Server.Port),
+		zap.String("environment", cfg.Environment),
+		zap.Bool("demo_mode", cfg.DemoMode),
 		zap.Bool("debug", cfg.IsDebugEnabled()),
-		zap.String("log_level", cfg.Logging.Level),
 	)
+}
 
+func createServer(cfg *config.Config, logger *zap.Logger) server.A2AServer {
 	toolBox := server.NewDefaultToolBox()
-
 	calendarTools, err := toolbox.NewGoogleCalendarTools(cfg, logger)
 	if err != nil {
 		logger.Fatal("Failed to create Google Calendar tools", zap.Error(err))
 	}
-
 	calendarTools.RegisterTools(toolBox)
 
-	serverCfg := serverconfig.Config{
-		AgentURL: cfg.App.AgentURL,
-		Port:     cfg.Server.Port,
-		QueueConfig: serverconfig.QueueConfig{
-			CleanupInterval: time.Minute * 5,
-		},
-	}
-
-	if cfg.LLM.Enabled && cfg.LLM.GatewayURL != "" && !cfg.App.DemoMode {
-		serverCfg.AgentConfig = serverconfig.AgentConfig{
-			BaseURL:     cfg.LLM.GatewayURL,
-			Provider:    cfg.LLM.Provider,
-			APIKey:      "",
-			Model:       cfg.LLM.Model,
-			Temperature: cfg.LLM.Temperature,
-			MaxTokens:   cfg.LLM.MaxTokens,
-			CustomHeaders: map[string]string{
-				"X-A2A-Bypass": "true",
-			},
-			MaxChatCompletionIterations: 20,
-			MaxConversationHistory:      20,
-			MaxRetries:                  10,
-			Timeout:                     cfg.LLM.Timeout,
-		}
-		logger.Info("Configuring agent with LLM client",
-			zap.String("base_url", cfg.LLM.GatewayURL),
-			zap.String("provider", cfg.LLM.Provider),
-			zap.String("model", cfg.LLM.Model),
-			zap.Duration("timeout", cfg.LLM.Timeout))
-	} else if cfg.App.DemoMode {
-		serverCfg.AgentConfig = serverconfig.AgentConfig{
-			Provider:                    "demo",
-			Model:                       "demo-model",
-			APIKey:                      "demo-key",
-			Temperature:                 0.7,
-			MaxTokens:                   4096,
-			MaxChatCompletionIterations: 20,
-			MaxConversationHistory:      20,
-			MaxRetries:                  3,
-			Timeout:                     time.Second * 30,
-		}
-		logger.Info("LLM configured in demo mode - agent will use mock responses")
-	}
-
+	serverCfg := cfg.ADK
 	if cfg.IsDebugEnabled() {
 		serverCfg.Debug = true
-		logger.Debug("Debug mode enabled for A2A server")
 	}
 
-	currentTime := time.Now().Format("Monday, January 2, 2006 at 15:04 MST")
+	agentCard := a2a.GetAgentCard(serverCfg)
+
+	if cfg.DemoMode {
+		return createDemoServer(serverCfg, toolBox, agentCard, logger)
+	}
+	return createAgentServer(serverCfg, toolBox, agentCard, logger)
+}
+
+func createDemoServer(serverCfg serverconfig.Config, toolBox *server.DefaultToolBox, agentCard adk.AgentCard, logger *zap.Logger) server.A2AServer {
+	logger.Info("✅ Google Calendar agent created in demo mode (AI disabled)")
+
+	demoHandler := toolbox.NewDemoTaskHandler(toolBox, logger)
+	return server.NewA2AServerBuilder(serverCfg, logger).
+		WithTaskHandler(demoHandler).
+		WithAgentCard(agentCard).
+		Build()
+}
+
+func createAgentServer(serverCfg serverconfig.Config, toolBox *server.DefaultToolBox, agentCard adk.AgentCard, logger *zap.Logger) server.A2AServer {
 	systemPrompt := fmt.Sprintf(`Today is %s. You are a Google Calendar assistant.
 
 ALWAYS use tools - never provide responses without tool interactions.
@@ -126,54 +112,30 @@ Available tools:
 - find_available_time - Find free time slots
 - check_conflicts - Check scheduling conflicts
 
-IMPORTANT: Before creating any event, MUST check for conflicts first. Always provide clear responses based on tool results.`, currentTime)
+IMPORTANT: Before creating any event, MUST check for conflicts first. Always provide clear responses based on tool results.`,
+		time.Now().Format("Monday, January 2, 2006 at 15:04 MST"))
 
-	agentCard := a2a.GetAgentCard(serverCfg)
-	var a2aServer server.A2AServer
-	if cfg.App.DemoMode {
-		demoHandler := toolbox.NewDemoTaskHandler(toolBox, logger)
-
-		a2aServer = server.NewA2AServerBuilder(serverCfg, logger).
-			WithTaskHandler(demoHandler).
-			WithAgentCard(agentCard).
-			Build()
-	} else {
-		agentInstance, err := server.NewAgentBuilder(logger).
-			WithConfig(&serverCfg.AgentConfig).
-			WithSystemPrompt(systemPrompt).
-			WithToolBox(toolBox).
-			WithMaxConversationHistory(20).
-			WithMaxChatCompletion(10).
-			Build()
-		if err != nil {
-			logger.Fatal("Failed to create OpenAI-compatible agent", zap.Error(err))
-		}
-
-		a2aServer = server.NewA2AServerBuilder(serverCfg, logger).
-			WithAgent(agentInstance).
-			WithAgentCard(agentCard).
-			Build()
+	agentInstance, err := server.NewAgentBuilder(logger).
+		WithConfig(&serverCfg.AgentConfig).
+		WithSystemPrompt(systemPrompt).
+		WithToolBox(toolBox).
+		WithMaxConversationHistory(20).
+		WithMaxChatCompletion(10).
+		Build()
+	if err != nil {
+		logger.Fatal("Failed to create agent", zap.Error(err))
 	}
 
-	logger.Info("Agent metadata",
-		zap.String("agent_name", server.BuildAgentName),
-		zap.String("agent_description", server.BuildAgentDescription),
-		zap.String("agent_version", server.BuildAgentVersion))
+	logger.Info("✅ Google Calendar agent created with AI capabilities")
 
-	if cfg.LLM.Enabled && cfg.LLM.GatewayURL != "" && !cfg.App.DemoMode {
-		logger.Info("✅ Google Calendar agent created with AI capabilities",
-			zap.String("provider", cfg.LLM.Provider),
-			zap.String("model", cfg.LLM.Model),
-			zap.String("gateway_url", cfg.LLM.GatewayURL))
-	} else if cfg.App.DemoMode {
-		logger.Info("✅ Google Calendar agent created in demo mode (AI disabled)")
-	} else {
-		logger.Info("✅ Google Calendar agent created with default capabilities")
-	}
+	return server.NewA2AServerBuilder(serverCfg, logger).
+		WithAgent(agentInstance).
+		WithAgentCard(agentCard).
+		Build()
+}
 
-	printStartupInfo(cfg, logger)
-
-	ctx, cancel := context.WithCancel(context.Background())
+func runServer(ctx context.Context, a2aServer server.A2AServer, logger *zap.Logger) {
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	go func() {
@@ -196,64 +158,4 @@ IMPORTANT: Before creating any event, MUST check for conflicts first. Always pro
 	}
 
 	logger.Info("✅ Goodbye!")
-}
-
-func printStartupInfo(cfg *config.Config, logger *zap.Logger) {
-	port := cfg.Server.Port
-	if port == "" {
-		port = "8080"
-	}
-
-	fmt.Printf("\n🌐 Google Calendar agent running on port %s\n", port)
-	fmt.Printf("\n🎯 Available endpoints:\n")
-	fmt.Printf("📋 Agent info: http://localhost:%s/.well-known/agent.json\n", port)
-	fmt.Printf("💚 Health check: http://localhost:%s/health\n", port)
-	fmt.Printf("📡 A2A endpoint: http://localhost:%s/a2a\n", port)
-
-	fmt.Println("\n📝 Example A2A request:")
-	fmt.Printf(`curl -X POST http://localhost:%s/a2a \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "message/send",
-    "params": {
-      "message": {
-        "role": "user",
-        "parts": [
-          {
-            "kind": "text",
-            "content": "List my calendar events for today"
-          }
-        ]
-      }
-    },
-    "id": 1
-  }'`, port)
-	fmt.Println()
-
-	fmt.Println("\n📦 Google Calendar Tools Available:")
-	fmt.Println("• list_calendar_events - List upcoming events")
-	fmt.Println("• create_calendar_event - Create new events")
-	fmt.Println("• update_calendar_event - Update existing events")
-	fmt.Println("• delete_calendar_event - Delete events")
-	fmt.Println("• get_calendar_event - Get event details")
-	fmt.Println("• find_available_time - Find free time slots")
-	fmt.Println("• check_conflicts - Check for scheduling conflicts")
-
-	if cfg.App.DemoMode {
-		fmt.Println("\n⚠️  Running in DEMO MODE - using mock services (AI disabled)")
-	} else if cfg.Google.ServiceAccountJSON == "" && cfg.Google.CredentialsPath == "" {
-		fmt.Println("\n⚠️  Google credentials not configured - some features may be limited")
-		fmt.Println("   Set GOOGLE_CALENDAR_SA_JSON or GOOGLE_APPLICATION_CREDENTIALS")
-	}
-
-	if !cfg.LLM.Enabled {
-		fmt.Println("\n💡 LLM disabled - agent will have limited AI capabilities")
-		fmt.Println("   Set LLM_ENABLED=true and configure LLM settings for full AI features")
-	} else if cfg.App.DemoMode {
-		fmt.Println("\n💡 LLM disabled in demo mode - agent will use pattern matching only")
-	}
-
-	fmt.Println("\n🔇 Health check logging disabled by default (quiet mode)")
-	fmt.Println("   Set SERVER_DISABLE_HEALTHCHECK_LOG=false to enable health check logs")
 }

@@ -41,14 +41,12 @@ func (c *Config) GetLogLevel() string {
 
 // GetPort returns the port (TLS port adjustment is handled by A2A ADK)
 func (c *Config) GetPort() string {
-	return c.Server.Port
+	return c.ADK.ServerConfig.Port
 }
 
 // GetProtocol returns the protocol scheme (TLS is handled by A2A ADK)
 func (c *Config) GetProtocol() string {
-	if c.Server.EnableTLS {
-		return "https"
-	}
+	// Default to http since TLS is handled by the ADK framework
 	return "http"
 }
 
@@ -70,8 +68,7 @@ func (c *Config) ToMap() map[string]interface{} {
 			"has_credentials": c.Google.ServiceAccountJSON != "" || c.Google.CredentialsPath != "",
 		},
 		"server": map[string]interface{}{
-			"port":       c.Server.Port,
-			"enable_tls": c.Server.EnableTLS,
+			"port": c.ADK.ServerConfig.Port,
 		},
 		"logging": map[string]interface{}{
 			"level":             c.Logging.Level,
@@ -81,17 +78,14 @@ func (c *Config) ToMap() map[string]interface{} {
 			"enable_stacktrace": c.Logging.EnableStacktrace,
 		},
 		"app": map[string]interface{}{
-			"environment":      c.App.Environment,
-			"debug":            c.IsDebugEnabled(),
-			"demo_mode":        c.App.DemoMode,
-			"max_request_size": c.App.MaxRequestSize,
-			"request_timeout":  c.App.RequestTimeout.String(),
+			"environment": c.Environment,
+			"debug":       c.IsDebugEnabled(),
+			"demo_mode":   c.DemoMode,
 		},
-		"llm": map[string]interface{}{
-			"enabled":     c.LLM.Enabled,
-			"provider":    c.LLM.Provider,
-			"model":       c.LLM.Model,
-			"gateway_url": c.LLM.GatewayURL,
+		"adk": map[string]interface{}{
+			"agent_name":        c.ADK.AgentName,
+			"agent_description": c.ADK.AgentDescription,
+			"agent_url":         c.ADK.AgentURL,
 		},
 	}
 }

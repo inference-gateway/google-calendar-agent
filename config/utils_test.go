@@ -20,7 +20,7 @@ func TestConfig_GetGoogleCredentialsOption(t *testing.T) {
 		{
 			name: "demo_mode",
 			envVars: map[string]string{
-				"APP_DEMO_MODE": "true",
+				"DEMO_MODE": "true",
 			},
 			expectedType:  "",
 			expectedValue: "",
@@ -47,7 +47,7 @@ func TestConfig_GetGoogleCredentialsOption(t *testing.T) {
 		{
 			name: "no_credentials",
 			envVars: map[string]string{
-				"APP_DEMO_MODE": "false",
+				"DEMO_MODE": "false",
 			},
 			expectedType:  "",
 			expectedValue: "",
