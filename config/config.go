@@ -61,6 +61,9 @@ type ServerConfig struct {
 	// EnableTLS determines if HTTPS should be enabled
 	EnableTLS bool `env:"ENABLE_TLS, default=false"`
 
+	// DisableHealthLogs disables logging for health check requests
+	DisableHealthLogs bool `env:"DISABLE_HEALTH_LOGS, default=true"`
+
 	// ReadTimeout is the maximum duration for reading the entire request
 	ReadTimeout time.Duration `env:"READ_TIMEOUT, default=10s"`
 

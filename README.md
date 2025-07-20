@@ -57,6 +57,7 @@ Configure the agent via environment variables:
 - `SERVER_HOST` - Host to bind to (default: `0.0.0.0`)
 - `SERVER_GIN_MODE` - Gin server mode: `debug`, `release`, `test` (default: `release`)
 - `SERVER_ENABLE_TLS` - Enable HTTPS (default: `false`)
+- `SERVER_DISABLE_HEALTH_LOGS` - Disable logging for health check requests (default: `true`)
 - `SERVER_READ_TIMEOUT` - Maximum duration for reading requests (default: `10s`)
 - `SERVER_WRITE_TIMEOUT` - Maximum duration for writing responses (default: `10s`)
 - `SERVER_IDLE_TIMEOUT` - Maximum time to wait for next request (default: `60s`)

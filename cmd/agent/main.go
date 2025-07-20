@@ -106,8 +106,11 @@ func main() {
 		}
 		logger.Info("LLM configured in demo mode - agent will use mock responses")
 	}
-	if cfg.IsDebugEnabled() {
+
+	if cfg.IsDebugEnabled() && !cfg.Server.DisableHealthLogs {
 		serverCfg.Debug = true
+	} else if cfg.IsDebugEnabled() && cfg.Server.DisableHealthLogs {
+		logger.Debug("Debug mode enabled but health logs disabled - server debug mode remains off")
 	}
 
 	currentTime := time.Now().Format("Monday, January 2, 2006 at 15:04 MST")
@@ -250,5 +253,10 @@ func printStartupInfo(cfg *config.Config, logger *zap.Logger) {
 		fmt.Println("   Set LLM_ENABLED=true and configure LLM settings for full AI features")
 	} else if cfg.App.DemoMode {
 		fmt.Println("\n💡 LLM disabled in demo mode - agent will use pattern matching only")
+	}
+
+	if cfg.Server.DisableHealthLogs {
+		fmt.Println("\n🔇 Health check logging disabled (quiet mode)")
+		fmt.Println("   Set SERVER_DISABLE_HEALTH_LOGS=false to enable health check logs")
 	}
 }

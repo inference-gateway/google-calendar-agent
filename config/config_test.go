@@ -28,6 +28,7 @@ func TestConfig_Load_DefaultValues(t *testing.T) {
 	assert.Equal(t, "0.0.0.0", cfg.Server.Host)
 	assert.Equal(t, "release", cfg.Server.Mode)
 	assert.Equal(t, false, cfg.Server.EnableTLS)
+	assert.Equal(t, true, cfg.Server.DisableHealthLogs)
 	assert.Equal(t, "info", cfg.Logging.Level)
 	assert.Equal(t, "json", cfg.Logging.Format)
 	assert.Equal(t, "stdout", cfg.Logging.Output)
@@ -67,20 +68,22 @@ func TestConfig_Load_CustomValues(t *testing.T) {
 		{
 			name: "server_configuration",
 			envVars: map[string]string{
-				"SERVER_PORT":         "9090",
-				"SERVER_HOST":         "127.0.0.1",
-				"SERVER_GIN_MODE":     "debug",
-				"SERVER_ENABLE_TLS":   "true",
-				"TLS_CERT_PATH":       "/cert.pem",
-				"TLS_KEY_PATH":        "/key.pem",
-				"SERVER_READ_TIMEOUT": "30s",
-				"APP_DEMO_MODE":       "true",
+				"SERVER_PORT":                "9090",
+				"SERVER_HOST":                "127.0.0.1",
+				"SERVER_GIN_MODE":            "debug",
+				"SERVER_ENABLE_TLS":          "true",
+				"SERVER_DISABLE_HEALTH_LOGS": "false",
+				"TLS_CERT_PATH":              "/cert.pem",
+				"TLS_KEY_PATH":               "/key.pem",
+				"SERVER_READ_TIMEOUT":        "30s",
+				"APP_DEMO_MODE":              "true",
 			},
 			expected: func(t *testing.T, cfg *Config) {
 				assert.Equal(t, "9090", cfg.Server.Port)
 				assert.Equal(t, "127.0.0.1", cfg.Server.Host)
 				assert.Equal(t, "debug", cfg.Server.Mode)
 				assert.Equal(t, true, cfg.Server.EnableTLS)
+				assert.Equal(t, false, cfg.Server.DisableHealthLogs)
 				assert.Equal(t, time.Second*30, cfg.Server.ReadTimeout)
 			},
 		},
