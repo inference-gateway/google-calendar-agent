@@ -31,12 +31,13 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - -s -w
-      - -X main.commit={{ .Commit }}
-      - -X main.date={{ .CommitDate }}
-      - -X github.com/inference-gateway/a2a/adk/server.BuildAgentName='Google Calendar Agent'
-      - -X github.com/inference-gateway/a2a/adk/server.BuildAgentDescription='AI agent for Google Calendar operations including listing events, creating events, managing schedules, and finding available time slots'
-      - -X github.com/inference-gateway/a2a/adk/server.BuildAgentVersion={{ .Version }}
+      - -s
+      - -w
+      - "-X main.commit={{ .Commit }}"
+      - "-X main.date={{ .CommitDate }}"
+      - "-X github.com/inference-gateway/a2a/adk/server.BuildAgentName=Google Calendar Agent"
+      - "-X github.com/inference-gateway/a2a/adk/server.BuildAgentDescription=AI agent for Google Calendar operations including listing events, creating events, managing schedules, and finding available time slots"
+      - "-X github.com/inference-gateway/a2a/adk/server.BuildAgentVersion={{ .Version }}"
 
 dockers:
   - id: google-calendar-agent-amd64
