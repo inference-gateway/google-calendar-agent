@@ -38,7 +38,9 @@ tasks:
         VERSION=$(git describe --tags --always --dirty)
         COMMIT=$(git rev-parse HEAD)
         DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        go build -ldflags "-X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE}" -o dist/agent ./cmd/agent
+        AGENT_NAME="Google Calendar Agent"
+        AGENT_DESCRIPTION="AI agent for Google Calendar operations including listing events, creating events, managing schedules, and finding available time slots"
+        go build -ldflags "-X main.commit=${COMMIT} -X main.date=${DATE} -X 'github.com/inference-gateway/a2a/adk/server.BuildAgentName=${AGENT_NAME}' -X 'github.com/inference-gateway/a2a/adk/server.BuildAgentDescription=${AGENT_DESCRIPTION}' -X github.com/inference-gateway/a2a/adk/server.BuildAgentVersion=${VERSION}" -o dist/agent ./cmd/agent
 
   build:dev:
     desc: "Build the project for development (no version information)"
@@ -54,10 +56,14 @@ tasks:
         VERSION=$(git describe --tags --always --dirty)
         COMMIT=$(git rev-parse HEAD)
         DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        AGENT_NAME="Google Calendar Agent"
+        AGENT_DESCRIPTION="AI agent for Google Calendar operations including listing events, creating events, managing schedules, and finding available time slots"
         docker build \
           --build-arg VERSION="${VERSION}" \
           --build-arg COMMIT="${COMMIT}" \
           --build-arg DATE="${DATE}" \
+          --build-arg AGENT_NAME="${AGENT_NAME}" \
+          --build-arg AGENT_DESCRIPTION="${AGENT_DESCRIPTION}" \
           -t ghcr.io/inference-gateway/google-calendar-agent:latest \
           -t ghcr.io/inference-gateway/google-calendar-agent:${VERSION} \
           .

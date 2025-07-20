@@ -2,6 +2,8 @@ FROM golang:1.24-alpine AS builder
 ARG VERSION=dev
 ARG COMMIT=unknown
 ARG DATE=unknown
+ARG AGENT_NAME="Google Calendar Agent"
+ARG AGENT_DESCRIPTION="AI agent for Google Calendar operations including listing events, creating events, managing schedules, and finding available time slots"
 WORKDIR /app
 RUN apk add --no-cache upx
 COPY go.mod go.sum ./
@@ -10,7 +12,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -a -installsuffix cgo \
     -trimpath \
-    -ldflags "-w -s -extldflags '-static' -X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE}" \
+    -ldflags "-w -s -extldflags '-static' -X main.commit=${COMMIT} -X main.date=${DATE} -X 'github.com/inference-gateway/a2a/adk/server.BuildAgentName=${AGENT_NAME}' -X 'github.com/inference-gateway/a2a/adk/server.BuildAgentDescription=${AGENT_DESCRIPTION}' -X github.com/inference-gateway/a2a/adk/server.BuildAgentVersion=${VERSION}" \
     -o dist/agent ./cmd/agent/main.go
 RUN upx --best --lzma dist/agent
 
