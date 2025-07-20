@@ -10,7 +10,7 @@ func GetAgentCard(baseConfig config.Config) adk.AgentCard {
 	return adk.AgentCard{
 		Name:        baseConfig.AgentName,
 		Description: baseConfig.AgentDescription,
-		Version:     "0.4.6",
+		Version:     "0.4.7",
 		URL:         baseConfig.AgentURL,
 		Provider: &adk.AgentProvider{
 			Organization: "Inference Gateway",

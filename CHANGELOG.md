@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.7](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.6...v0.4.7) (2025-07-20)
+
+### ♻️ Improvements
+
+* Add SERVER_DISABLE_HEALTH_LOGS configuration option to control health check logging ([b0e39db](https://github.com/inference-gateway/google-calendar-agent/commit/b0e39db450f86c2f764689201024012f3ca352c8))
+
 ## [0.4.6](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.5...v0.4.6) (2025-07-20)
 
 ### 🐛 Bug Fixes
