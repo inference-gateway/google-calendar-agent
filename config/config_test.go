@@ -25,10 +25,7 @@ func TestConfig_Load_DefaultValues(t *testing.T) {
 	assert.Equal(t, "primary", cfg.Google.CalendarID)
 	assert.Equal(t, false, cfg.Google.ReadOnly)
 	assert.Equal(t, "8080", cfg.Server.Port)
-	assert.Equal(t, "0.0.0.0", cfg.Server.Host)
-	assert.Equal(t, "release", cfg.Server.Mode)
 	assert.Equal(t, false, cfg.Server.EnableTLS)
-	assert.Equal(t, true, cfg.Server.DisableHealthLogs)
 	assert.Equal(t, "info", cfg.Logging.Level)
 	assert.Equal(t, "json", cfg.Logging.Format)
 	assert.Equal(t, "stdout", cfg.Logging.Output)
@@ -39,9 +36,6 @@ func TestConfig_Load_DefaultValues(t *testing.T) {
 	assert.Equal(t, true, cfg.App.DemoMode)
 	assert.Equal(t, int64(1048576), cfg.App.MaxRequestSize)
 	assert.Equal(t, time.Second*30, cfg.App.RequestTimeout)
-	assert.Equal(t, time.Second*10, cfg.Server.ReadTimeout)
-	assert.Equal(t, time.Second*10, cfg.Server.WriteTimeout)
-	assert.Equal(t, time.Second*60, cfg.Server.IdleTimeout)
 }
 
 func TestConfig_Load_CustomValues(t *testing.T) {
@@ -68,23 +62,12 @@ func TestConfig_Load_CustomValues(t *testing.T) {
 		{
 			name: "server_configuration",
 			envVars: map[string]string{
-				"SERVER_PORT":                "9090",
-				"SERVER_HOST":                "127.0.0.1",
-				"SERVER_GIN_MODE":            "debug",
-				"SERVER_ENABLE_TLS":          "true",
-				"SERVER_DISABLE_HEALTH_LOGS": "false",
-				"TLS_CERT_PATH":              "/cert.pem",
-				"TLS_KEY_PATH":               "/key.pem",
-				"SERVER_READ_TIMEOUT":        "30s",
-				"APP_DEMO_MODE":              "true",
+				"SERVER_PORT":   "9090",
+				"APP_DEMO_MODE": "true",
 			},
 			expected: func(t *testing.T, cfg *Config) {
 				assert.Equal(t, "9090", cfg.Server.Port)
-				assert.Equal(t, "127.0.0.1", cfg.Server.Host)
-				assert.Equal(t, "debug", cfg.Server.Mode)
-				assert.Equal(t, true, cfg.Server.EnableTLS)
-				assert.Equal(t, false, cfg.Server.DisableHealthLogs)
-				assert.Equal(t, time.Second*30, cfg.Server.ReadTimeout)
+				assert.Equal(t, false, cfg.Server.EnableTLS)
 			},
 		},
 		{
@@ -103,23 +86,6 @@ func TestConfig_Load_CustomValues(t *testing.T) {
 				assert.Equal(t, "stderr", cfg.Logging.Output)
 				assert.Equal(t, false, cfg.Logging.EnableCaller)
 				assert.Equal(t, false, cfg.Logging.EnableStacktrace)
-			},
-		},
-		{
-			name: "tls_configuration",
-			envVars: map[string]string{
-				"SERVER_ENABLE_TLS": "true",
-				"TLS_CERT_PATH":     "/path/to/cert.pem",
-				"TLS_KEY_PATH":      "/path/to/key.pem",
-				"TLS_MIN_VERSION":   "1.3",
-				"TLS_CIPHER_SUITES": "TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256",
-				"APP_DEMO_MODE":     "true",
-			},
-			expected: func(t *testing.T, cfg *Config) {
-				assert.Equal(t, "/path/to/cert.pem", cfg.TLS.CertPath)
-				assert.Equal(t, "/path/to/key.pem", cfg.TLS.KeyPath)
-				assert.Equal(t, "1.3", cfg.TLS.MinVersion)
-				assert.Equal(t, "TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256", cfg.TLS.CipherSuites)
 			},
 		},
 		{
@@ -190,24 +156,13 @@ func TestConfig_Validate(t *testing.T) {
 			errorMsg:    "GOOGLE_APPLICATION_CREDENTIALS must be provided when not in demo mode",
 		},
 		{
-			name: "tls_enabled_missing_cert",
+			name: "tls_enabled_but_should_use_adk",
 			envVars: map[string]string{
 				"SERVER_ENABLE_TLS": "true",
-				"TLS_KEY_PATH":      "/path/to/key.pem",
 				"APP_DEMO_MODE":     "true",
 			},
 			expectError: true,
-			errorMsg:    "TLS_CERT_PATH is required when TLS is enabled",
-		},
-		{
-			name: "tls_enabled_missing_key",
-			envVars: map[string]string{
-				"SERVER_ENABLE_TLS": "true",
-				"TLS_CERT_PATH":     "/path/to/cert.pem",
-				"APP_DEMO_MODE":     "true",
-			},
-			expectError: true,
-			errorMsg:    "TLS_KEY_PATH is required when TLS is enabled",
+			errorMsg:    "TLS configuration is handled by the A2A ADK framework",
 		},
 		{
 			name: "invalid_log_level",
@@ -217,27 +172,6 @@ func TestConfig_Validate(t *testing.T) {
 			},
 			expectError: true,
 			errorMsg:    "invalid log level 'invalid'",
-		},
-		{
-			name: "invalid_server_mode",
-			envVars: map[string]string{
-				"SERVER_GIN_MODE": "invalid",
-				"APP_DEMO_MODE":   "true",
-			},
-			expectError: true,
-			errorMsg:    "invalid server mode 'invalid'",
-		},
-		{
-			name: "invalid_tls_version",
-			envVars: map[string]string{
-				"SERVER_ENABLE_TLS": "true",
-				"TLS_CERT_PATH":     "/path/to/cert.pem",
-				"TLS_KEY_PATH":      "/path/to/key.pem",
-				"TLS_MIN_VERSION":   "1.1",
-				"APP_DEMO_MODE":     "true",
-			},
-			expectError: true,
-			errorMsg:    "invalid TLS version '1.1'",
 		},
 	}
 
@@ -480,12 +414,11 @@ func TestConfig_HelperMethods(t *testing.T) {
 		{
 			name: "get_server_address",
 			envVars: map[string]string{
-				"SERVER_HOST":   "127.0.0.1",
 				"SERVER_PORT":   "9090",
 				"APP_DEMO_MODE": "true",
 			},
 			testFunc: func(t *testing.T, cfg *Config) {
-				assert.Equal(t, "127.0.0.1:9090", cfg.GetServerAddress())
+				assert.Equal(t, ":9090", cfg.GetServerAddress())
 			},
 		},
 		{

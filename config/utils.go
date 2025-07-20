@@ -1,67 +1,9 @@
 package config
 
 import (
-	"crypto/tls"
 	"fmt"
 	"strings"
 )
-
-// GetTLSConfig returns a TLS configuration based on the config settings
-func (c *Config) GetTLSConfig() (*tls.Config, error) {
-	if !c.Server.EnableTLS {
-		return nil, nil
-	}
-
-	tlsConfig := &tls.Config{
-		MinVersion: tls.VersionTLS12,
-	}
-
-	switch c.TLS.MinVersion {
-	case "1.2":
-		tlsConfig.MinVersion = tls.VersionTLS12
-	case "1.3":
-		tlsConfig.MinVersion = tls.VersionTLS13
-	default:
-		return nil, fmt.Errorf("unsupported TLS version: %s", c.TLS.MinVersion)
-	}
-
-	if c.TLS.CipherSuites != "" {
-		ciphers := strings.Split(c.TLS.CipherSuites, ",")
-		var cipherSuites []uint16
-
-		for _, cipher := range ciphers {
-			cipher = strings.TrimSpace(cipher)
-			switch cipher {
-			case "TLS_AES_128_GCM_SHA256":
-				cipherSuites = append(cipherSuites, tls.TLS_AES_128_GCM_SHA256)
-			case "TLS_AES_256_GCM_SHA384":
-				cipherSuites = append(cipherSuites, tls.TLS_AES_256_GCM_SHA384)
-			case "TLS_CHACHA20_POLY1305_SHA256":
-				cipherSuites = append(cipherSuites, tls.TLS_CHACHA20_POLY1305_SHA256)
-			case "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256":
-				cipherSuites = append(cipherSuites, tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256)
-			case "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256":
-				cipherSuites = append(cipherSuites, tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256)
-			case "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384":
-				cipherSuites = append(cipherSuites, tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384)
-			case "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384":
-				cipherSuites = append(cipherSuites, tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384)
-			case "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305":
-				cipherSuites = append(cipherSuites, tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305)
-			case "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305":
-				cipherSuites = append(cipherSuites, tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305)
-			default:
-				return nil, fmt.Errorf("unsupported cipher suite: %s", cipher)
-			}
-		}
-
-		if len(cipherSuites) > 0 {
-			tlsConfig.CipherSuites = cipherSuites
-		}
-	}
-
-	return tlsConfig, nil
-}
 
 // GetGoogleCredentialsOption returns the appropriate Google API credential option
 func (c *Config) GetGoogleCredentialsOption() (string, string, error) {
@@ -97,15 +39,12 @@ func (c *Config) GetLogLevel() string {
 	}
 }
 
-// GetPort returns the port with appropriate protocol prefix
+// GetPort returns the port (TLS port adjustment is handled by A2A ADK)
 func (c *Config) GetPort() string {
-	if c.Server.EnableTLS && c.Server.Port == "8080" {
-		return "8443"
-	}
 	return c.Server.Port
 }
 
-// GetProtocol returns the protocol scheme (http or https)
+// GetProtocol returns the protocol scheme (TLS is handled by A2A ADK)
 func (c *Config) GetProtocol() string {
 	if c.Server.EnableTLS {
 		return "https"
@@ -118,15 +57,8 @@ func (c *Config) GetBaseURL() string {
 	protocol := c.GetProtocol()
 	port := c.GetPort()
 
-	if c.Server.Host == "localhost" || c.Server.Host == "127.0.0.1" || c.Server.Host == "0.0.0.0" {
-		return fmt.Sprintf("%s://%s:%s", protocol, c.Server.Host, port)
-	}
-
-	if (protocol == "http" && port == "80") || (protocol == "https" && port == "443") {
-		return fmt.Sprintf("%s://%s", protocol, c.Server.Host)
-	}
-
-	return fmt.Sprintf("%s://%s:%s", protocol, c.Server.Host, port)
+	// For local development, include port
+	return fmt.Sprintf("%s://localhost:%s", protocol, port)
 }
 
 // ToMap converts the config to a map for debugging/logging purposes
@@ -138,13 +70,8 @@ func (c *Config) ToMap() map[string]interface{} {
 			"has_credentials": c.Google.ServiceAccountJSON != "" || c.Google.CredentialsPath != "",
 		},
 		"server": map[string]interface{}{
-			"port":          c.Server.Port,
-			"host":          c.Server.Host,
-			"mode":          c.Server.Mode,
-			"enable_tls":    c.Server.EnableTLS,
-			"read_timeout":  c.Server.ReadTimeout.String(),
-			"write_timeout": c.Server.WriteTimeout.String(),
-			"idle_timeout":  c.Server.IdleTimeout.String(),
+			"port":       c.Server.Port,
+			"enable_tls": c.Server.EnableTLS,
 		},
 		"logging": map[string]interface{}{
 			"level":             c.Logging.Level,
@@ -153,18 +80,18 @@ func (c *Config) ToMap() map[string]interface{} {
 			"enable_caller":     c.Logging.EnableCaller,
 			"enable_stacktrace": c.Logging.EnableStacktrace,
 		},
-		"tls": map[string]interface{}{
-			"cert_path":     c.TLS.CertPath,
-			"key_path":      c.TLS.KeyPath,
-			"min_version":   c.TLS.MinVersion,
-			"cipher_suites": c.TLS.CipherSuites,
-		},
 		"app": map[string]interface{}{
 			"environment":      c.App.Environment,
 			"debug":            c.IsDebugEnabled(),
 			"demo_mode":        c.App.DemoMode,
 			"max_request_size": c.App.MaxRequestSize,
 			"request_timeout":  c.App.RequestTimeout.String(),
+		},
+		"llm": map[string]interface{}{
+			"enabled":     c.LLM.Enabled,
+			"provider":    c.LLM.Provider,
+			"model":       c.LLM.Model,
+			"gateway_url": c.LLM.GatewayURL,
 		},
 	}
 }

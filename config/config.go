@@ -19,9 +19,6 @@ type Config struct {
 	// Logging Configuration
 	Logging LoggingConfig `env:", prefix=LOG_"`
 
-	// TLS Configuration
-	TLS TLSConfig `env:", prefix=TLS_"`
-
 	// Application Configuration
 	App AppConfig `env:", prefix=APP_"`
 
@@ -47,31 +44,15 @@ type GoogleConfig struct {
 	TimeZone string `env:"CALENDAR_TIMEZONE, default=UTC"`
 }
 
-// ServerConfig holds HTTP server related configuration
+// ServerConfig holds minimal HTTP server related configuration
+// Most server configuration is handled by the A2A ADK framework
 type ServerConfig struct {
 	// Port is the port the server will listen on
 	Port string `env:"PORT, default=8080"`
 
-	// Host is the host the server will bind to
-	Host string `env:"HOST, default=0.0.0.0"`
-
-	// Mode sets the Gin server mode (debug, release, test)
-	Mode string `env:"GIN_MODE, default=release"`
-
 	// EnableTLS determines if HTTPS should be enabled
+	// Note: TLS configuration is handled by the A2A ADK framework
 	EnableTLS bool `env:"ENABLE_TLS, default=false"`
-
-	// DisableHealthLogs disables logging for health check requests
-	DisableHealthLogs bool `env:"DISABLE_HEALTH_LOGS, default=true"`
-
-	// ReadTimeout is the maximum duration for reading the entire request
-	ReadTimeout time.Duration `env:"READ_TIMEOUT, default=10s"`
-
-	// WriteTimeout is the maximum duration before timing out writes of the response
-	WriteTimeout time.Duration `env:"WRITE_TIMEOUT, default=10s"`
-
-	// IdleTimeout is the maximum amount of time to wait for the next request
-	IdleTimeout time.Duration `env:"IDLE_TIMEOUT, default=60s"`
 }
 
 // LoggingConfig holds logging related configuration
@@ -90,21 +71,6 @@ type LoggingConfig struct {
 
 	// EnableStacktrace adds stacktrace to error level logs
 	EnableStacktrace bool `env:"ENABLE_STACKTRACE, default=true"`
-}
-
-// TLSConfig holds TLS/HTTPS related configuration
-type TLSConfig struct {
-	// CertPath is the path to the TLS certificate file
-	CertPath string `env:"CERT_PATH"`
-
-	// KeyPath is the path to the TLS private key file
-	KeyPath string `env:"KEY_PATH"`
-
-	// MinVersion sets the minimum TLS version (1.2, 1.3)
-	MinVersion string `env:"MIN_VERSION, default=1.2"`
-
-	// CipherSuites is a comma-separated list of cipher suites
-	CipherSuites string `env:"CIPHER_SUITES"`
 }
 
 // AppConfig holds general application configuration
@@ -191,12 +157,7 @@ func (c *Config) Validate() error {
 	}
 
 	if c.Server.EnableTLS {
-		if c.TLS.CertPath == "" {
-			return fmt.Errorf("TLS_CERT_PATH is required when TLS is enabled")
-		}
-		if c.TLS.KeyPath == "" {
-			return fmt.Errorf("TLS_KEY_PATH is required when TLS is enabled")
-		}
+		return fmt.Errorf("TLS configuration is handled by the A2A ADK framework. Use TLS_ENABLE, TLS_CERT_PATH, and TLS_KEY_PATH environment variables")
 	}
 
 	validLogLevels := map[string]bool{
@@ -207,25 +168,6 @@ func (c *Config) Validate() error {
 	}
 	if !validLogLevels[c.Logging.Level] {
 		return fmt.Errorf("invalid log level '%s', must be one of: debug, info, warn, error", c.Logging.Level)
-	}
-
-	validModes := map[string]bool{
-		"debug":   true,
-		"release": true,
-		"test":    true,
-	}
-	if !validModes[c.Server.Mode] {
-		return fmt.Errorf("invalid server mode '%s', must be one of: debug, release, test", c.Server.Mode)
-	}
-
-	if c.Server.EnableTLS {
-		validTLSVersions := map[string]bool{
-			"1.2": true,
-			"1.3": true,
-		}
-		if !validTLSVersions[c.TLS.MinVersion] {
-			return fmt.Errorf("invalid TLS version '%s', must be one of: 1.2, 1.3", c.TLS.MinVersion)
-		}
 	}
 
 	if c.LLM.Enabled {
@@ -265,7 +207,7 @@ func (c *Config) Validate() error {
 
 // GetServerAddress returns the formatted server address
 func (c *Config) GetServerAddress() string {
-	return fmt.Sprintf("%s:%s", c.Server.Host, c.Server.Port)
+	return fmt.Sprintf(":%s", c.Server.Port)
 }
 
 // IsProduction returns true if the application is running in production
