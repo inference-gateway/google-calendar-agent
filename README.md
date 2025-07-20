@@ -46,21 +46,8 @@ Configure the agent via environment variables:
 
 ### Core Application Settings
 
-- `APP_ENVIRONMENT` - Deployment environment (default: `dev`)
-- `APP_DEMO_MODE` - Enable demo mode with mock services (default: `false`)
-- `APP_MAX_REQUEST_SIZE` - Maximum request body size in bytes (default: `1048576`)
-- `APP_REQUEST_TIMEOUT` - Maximum duration for handling requests (default: `30s`)
-
-### Server Configuration
-
-- `SERVER_PORT` - Server port (default: `8080`)
-- `SERVER_HOST` - Host to bind to (default: `0.0.0.0`)
-- `SERVER_GIN_MODE` - Gin server mode: `debug`, `release`, `test` (default: `release`)
-- `SERVER_ENABLE_TLS` - Enable HTTPS (default: `false`)
-- `SERVER_DISABLE_HEALTH_LOGS` - Disable logging for health check requests (default: `true`)
-- `SERVER_READ_TIMEOUT` - Maximum duration for reading requests (default: `10s`)
-- `SERVER_WRITE_TIMEOUT` - Maximum duration for writing responses (default: `10s`)
-- `SERVER_IDLE_TIMEOUT` - Maximum time to wait for next request (default: `60s`)
+- `ENVIRONMENT` - Deployment environment (default: `dev`)
+- `DEMO_MODE` - Enable demo mode with mock services (default: `false`)
 
 ### Google Calendar Settings
 
@@ -70,16 +57,6 @@ Configure the agent via environment variables:
 - `GOOGLE_CALENDAR_READ_ONLY` - Access calendar in read-only mode (default: `false`)
 - `GOOGLE_CALENDAR_TIMEZONE` - Default timezone for time inputs (default: `UTC`)
 
-### LLM Configuration
-
-- `LLM_GATEWAY_URL` - Inference Gateway or OpenAI-compatible API URL (default: `http://localhost:8080/v1`)
-- `LLM_PROVIDER` - LLM provider: `openai`, `anthropic`, `groq`, `ollama`, `deepseek`, `cohere`, `cloudflare` (default: `groq`)
-- `LLM_MODEL` - Model to use (default: `deepseek-r1-distill-llama-70b`)
-- `LLM_TIMEOUT` - Timeout for LLM requests (default: `30s`)
-- `LLM_MAX_TOKENS` - Maximum tokens to generate (default: `2048`)
-- `LLM_TEMPERATURE` - Generation randomness 0.0-2.0 (default: `0.7`)
-- `LLM_ENABLED` - Enable LLM functionality (default: `true`)
-
 ### Logging Configuration
 
 - `LOG_LEVEL` - Log level: `debug`, `info`, `warn`, `error` (default: `info`)
@@ -88,12 +65,69 @@ Configure the agent via environment variables:
 - `LOG_ENABLE_CALLER` - Add caller info to logs (default: `true`)
 - `LOG_ENABLE_STACKTRACE` - Add stacktrace to error logs (default: `true`)
 
-### TLS Configuration (when `SERVER_ENABLE_TLS=true`)
+### A2A Agent Configuration (ADK)
 
-- `TLS_CERT_PATH` - Path to TLS certificate file
-- `TLS_KEY_PATH` - Path to TLS private key file
-- `TLS_MIN_VERSION` - Minimum TLS version: `1.2`, `1.3` (default: `1.2`)
-- `TLS_CIPHER_SUITES` - Comma-separated list of cipher suites
+#### Agent Identity
+
+- `ADK_AGENT_NAME` - Agent name (default: `google-calendar-agent`)
+- `ADK_AGENT_DESCRIPTION` - Agent description (default: `A Google Calendar integration agent`)
+- `ADK_AGENT_VERSION` - Agent version (default: `1.0.0`)
+- `ADK_AGENT_URL` - Agent URL (default: `http://localhost:8080`)
+
+#### Server Configuration
+
+- `ADK_PORT` - Server port (default: `8080`)
+- `ADK_DEBUG` - Enable debug mode (default: `false`)
+- `ADK_STREAMING_STATUS_UPDATE_INTERVAL` - Interval for streaming status updates (default: `1s`)
+
+#### LLM Client Configuration
+
+- `ADK_AGENT_CLIENT_PROVIDER` - LLM provider: `openai`, `anthropic`, `groq`, `ollama`, `deepseek`, `cohere`, `cloudflare` (default: `openai`)
+- `ADK_AGENT_CLIENT_MODEL` - Model to use (default: `gpt-4`)
+- `ADK_AGENT_CLIENT_API_KEY` - API key for LLM provider
+- `ADK_AGENT_CLIENT_BASE_URL` - Custom LLM API endpoint
+- `ADK_AGENT_CLIENT_TIMEOUT` - Timeout for LLM requests (default: `30s`)
+- `ADK_AGENT_CLIENT_MAX_RETRIES` - Maximum retries for LLM requests (default: `3`)
+- `ADK_AGENT_CLIENT_MAX_CHAT_COMPLETION_ITERATIONS` - Maximum chat completion iterations (default: `10`)
+- `ADK_AGENT_CLIENT_MAX_TOKENS` - Maximum tokens for LLM responses (default: `4096`)
+- `ADK_AGENT_CLIENT_TEMPERATURE` - Controls randomness of LLM output (default: `0.7`)
+- `ADK_AGENT_CLIENT_SYSTEM_PROMPT` - System prompt to guide the LLM
+
+#### Capabilities Configuration
+
+- `ADK_CAPABILITIES_STREAMING` - Enable streaming support (default: `true`)
+- `ADK_CAPABILITIES_PUSH_NOTIFICATIONS` - Enable push notifications (default: `true`)
+- `ADK_CAPABILITIES_STATE_TRANSITION_HISTORY` - Enable state transition history (default: `false`)
+
+#### Authentication Configuration
+
+- `ADK_AUTH_ENABLE` - Enable OIDC authentication (default: `false`)
+- `ADK_AUTH_ISSUER_URL` - OIDC issuer URL
+- `ADK_AUTH_CLIENT_ID` - OIDC client ID
+- `ADK_AUTH_CLIENT_SECRET` - OIDC client secret
+
+#### TLS Configuration
+
+- `ADK_TLS_ENABLE` - Enable TLS (default: `false`)
+- `ADK_TLS_CERT_PATH` - Path to TLS certificate file
+- `ADK_TLS_KEY_PATH` - Path to TLS private key file
+
+#### Queue Configuration
+
+- `ADK_QUEUE_TYPE` - Queue type for task processing
+- `ADK_QUEUE_CONFIG` - Queue-specific configuration
+
+#### Server Advanced Configuration
+
+- `ADK_SERVER_READ_TIMEOUT` - Maximum duration for reading requests (default: `30s`)
+- `ADK_SERVER_WRITE_TIMEOUT` - Maximum duration for writing responses (default: `30s`)
+- `ADK_SERVER_IDLE_TIMEOUT` - Maximum time to wait for next request (default: `60s`)
+
+#### Telemetry Configuration
+
+- `ADK_TELEMETRY_ENABLE` - Enable OpenTelemetry metrics collection (default: `false`)
+- `ADK_TELEMETRY_ENDPOINT` - Telemetry endpoint URL
+- `ADK_TELEMETRY_SERVICE_NAME` - Service name for telemetry
 
 ## Example Usage
 
