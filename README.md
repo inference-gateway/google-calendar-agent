@@ -76,7 +76,6 @@ Configure the agent via environment variables:
 
 #### Server Configuration
 
-- `ADK_PORT` - Server port (default: `8080`)
 - `ADK_DEBUG` - Enable debug mode (default: `false`)
 - `ADK_STREAMING_STATUS_UPDATE_INTERVAL` - Interval for streaming status updates (default: `1s`)
 
@@ -119,6 +118,7 @@ Configure the agent via environment variables:
 
 #### Server Advanced Configuration
 
+- `ADK_SERVER_PORT` - Server port (default: `8080`)
 - `ADK_SERVER_READ_TIMEOUT` - Maximum duration for reading requests (default: `30s`)
 - `ADK_SERVER_WRITE_TIMEOUT` - Maximum duration for writing responses (default: `30s`)
 - `ADK_SERVER_IDLE_TIMEOUT` - Maximum time to wait for next request (default: `60s`)
