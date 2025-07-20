@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.4](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.3...v0.4.4) (2025-07-20)
+
+### 🐛 Bug Fixes
+
+* Update ldflags to include versioning and agent details for Google Calendar Agent ([35b9688](https://github.com/inference-gateway/google-calendar-agent/commit/35b968856825c0435ae2232a8973e4b68e6a4310))
+
 ## [0.4.3](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.2...v0.4.3) (2025-07-20)
 
 ### ♻️ Improvements
