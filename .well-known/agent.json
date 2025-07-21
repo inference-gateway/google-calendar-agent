@@ -1,0 +1,112 @@
+{
+  "name": "Google Calendar Agent",
+  "description": "AI-powered Google Calendar assistant that helps you manage your calendar events, find free time, and schedule meetings efficiently.",
+  "version": "0.4.7",
+  "url": "https://google-calendar-agent.inference-gateway.com",
+  "documentationUrl": "https://github.com/inference-gateway/google-calendar-agent",
+  "iconUrl": "https://google-calendar-agent.inference-gateway.com/icon.png",
+  "provider": {
+    "organization": "Inference Gateway",
+    "url": "https://github.com/inference-gateway"
+  },
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": true,
+    "stateTransitionHistory": true
+  },
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text", "json"],
+  "skills": [
+    {
+      "id": "list_calendar_events",
+      "name": "List Calendar Events",
+      "description": "List upcoming events from Google Calendar",
+      "tags": ["calendar", "events", "list"],
+      "examples": [
+        "List my calendar events for today",
+        "Show me my upcoming meetings",
+        "What events do I have this week?"
+      ],
+      "inputModes": ["text"],
+      "outputModes": ["text", "json"]
+    },
+    {
+      "id": "create_calendar_event",
+      "name": "Create Calendar Event",
+      "description": "Create a new event in Google Calendar",
+      "tags": ["calendar", "events", "create"],
+      "examples": [
+        "Create a meeting for tomorrow at 2pm",
+        "Schedule a dentist appointment for next Friday",
+        "Add a reminder for my anniversary"
+      ],
+      "inputModes": ["text"],
+      "outputModes": ["text", "json"]
+    },
+    {
+      "id": "update_calendar_event",
+      "name": "Update Calendar Event",
+      "description": "Update an existing event in Google Calendar",
+      "tags": ["calendar", "events", "update"],
+      "examples": [
+        "Change my 3pm meeting to 4pm",
+        "Update the location of my appointment",
+        "Add attendees to my meeting"
+      ],
+      "inputModes": ["text"],
+      "outputModes": ["text", "json"]
+    },
+    {
+      "id": "delete_calendar_event",
+      "name": "Delete Calendar Event",
+      "description": "Delete an event from Google Calendar",
+      "tags": ["calendar", "events", "delete"],
+      "examples": [
+        "Cancel my 2pm meeting",
+        "Delete tomorrow's dentist appointment",
+        "Remove the duplicate event"
+      ],
+      "inputModes": ["text"],
+      "outputModes": ["text", "json"]
+    },
+    {
+      "id": "get_calendar_event",
+      "name": "Get Calendar Event",
+      "description": "Get details of a specific event in Google Calendar",
+      "tags": ["calendar", "events", "details"],
+      "examples": [
+        "Get details of my 3pm meeting",
+        "Show me information about my appointment",
+        "What's the location of my next meeting?"
+      ],
+      "inputModes": ["text"],
+      "outputModes": ["text", "json"]
+    },
+    {
+      "id": "find_available_time",
+      "name": "Find Available Time",
+      "description": "Find free time slots in Google Calendar",
+      "tags": ["calendar", "availability", "scheduling"],
+      "examples": [
+        "When am I free this week?",
+        "Find a 1-hour slot for a meeting",
+        "What's my availability tomorrow?"
+      ],
+      "inputModes": ["text"],
+      "outputModes": ["text", "json"]
+    },
+    {
+      "id": "check_conflicts",
+      "name": "Check Conflicts",
+      "description": "Check for scheduling conflicts in Google Calendar",
+      "tags": ["calendar", "conflicts", "scheduling"],
+      "examples": [
+        "Do I have any conflicts this week?",
+        "Check if I'm double-booked tomorrow",
+        "Are there any overlapping meetings?"
+      ],
+      "inputModes": ["text"],
+      "outputModes": ["text", "json"]
+    }
+  ]
+}

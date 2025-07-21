@@ -50,12 +50,12 @@ plugins:
       verifyConditions: true
 
   - - "@semantic-release/exec"
-    - prepareCmd: 'sed -i ''s/Version:     ".*"/Version:     "${nextRelease.version}"/'' a2a/agent.go'
+    - prepareCmd: 'sed -i "s/\"version\": \".*\"/\"version\": \"${nextRelease.version}\"/" .well-known/agent.json'
 
   - - "@semantic-release/git"
     - assets:
         - CHANGELOG.md
-        - a2a/agent.go
+        - .well-known/agent.json
       message: "chore(release): 🔖 ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
 
   - - "@semantic-release/github"

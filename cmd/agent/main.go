@@ -9,40 +9,25 @@ import (
 	"syscall"
 	"time"
 
-	adk "github.com/inference-gateway/a2a/adk"
 	server "github.com/inference-gateway/a2a/adk/server"
-	serverconfig "github.com/inference-gateway/a2a/adk/server/config"
 	zap "go.uber.org/zap"
 
-	a2a "github.com/inference-gateway/google-calendar-agent/a2a"
 	config "github.com/inference-gateway/google-calendar-agent/config"
 	logging "github.com/inference-gateway/google-calendar-agent/internal/logging"
 	toolbox "github.com/inference-gateway/google-calendar-agent/toolbox"
 )
 
 var (
-	commit = "unknown"
-	date   = "unknown"
+	Version          = "unknown"
+	Commit           = "unknown"
+	Date             = "unknown"
+	AgentName        = "Google Calendar Agent"
+	AgentDescription = "AI agent for Google Calendar operations including listing events, creating events, managing schedules, and finding available time slots."
 )
 
 func main() {
 	ctx := context.Background()
 
-	cfg, logger := mustInitialize(ctx)
-	defer func() {
-		if err := logger.Sync(); err != nil {
-			log.Printf("Failed to sync logger: %v", err)
-		}
-	}()
-
-	logStartup(cfg, logger)
-
-	a2aServer := createServer(cfg, logger)
-
-	runServer(ctx, a2aServer, logger)
-}
-
-func mustInitialize(ctx context.Context) (*config.Config, *zap.Logger) {
 	cfg, err := config.Load(ctx)
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
@@ -52,22 +37,21 @@ func mustInitialize(ctx context.Context) (*config.Config, *zap.Logger) {
 	if err != nil {
 		log.Fatalf("Failed to create logger: %v", err)
 	}
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			log.Printf("Failed to sync logger: %v", err)
+		}
+	}()
 
-	return cfg, logger
-}
-
-func logStartup(cfg *config.Config, logger *zap.Logger) {
 	logger.Info("Starting Google Calendar A2A Agent",
-		zap.String("version", server.BuildAgentVersion),
-		zap.String("commit", commit),
-		zap.String("date", date),
+		zap.String("version", Version),
+		zap.String("commit", Commit),
+		zap.String("date", Date),
 		zap.String("environment", cfg.Environment),
 		zap.Bool("demo_mode", cfg.DemoMode),
 		zap.Bool("debug", cfg.IsDebugEnabled()),
 	)
-}
 
-func createServer(cfg *config.Config, logger *zap.Logger) server.A2AServer {
 	toolBox := server.NewDefaultToolBox()
 	calendarTools, err := toolbox.NewGoogleCalendarTools(cfg, logger)
 	if err != nil {
@@ -75,31 +59,34 @@ func createServer(cfg *config.Config, logger *zap.Logger) server.A2AServer {
 	}
 	calendarTools.RegisterTools(toolBox)
 
-	serverCfg := cfg.ADK
+	serverCfg := cfg.A2A
 	if cfg.IsDebugEnabled() {
 		serverCfg.Debug = true
 	}
 
-	agentCard := a2a.GetAgentCard(serverCfg)
+	if serverCfg.AgentURL == "" {
+		logger.Fatal("Agent URL is not configured. Please set A2A_AGENT_URL.")
+	}
+
+	var a2aServer server.A2AServer
 
 	if cfg.DemoMode {
-		return createDemoServer(serverCfg, toolBox, agentCard, logger)
-	}
-	return createAgentServer(serverCfg, toolBox, agentCard, logger)
-}
-
-func createDemoServer(serverCfg serverconfig.Config, toolBox *server.DefaultToolBox, agentCard adk.AgentCard, logger *zap.Logger) server.A2AServer {
-	logger.Info("✅ Google Calendar agent created in demo mode (AI disabled)")
-
-	demoHandler := toolbox.NewDemoTaskHandler(toolBox, logger)
-	return server.NewA2AServerBuilder(serverCfg, logger).
-		WithTaskHandler(demoHandler).
-		WithAgentCard(agentCard).
-		Build()
-}
-
-func createAgentServer(serverCfg serverconfig.Config, toolBox *server.DefaultToolBox, agentCard adk.AgentCard, logger *zap.Logger) server.A2AServer {
-	systemPrompt := fmt.Sprintf(`Today is %s. You are a Google Calendar assistant.
+		logger.Info("✅ Google Calendar agent created in demo mode (AI disabled)")
+		demoHandler := toolbox.NewDemoTaskHandler(toolBox, logger)
+		a2aServer, err = server.NewA2AServerBuilder(serverCfg, logger).
+			WithTaskHandler(demoHandler).
+			WithAgentCardFromFile(".well-known/agent.json", map[string]interface{}{
+				"name":        AgentName,
+				"description": AgentDescription,
+				"version":     Version,
+				"url":         serverCfg.AgentURL,
+			}).
+			Build()
+		if err != nil {
+			logger.Fatal("Failed to create demo server", zap.Error(err))
+		}
+	} else {
+		systemPrompt := fmt.Sprintf(`Today is %s. You are a Google Calendar assistant.
 
 ALWAYS use tools - never provide responses without tool interactions.
 
@@ -113,28 +100,35 @@ Available tools:
 - check_conflicts - Check scheduling conflicts
 
 IMPORTANT: Before creating any event, MUST check for conflicts first. Always provide clear responses based on tool results.`,
-		time.Now().Format("Monday, January 2, 2006 at 15:04 MST"))
+			time.Now().Format("Monday, January 2, 2006 at 15:04 MST"))
 
-	agentInstance, err := server.NewAgentBuilder(logger).
-		WithConfig(&serverCfg.AgentConfig).
-		WithSystemPrompt(systemPrompt).
-		WithToolBox(toolBox).
-		WithMaxConversationHistory(20).
-		WithMaxChatCompletion(10).
-		Build()
-	if err != nil {
-		logger.Fatal("Failed to create agent", zap.Error(err))
+		agentInstance, err := server.NewAgentBuilder(logger).
+			WithConfig(&serverCfg.AgentConfig).
+			WithSystemPrompt(systemPrompt).
+			WithToolBox(toolBox).
+			WithMaxConversationHistory(20).
+			WithMaxChatCompletion(10).
+			Build()
+		if err != nil {
+			logger.Fatal("Failed to create agent", zap.Error(err))
+		}
+
+		logger.Info("✅ Google Calendar agent created with AI capabilities")
+
+		a2aServer, err = server.NewA2AServerBuilder(serverCfg, logger).
+			WithAgent(agentInstance).
+			WithAgentCardFromFile(".well-known/agent.json", map[string]interface{}{
+				"name":        AgentName,
+				"description": AgentDescription,
+				"version":     Version,
+				"url":         serverCfg.AgentURL,
+			}).
+			Build()
+		if err != nil {
+			logger.Fatal("Failed to create agent server", zap.Error(err))
+		}
 	}
 
-	logger.Info("✅ Google Calendar agent created with AI capabilities")
-
-	return server.NewA2AServerBuilder(serverCfg, logger).
-		WithAgent(agentInstance).
-		WithAgentCard(agentCard).
-		Build()
-}
-
-func runServer(ctx context.Context, a2aServer server.A2AServer, logger *zap.Logger) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 

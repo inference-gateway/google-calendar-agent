@@ -12,7 +12,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -a -installsuffix cgo \
     -trimpath \
-    -ldflags "-w -s -extldflags '-static' -X main.commit=${COMMIT} -X main.date=${DATE} -X 'github.com/inference-gateway/a2a/adk/server.BuildAgentName=${AGENT_NAME}' -X 'github.com/inference-gateway/a2a/adk/server.BuildAgentDescription=${AGENT_DESCRIPTION}' -X github.com/inference-gateway/a2a/adk/server.BuildAgentVersion=${VERSION}" \
+    -ldflags "-w -s -extldflags '-static' -X main.Version=${VERSION} -X main.Commit=${COMMIT} -X main.Date=${DATE} -X 'main.AgentName=${AGENT_NAME}' -X 'main.AgentDescription=${AGENT_DESCRIPTION}'" \
     -o dist/agent ./cmd/agent/main.go
 RUN upx --best --lzma dist/agent
 
