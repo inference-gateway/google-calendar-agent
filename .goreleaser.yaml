@@ -49,6 +49,8 @@ dockers:
       - "--label=org.opencontainers.image.title={{ .ProjectName }}"
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.version={{ .Version }}"
+    extra_files:
+      - .well-known/agent.json
 
   - id: google-calendar-agent-arm64
     goos: linux
@@ -65,6 +67,8 @@ dockers:
       - "--label=org.opencontainers.image.title={{ .ProjectName }}"
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.version={{ .Version }}"
+    extra_files:
+      - .well-known/agent.json
 
 docker_manifests:
   - name_template: ghcr.io/inference-gateway/google-calendar-agent:{{ .Version }}
