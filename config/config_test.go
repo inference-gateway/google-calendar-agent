@@ -23,7 +23,7 @@ func TestConfig_Load_DefaultValues(t *testing.T) {
 
 	assert.Equal(t, "primary", cfg.Google.CalendarID)
 	assert.Equal(t, false, cfg.Google.ReadOnly)
-	assert.Equal(t, "8080", cfg.GetPort())
+	assert.Equal(t, "8080", cfg.A2A.ServerConfig.Port)
 	assert.Equal(t, "info", cfg.Logging.Level)
 	assert.Equal(t, "json", cfg.Logging.Format)
 	assert.Equal(t, "stdout", cfg.Logging.Output)
@@ -58,11 +58,11 @@ func TestConfig_Load_CustomValues(t *testing.T) {
 		{
 			name: "server_configuration",
 			envVars: map[string]string{
-				"ADK_SERVER_PORT": "9090",
+				"A2A_SERVER_PORT": "9090",
 				"DEMO_MODE":       "true",
 			},
 			expected: func(t *testing.T, cfg *Config) {
-				assert.Equal(t, "9090", cfg.GetPort())
+				assert.Equal(t, "9090", cfg.A2A.ServerConfig.Port)
 			},
 		},
 		{
@@ -184,7 +184,7 @@ func TestConfig_HelperMethods(t *testing.T) {
 		{
 			name: "get_server_address",
 			envVars: map[string]string{
-				"ADK_SERVER_PORT": "9090",
+				"A2A_SERVER_PORT": "9090",
 				"DEMO_MODE":       "true",
 			},
 			testFunc: func(t *testing.T, cfg *Config) {

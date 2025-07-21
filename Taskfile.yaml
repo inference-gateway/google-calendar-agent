@@ -40,7 +40,7 @@ tasks:
         DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         AGENT_NAME="Google Calendar Agent"
         AGENT_DESCRIPTION="AI agent for Google Calendar operations including listing events, creating events, managing schedules, and finding available time slots"
-        go build -ldflags "-X main.commit=${COMMIT} -X main.date=${DATE} -X 'github.com/inference-gateway/a2a/adk/server.BuildAgentName=${AGENT_NAME}' -X 'github.com/inference-gateway/a2a/adk/server.BuildAgentDescription=${AGENT_DESCRIPTION}' -X github.com/inference-gateway/a2a/adk/server.BuildAgentVersion=${VERSION}" -o dist/agent ./cmd/agent
+        go build -ldflags "-X 'main.Version=${VERSION}' -X main.Commit=${COMMIT} -X main.Date=${DATE} -X 'main.AgentName=${AGENT_NAME}' -X 'main.AgentDescription=${AGENT_DESCRIPTION}'" -o dist/agent ./cmd/agent
 
   build:dev:
     desc: "Build the project for development (no version information)"

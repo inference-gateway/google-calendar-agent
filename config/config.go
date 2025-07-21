@@ -22,8 +22,8 @@ type Config struct {
 	// Logging Configuration
 	Logging LoggingConfig `env:", prefix=LOG_"`
 
-	// ADK Configuration
-	ADK config.Config `env:", prefix=ADK_"`
+	// A2A Configuration
+	A2A config.Config `env:", prefix=A2A_"`
 }
 
 // GoogleConfig holds Google Calendar API related configuration
@@ -116,7 +116,7 @@ func (c *Config) Validate() error {
 
 // GetServerAddress returns the formatted server address
 func (c *Config) GetServerAddress() string {
-	return fmt.Sprintf(":%s", c.ADK.ServerConfig.Port)
+	return fmt.Sprintf(":%s", c.A2A.ServerConfig.Port)
 }
 
 // IsProduction returns true if the application is running in production
