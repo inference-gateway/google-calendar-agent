@@ -41,7 +41,7 @@ func NewGoogleCalendarTools(cfg *config.Config, logger *zap.Logger) (*GoogleCale
 
 		calSvc, err := google.NewCalendarService(ctx, cfg, logger, opts...)
 		if err != nil {
-			if cfg.App.Environment == "dev" {
+			if cfg.Environment == "dev" {
 				logger.Warn("Failed to initialize Google Calendar service, falling back to mock mode", zap.Error(err))
 				tools.isMockMode = true
 			} else {
