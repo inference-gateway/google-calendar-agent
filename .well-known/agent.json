@@ -1,7 +1,7 @@
 {
   "name": "Google Calendar Agent",
   "description": "AI-powered Google Calendar assistant that helps you manage your calendar events, find free time, and schedule meetings efficiently.",
-  "version": "0.4.9",
+  "version": "0.4.10",
   "url": "https://google-calendar-agent.inference-gateway.com",
   "documentationUrl": "https://github.com/inference-gateway/google-calendar-agent",
   "iconUrl": "https://google-calendar-agent.inference-gateway.com/icon.png",
