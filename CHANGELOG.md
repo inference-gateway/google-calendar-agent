@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.8](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.7...v0.4.8) (2025-07-21)
+
+### ♻️ Improvements
+
+* Consolidate the configurations ([#13](https://github.com/inference-gateway/google-calendar-agent/issues/13)) ([f2aba96](https://github.com/inference-gateway/google-calendar-agent/commit/f2aba960c2dd34b9cc7a7c0127d4855ba8189673))
+* Handle server creation error and update a2a dependency ([#14](https://github.com/inference-gateway/google-calendar-agent/issues/14)) ([c1b7c88](https://github.com/inference-gateway/google-calendar-agent/commit/c1b7c882efc7284dcf83a571e3d83e581d9664c8))
+
 ## [0.4.7](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.6...v0.4.7) (2025-07-20)
 
 ### ♻️ Improvements
