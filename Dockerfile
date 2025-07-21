@@ -18,6 +18,7 @@ RUN upx --best --lzma dist/agent
 
 FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=builder /app/dist/agent /agent
+COPY --from=builder /app/.well-known/agent.json .well-known/agent.json
 USER nonroot:nonroot
 EXPOSE 8080
 ENTRYPOINT ["/agent"]
