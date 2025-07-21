@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.9](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.8...v0.4.9) (2025-07-21)
+
+### 🐛 Bug Fixes
+
+* Add missing agent.json copy in Dockerfiles ([9d4354d](https://github.com/inference-gateway/google-calendar-agent/commit/9d4354da3301d68e1210c84f018dff1b391bbb2c))
+
 ## [0.4.8](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.7...v0.4.8) (2025-07-21)
 
 ### ♻️ Improvements
