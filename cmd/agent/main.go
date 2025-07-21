@@ -37,7 +37,10 @@ func main() {
 
 	logStartup(cfg, logger)
 
-	a2aServer := createServer(cfg, logger)
+	a2aServer, err := createServer(cfg, logger)
+	if err != nil {
+		logger.Fatal("Failed to create server", zap.Error(err))
+	}
 
 	runServer(ctx, a2aServer, logger)
 }
@@ -67,7 +70,7 @@ func logStartup(cfg *config.Config, logger *zap.Logger) {
 	)
 }
 
-func createServer(cfg *config.Config, logger *zap.Logger) server.A2AServer {
+func createServer(cfg *config.Config, logger *zap.Logger) (server.A2AServer, error) {
 	toolBox := server.NewDefaultToolBox()
 	calendarTools, err := toolbox.NewGoogleCalendarTools(cfg, logger)
 	if err != nil {
@@ -88,7 +91,7 @@ func createServer(cfg *config.Config, logger *zap.Logger) server.A2AServer {
 	return createAgentServer(serverCfg, toolBox, agentCard, logger)
 }
 
-func createDemoServer(serverCfg serverconfig.Config, toolBox *server.DefaultToolBox, agentCard adk.AgentCard, logger *zap.Logger) server.A2AServer {
+func createDemoServer(serverCfg serverconfig.Config, toolBox *server.DefaultToolBox, agentCard adk.AgentCard, logger *zap.Logger) (server.A2AServer, error) {
 	logger.Info("✅ Google Calendar agent created in demo mode (AI disabled)")
 
 	demoHandler := toolbox.NewDemoTaskHandler(toolBox, logger)
@@ -98,7 +101,7 @@ func createDemoServer(serverCfg serverconfig.Config, toolBox *server.DefaultTool
 		Build()
 }
 
-func createAgentServer(serverCfg serverconfig.Config, toolBox *server.DefaultToolBox, agentCard adk.AgentCard, logger *zap.Logger) server.A2AServer {
+func createAgentServer(serverCfg serverconfig.Config, toolBox *server.DefaultToolBox, agentCard adk.AgentCard, logger *zap.Logger) (server.A2AServer, error) {
 	systemPrompt := fmt.Sprintf(`Today is %s. You are a Google Calendar assistant.
 
 ALWAYS use tools - never provide responses without tool interactions.
