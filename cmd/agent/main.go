@@ -122,6 +122,7 @@ IMPORTANT: Before creating any event, MUST check for conflicts first. Always pro
 
 		a2aServer, err = server.NewA2AServerBuilder(serverCfg, logger).
 			WithAgent(agentInstance).
+            WithDefaultBackgroundTaskHandler().
 			WithDefaultStreamingTaskHandler().
 			WithAgentCardFromFile(".well-known/agent.json", map[string]interface{}{
 				"name":        AgentName,
