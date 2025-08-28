@@ -15,7 +15,8 @@ services:
       - a2a-network
 
   google-calendar-agent:
-    image: ghcr.io/inference-gateway/google-calendar-agent:latest
+    build:
+      context: ..
     pull_policy: always
     env_file:
       - .env.agent

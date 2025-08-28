@@ -107,9 +107,15 @@ Available tools:
 IMPORTANT: Before creating any event, MUST check for conflicts first. Always provide clear responses based on tool results.`,
 			time.Now().Format("Monday, January 2, 2006 at 15:04 MST"))
 
+		llmClient, err := server.NewOpenAICompatibleLLMClient(&serverCfg.AgentConfig, logger)
+		if err != nil {
+			logger.Fatal("failed to create LLM client", zap.Error(err))
+		}
+
 		agentInstance, err := server.NewAgentBuilder(logger).
 			WithConfig(&serverCfg.AgentConfig).
 			WithSystemPrompt(systemPrompt).
+			WithLLMClient(llmClient).
 			WithToolBox(toolBox).
 			WithMaxConversationHistory(20).
 			WithMaxChatCompletion(10).
@@ -122,14 +128,13 @@ IMPORTANT: Before creating any event, MUST check for conflicts first. Always pro
 
 		a2aServer, err = server.NewA2AServerBuilder(serverCfg, logger).
 			WithAgent(agentInstance).
-            WithDefaultBackgroundTaskHandler().
-			WithDefaultStreamingTaskHandler().
 			WithAgentCardFromFile(".well-known/agent.json", map[string]interface{}{
 				"name":        AgentName,
 				"description": AgentDescription,
 				"version":     Version,
 				"url":         serverCfg.AgentURL,
 			}).
+			WithDefaultTaskHandlers().
 			Build()
 		if err != nil {
 			logger.Fatal("Failed to create agent server", zap.Error(err))

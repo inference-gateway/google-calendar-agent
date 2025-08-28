@@ -127,8 +127,8 @@ DEMO_MODE=true
 
 # Configure at least one LLM provider
 GROQ_API_KEY=your_groq_api_key_here
-LLM_PROVIDER=groq
-LLM_MODEL=deepseek-r1-distill-llama-70b
+A2A_AGENT_CLIENT_PROVIDER=groq
+A2A_AGENT_CLIENT_MODEL=deepseek-r1-distill-llama-70b
 ```
 
 #### For Production Mode (With Google Calendar)
@@ -143,8 +143,8 @@ GOOGLE_CALENDAR_SA_JSON={"type":"service_account","project_id":"..."}
 
 # Configure LLM provider
 GROQ_API_KEY=your_groq_api_key_here
-LLM_PROVIDER=groq
-LLM_MODEL=deepseek-r1-distill-llama-70b
+A2A_AGENT_CLIENT_PROVIDER=groq
+A2A_AGENT_CLIENT_MODEL=deepseek-r1-distill-llama-70b
 ```
 
 ### 3. Start the Services
@@ -187,7 +187,7 @@ curl http://localhost:8080/v1/a2a/agents
 #### Test Chat Completions
 
 ```bash
-# Test through Inference Gateway
+# Test through Inference Gateway (non-streaming)
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
@@ -198,6 +198,20 @@ curl -X POST http://localhost:8080/v1/chat/completions \
         "content": "List my events for today"
       }
     ]
+  }'
+
+# Test through Inference Gateway (streaming)
+curl -N -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek/deepseek-chat",
+    "messages": [
+      {
+        "role": "user",
+        "content": "List my events for today"
+      }
+    ],
+    "stream": true
   }'
 ```
 
@@ -252,57 +266,46 @@ task validate-env       # Check environment configuration
 
 \* Required unless `DEMO_MODE=true`
 
-### LLM Provider Configuration
-
-| Environment Variable | Description                | Default                         | Required |
-| -------------------- | -------------------------- | ------------------------------- | -------- |
-| `LLM_PROVIDER`       | LLM provider to use        | `groq`                          | No       |
-| `LLM_MODEL`          | Model to use               | `deepseek-r1-distill-llama-70b` | No       |
-| `LLM_ENABLED`        | Enable LLM functionality   | `true`                          | No       |
-| `LLM_TIMEOUT`        | Request timeout            | `30s`                           | No       |
-| `LLM_MAX_TOKENS`     | Maximum tokens to generate | `2048`                          | No       |
-| `LLM_TEMPERATURE`    | Creativity level (0.0-2.0) | `0.7`                           | No       |
-
 ### Supported LLM Providers
 
 #### Groq (Recommended for Speed)
 
 ```bash
 GROQ_API_KEY=your_groq_api_key
-LLM_PROVIDER=groq
-LLM_MODEL=deepseek-r1-distill-llama-70b
+A2A_AGENT_CLIENT_PROVIDER=groq
+A2A_AGENT_CLIENT_MODEL=deepseek-r1-distill-llama-70b
 ```
 
 #### OpenAI
 
 ```bash
 OPENAI_API_KEY=your_openai_api_key
-LLM_PROVIDER=openai
-LLM_MODEL=gpt-4o
+A2A_AGENT_CLIENT_PROVIDER=openai
+A2A_AGENT_CLIENT_MODEL=gpt-4o
 ```
 
 #### Anthropic
 
 ```bash
 ANTHROPIC_API_KEY=your_anthropic_api_key
-LLM_PROVIDER=anthropic
-LLM_MODEL=claude-3-opus-20240229
+A2A_AGENT_CLIENT_PROVIDER=anthropic
+A2A_AGENT_CLIENT_MODEL=claude-3-opus-20240229
 ```
 
 #### DeepSeek (Cost-Effective)
 
 ```bash
 DEEPSEEK_API_KEY=your_deepseek_api_key
-LLM_PROVIDER=deepseek
-LLM_MODEL=deepseek-chat
+A2A_AGENT_CLIENT_PROVIDER=deepseek
+A2A_AGENT_CLIENT_MODEL=deepseek-chat
 ```
 
 #### Cohere
 
 ```bash
 COHERE_API_KEY=your_cohere_api_key
-LLM_PROVIDER=cohere
-LLM_MODEL=command-r-plus
+A2A_AGENT_CLIENT_PROVIDER=cohere
+A2A_AGENT_CLIENT_MODEL=command-r-plus
 ```
 
 #### Cloudflare Workers AI
@@ -310,8 +313,8 @@ LLM_MODEL=command-r-plus
 ```bash
 CLOUDFLARE_API_TOKEN=your_cloudflare_token
 CLOUDFLARE_ACCOUNT_ID=your_account_id
-LLM_PROVIDER=cloudflare
-LLM_MODEL=@cf/meta/llama-3.1-8b-instruct
+A2A_AGENT_CLIENT_PROVIDER=cloudflare
+A2A_AGENT_CLIENT_MODEL=@cf/meta/llama-3.1-8b-instruct
 ```
 
 ## Google Calendar Setup
@@ -331,7 +334,7 @@ LLM_MODEL=@cf/meta/llama-3.1-8b-instruct
 ### List Calendar Events
 
 ```bash
-# Through Inference Gateway
+# Through Inference Gateway (non-streaming)
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
@@ -343,12 +346,26 @@ curl -X POST http://localhost:8080/v1/chat/completions \
       }
     ]
   }'
+
+# Through Inference Gateway (streaming - real-time response)
+curl -N -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek/deepseek-chat",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What events do I have this week?"
+      }
+    ],
+    "stream": true
+  }'
 ```
 
 ### Create Calendar Event
 
 ```bash
-# Through Inference Gateway
+# Through Inference Gateway (non-streaming)
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
@@ -360,12 +377,26 @@ curl -X POST http://localhost:8080/v1/chat/completions \
       }
     ]
   }'
+
+# Through Inference Gateway (streaming - real-time response)
+curl -N -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek/deepseek-chat",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Schedule a team meeting tomorrow at 2 PM for 1 hour"
+      }
+    ],
+    "stream": true
+  }'
 ```
 
 ### Update Calendar Event
 
 ```bash
-# Through Inference Gateway
+# Through Inference Gateway (non-streaming)
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
@@ -377,12 +408,26 @@ curl -X POST http://localhost:8080/v1/chat/completions \
       }
     ]
   }'
+
+# Through Inference Gateway (streaming - real-time response)
+curl -N -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek/deepseek-chat",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Move my 2 PM meeting to 3 PM"
+      }
+    ],
+    "stream": true
+  }'
 ```
 
 ### Delete Calendar Event
 
 ```bash
-# Through Inference Gateway
+# Through Inference Gateway (non-streaming)
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
@@ -393,6 +438,20 @@ curl -X POST http://localhost:8080/v1/chat/completions \
         "content": "Cancel my meeting with John tomorrow"
       }
     ]
+  }'
+
+# Through Inference Gateway (streaming - real-time response)
+curl -N -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek/deepseek-chat",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cancel my meeting with John tomorrow"
+      }
+    ],
+    "stream": true
   }'
 ```
 
