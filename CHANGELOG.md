@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.13](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.12...v0.4.13) (2025-08-28)
+
+### 🐛 Bug Fixes
+
+* **agent:** Set agent details and add default streaming task handler ([5d5f8f3](https://github.com/inference-gateway/google-calendar-agent/commit/5d5f8f31a3752a02365de63555fa3648f475132d))
+
 ## [0.4.12](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.11...v0.4.12) (2025-08-28)
 
 ### ♻️ Improvements
