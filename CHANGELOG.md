@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.11](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.10...v0.4.11) (2025-08-28)
+
+### 👷 CI
+
+* Add Claude Code GitHub Workflow ([#15](https://github.com/inference-gateway/google-calendar-agent/issues/15)) ([99659b2](https://github.com/inference-gateway/google-calendar-agent/commit/99659b25e5d2ae5fdaa0571696a73a8e34d2905b))
+
+### 📚 Documentation
+
+* Add CLAUDE.md for project guidance and development instructions ([60c24f5](https://github.com/inference-gateway/google-calendar-agent/commit/60c24f5951d6ceeb1b5ef44e07e10c0d018f45a8))
+
+### 🔧 Miscellaneous
+
+* Add initial configuration files for flox environment ([afa3cff](https://github.com/inference-gateway/google-calendar-agent/commit/afa3cffcfa0a4f91083d892878c601f03fd45a2f))
+* Add issue templates for bug reports, feature requests, and refactor requests ([40b1a41](https://github.com/inference-gateway/google-calendar-agent/commit/40b1a4151f83fc21276d35117694b0a68f08f56b))
+
 ## [0.4.10](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.9...v0.4.10) (2025-07-21)
 
 ### 🐛 Bug Fixes
