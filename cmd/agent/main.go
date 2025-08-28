@@ -33,6 +33,10 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
+	cfg.A2A.AgentName = AgentName
+	cfg.A2A.AgentDescription = AgentDescription
+	cfg.A2A.AgentVersion = Version
+
 	logger, err := logging.NewLogger(cfg.Logging)
 	if err != nil {
 		log.Fatalf("Failed to create logger: %v", err)
@@ -75,6 +79,7 @@ func main() {
 		demoHandler := toolbox.NewDemoTaskHandler(toolBox, logger)
 		a2aServer, err = server.NewA2AServerBuilder(serverCfg, logger).
 			WithBackgroundTaskHandler(demoHandler).
+			WithDefaultStreamingTaskHandler().
 			WithAgentCardFromFile(".well-known/agent.json", map[string]interface{}{
 				"name":        AgentName,
 				"description": AgentDescription,
@@ -117,6 +122,7 @@ IMPORTANT: Before creating any event, MUST check for conflicts first. Always pro
 
 		a2aServer, err = server.NewA2AServerBuilder(serverCfg, logger).
 			WithAgent(agentInstance).
+			WithDefaultStreamingTaskHandler().
 			WithAgentCardFromFile(".well-known/agent.json", map[string]interface{}{
 				"name":        AgentName,
 				"description": AgentDescription,
