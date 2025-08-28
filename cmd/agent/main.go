@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	server "github.com/inference-gateway/a2a/adk/server"
+	server "github.com/inference-gateway/adk/server"
 	zap "go.uber.org/zap"
 
 	config "github.com/inference-gateway/google-calendar-agent/config"
@@ -74,7 +74,7 @@ func main() {
 		logger.Info("✅ Google Calendar agent created in demo mode (AI disabled)")
 		demoHandler := toolbox.NewDemoTaskHandler(toolBox, logger)
 		a2aServer, err = server.NewA2AServerBuilder(serverCfg, logger).
-			WithTaskHandler(demoHandler).
+			WithBackgroundTaskHandler(demoHandler).
 			WithAgentCardFromFile(".well-known/agent.json", map[string]interface{}{
 				"name":        AgentName,
 				"description": AgentDescription,

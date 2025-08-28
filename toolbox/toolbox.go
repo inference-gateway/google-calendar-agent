@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	server "github.com/inference-gateway/a2a/adk/server"
+	server "github.com/inference-gateway/adk/server"
 	config "github.com/inference-gateway/google-calendar-agent/config"
 	google "github.com/inference-gateway/google-calendar-agent/google"
 	zap "go.uber.org/zap"
