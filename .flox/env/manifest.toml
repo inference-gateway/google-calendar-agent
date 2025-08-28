@@ -1,0 +1,12 @@
+version = 1
+
+[install]
+go.pkg-path = "go"
+go.version = "^1.24"
+
+[hook]
+on-activate = """
+  export GOENV="$FLOX_ENV_CACHE/goenv"
+
+  go get .
+"""

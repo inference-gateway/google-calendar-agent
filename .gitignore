@@ -2,3 +2,4 @@
 !**/.env*.example
 /dist
 **.out
+.vscode/
