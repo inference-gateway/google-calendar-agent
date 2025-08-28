@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/inference-gateway/a2a/adk/server/config"
+	"github.com/inference-gateway/adk/server/config"
 	"github.com/sethvargo/go-envconfig"
 )
 

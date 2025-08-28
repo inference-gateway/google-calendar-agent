@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	adk "github.com/inference-gateway/a2a/adk"
-	server "github.com/inference-gateway/a2a/adk/server"
+	"github.com/inference-gateway/adk/types"
+	server "github.com/inference-gateway/adk/server"
 	zap "go.uber.org/zap"
 )
 
@@ -16,6 +16,7 @@ import (
 type DemoTaskHandler struct {
 	toolBox *server.DefaultToolBox
 	logger  *zap.Logger
+	agent   server.OpenAICompatibleAgent
 }
 
 // NewDemoTaskHandler creates a new demo task handler
@@ -27,7 +28,7 @@ func NewDemoTaskHandler(toolBox *server.DefaultToolBox, logger *zap.Logger) *Dem
 }
 
 // HandleTask processes tasks in demo mode by pattern matching and calling appropriate tools
-func (d *DemoTaskHandler) HandleTask(ctx context.Context, task *adk.Task, message *adk.Message) (*adk.Task, error) {
+func (d *DemoTaskHandler) HandleTask(ctx context.Context, task *types.Task, message *types.Message) (*types.Task, error) {
 	d.logger.Info("Demo task handler processing task", zap.String("task_id", task.ID))
 
 	var userMessage string
@@ -89,9 +90,9 @@ func (d *DemoTaskHandler) HandleTask(ctx context.Context, task *adk.Task, messag
 		return task, fmt.Errorf("tool call failed: %w", err)
 	}
 
-	responseMsg := &adk.Message{
+	responseMsg := &types.Message{
 		Role: "assistant",
-		Parts: []adk.Part{
+		Parts: []types.Part{
 			map[string]interface{}{
 				"kind": "text",
 				"text": fmt.Sprintf("I've processed your request using the %s tool. Here's the result:\n\n%s", toolName, result),
@@ -104,13 +105,23 @@ func (d *DemoTaskHandler) HandleTask(ctx context.Context, task *adk.Task, messag
 	}
 	task.History = append(task.History, *responseMsg)
 
-	task.Status.State = adk.TaskStateCompleted
+	task.Status.State = types.TaskStateCompleted
 	task.Status.Message = responseMsg
 	now := time.Now().Format(time.RFC3339)
 	task.Status.Timestamp = &now
 
 	d.logger.Info("Demo task completed successfully", zap.String("task_id", task.ID))
 	return task, nil
+}
+
+// SetAgent sets the OpenAI-compatible agent for the task handler
+func (d *DemoTaskHandler) SetAgent(agent server.OpenAICompatibleAgent) {
+	d.agent = agent
+}
+
+// GetAgent returns the configured OpenAI-compatible agent
+func (d *DemoTaskHandler) GetAgent() server.OpenAICompatibleAgent {
+	return d.agent
 }
 
 // Mock Response Helpers
