@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.14](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.13...v0.4.14) (2025-08-28)
+
+### 🐛 Bug Fixes
+
+* Add default background task handler to server ([665709b](https://github.com/inference-gateway/google-calendar-agent/commit/665709b4c6c347964b19e902bb29b9f7dce917d5))
+
 ## [0.4.13](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.12...v0.4.13) (2025-08-28)
 
 ### 🐛 Bug Fixes
