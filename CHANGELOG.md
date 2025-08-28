@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.12](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.11...v0.4.12) (2025-08-28)
+
+### ♻️ Improvements
+
+* **adk:** Upgrade to latest ADK server version v0.9.0 ([#17](https://github.com/inference-gateway/google-calendar-agent/issues/17)) ([d4418d9](https://github.com/inference-gateway/google-calendar-agent/commit/d4418d9e610f60dcf6006a41e22285e4211c7398))
+
+### 🔧 Miscellaneous
+
+* Remove redundant reminder about using `task check` before pushing changes ([3aa3449](https://github.com/inference-gateway/google-calendar-agent/commit/3aa34492571023dd000d005f21706d3a9cca5a9a))
+
 ## [0.4.11](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.10...v0.4.11) (2025-08-28)
 
 ### 👷 CI
