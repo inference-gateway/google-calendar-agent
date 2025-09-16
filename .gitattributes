@@ -1,2 +1,35 @@
-**/generated_** linguist-generated=true
-**/mocks/** linguist-generated=true
+# Generated files by ADL CLI
+# These files are automatically generated and should not be manually edited
+# Core Go generated files
+main.go linguist-generated=true
+go.mod linguist-generated=true
+go.sum linguist-generated=true
+
+# Build and deployment files
+Dockerfile linguist-generated=true
+Taskfile.yml linguist-generated=true
+.gitignore linguist-generated=true
+
+# CI/CD workflows
+.github/workflows/ci.yml linguist-generated=true
+.github/workflows/cd.yml linguist-generated=true
+.releaserc.yaml linguist-generated=true
+
+# Kubernetes manifests
+k8s/*.yaml linguist-generated=true
+k8s/*.yml linguist-generated=true
+
+# Agent capabilities
+.well-known/agent.json linguist-generated=true
+
+# Documentation (partially generated)
+README.md linguist-documentation=true
+
+# Preserve line endings for generated files
+*.go text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+Dockerfile text eol=lf
+Taskfile.yml text eol=lf
