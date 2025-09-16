@@ -9,6 +9,12 @@ spec:
     streaming: true
     pushNotifications: false
     stateTransitionHistory: false
+  dependencies:
+    google:
+      type: service
+      interface: CalendarService
+      factory: NewServiceFactory
+      description: Google Calendar API service for managing calendar events
   skills:
     - id: list_calendar_events
       name: list_calendar_events
@@ -37,6 +43,7 @@ spec:
             description: Free text search terms to find events. Optional.
       inject:
         - logger
+        - google
     - id: create_calendar_event
       name: create_calendar_event
       description: Create a new event in Google Calendar
@@ -74,6 +81,7 @@ spec:
           - endTime
       inject:
         - logger
+        - google
     - id: update_calendar_event
       name: update_calendar_event
       description: Update an existing event in Google Calendar
@@ -107,6 +115,7 @@ spec:
           - eventId
       inject:
         - logger
+        - google
     - id: delete_calendar_event
       name: delete_calendar_event
       description: Delete an event from Google Calendar
@@ -125,6 +134,7 @@ spec:
           - eventId
       inject:
         - logger
+        - google
     - id: get_calendar_event
       name: get_calendar_event
       description: Get details of a specific event from Google Calendar
@@ -143,6 +153,7 @@ spec:
           - eventId
       inject:
         - logger
+        - google
     - id: find_available_time
       name: find_available_time
       description: Find available time slots in the calendar
@@ -170,6 +181,7 @@ spec:
           - endDate
       inject:
         - logger
+        - google
     - id: check_conflicts
       name: check_conflicts
       description: Check for scheduling conflicts in the specified time range
@@ -192,6 +204,7 @@ spec:
           - endTime
       inject:
         - logger
+        - google
   agent:
     provider: ""
     model: ""
@@ -218,6 +231,12 @@ spec:
       - Maintain data accuracy and consistency with Google Calendar
 
       Your responses should be accurate, helpful, and focused on calendar management tasks.
+  config:
+    google:
+      calendarId: "primary"
+      mockMode: "false"
+      serviceAccountJson: ""
+      credentialsPath: ""
   server:
     port: 8080
     debug: false

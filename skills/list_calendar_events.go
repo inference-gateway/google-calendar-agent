@@ -4,38 +4,29 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	server "github.com/inference-gateway/adk/server"
-	a2a "github.com/inference-gateway/adk/types"
-	config "github.com/inference-gateway/google-calendar-agent/config"
 	google "github.com/inference-gateway/google-calendar-agent/internal/google"
-	envconfig "github.com/sethvargo/go-envconfig"
 	zap "go.uber.org/zap"
 	calendar "google.golang.org/api/calendar/v3"
-	option "google.golang.org/api/option"
 )
 
-// ListCalendarEventsSkill struct holds the skill with logger
+// ListCalendarEventsSkill struct holds the skill with dependencies
 type ListCalendarEventsSkill struct {
-	logger     *zap.Logger
-	config     *config.Config
-	calSvc     google.CalendarService
-	isMockMode bool
+	logger *zap.Logger
+	google google.CalendarService
 }
 
-// NewListCalendarEventsSkill creates a new list-calendar-events skill
-func NewListCalendarEventsSkill(logger *zap.Logger) server.Tool {
+// NewListCalendarEventsSkill creates a new list_calendar_events skill
+func NewListCalendarEventsSkill(logger *zap.Logger, google google.CalendarService) server.Tool {
 	skill := &ListCalendarEventsSkill{
 		logger: logger,
+		google: google,
 	}
-
-	// Initialize configuration and calendar service
-	skill.initializeConfig()
-	skill.initializeCalendarService()
-
 	return server.NewBasicTool(
-		"list-calendar-events",
+		"list_calendar_events",
 		"List upcoming events from Google Calendar",
 		map[string]any{
 			"type": "object",
@@ -64,128 +55,108 @@ func NewListCalendarEventsSkill(logger *zap.Logger) server.Tool {
 	)
 }
 
-// initializeConfig loads configuration from environment
-func (s *ListCalendarEventsSkill) initializeConfig() {
-	s.config = &config.Config{}
-	ctx := context.Background()
-	if err := envconfig.Process(ctx, s.config); err != nil {
-		s.logger.Warn("Failed to load config, using defaults", zap.Error(err))
-		s.config = &config.Config{
-			Environment: "dev",
-		}
-	}
-}
-
-// initializeCalendarService sets up the calendar service
-func (s *ListCalendarEventsSkill) initializeCalendarService() {
-	if s.config.ShouldUseMockService() {
-		s.isMockMode = true
-		s.logger.Info("List calendar events skill initialized in mock mode")
-		return
-	}
-
-	ctx := context.Background()
-	var opts []option.ClientOption
-	if s.config.Google.ServiceAccountJSON != "" {
-		opts = append(opts, option.WithCredentialsJSON([]byte(s.config.Google.ServiceAccountJSON)))
-	} else if s.config.Google.CredentialsPath != "" {
-		opts = append(opts, option.WithCredentialsFile(s.config.Google.CredentialsPath))
-	}
-
-	calSvc, err := google.NewCalendarService(ctx, s.config, s.logger, opts...)
-	if err != nil {
-		if s.config.Environment == "dev" {
-			s.logger.Warn("Failed to initialize Google Calendar service, falling back to mock mode", zap.Error(err))
-			s.isMockMode = true
-		} else {
-			s.logger.Error("Failed to create Google Calendar service", zap.Error(err))
-		}
-	} else {
-		s.calSvc = calSvc
-		s.logger.Info("✅ Google Calendar service initialized successfully for list events")
-	}
-}
-
-// ListCalendarEventsHandler handles the list-calendar-events skill execution
+// ListCalendarEventsHandler handles the list_calendar_events skill execution
 func (s *ListCalendarEventsSkill) ListCalendarEventsHandler(ctx context.Context, args map[string]any) (string, error) {
-	s.logger.Info("Processing list-calendar-events request", zap.Any("args", args))
+	s.logger.Debug("listing calendar events", zap.Any("args", args))
 
-	if s.isMockMode {
-		s.logger.Debug("returning mock events")
-		return s.getMockEvents(), nil
+	maxResults := 10
+	if mr, exists := args["maxResults"]; exists && mr != nil {
+		if mrInt, ok := mr.(float64); ok {
+			maxResults = int(mrInt)
+		}
 	}
 
-	s.logger.Debug("processing list events request in non-mock mode")
+	query := ""
+	if q, exists := args["query"]; exists && q != nil {
+		query = q.(string)
+	}
 
 	timeMin := time.Now()
-	if val, ok := args["timeMin"].(string); ok && val != "" {
-		if parsedTime, err := time.Parse(time.RFC3339, val); err == nil {
-			timeMin = parsedTime
+	if tm, exists := args["timeMin"]; exists && tm != nil {
+		if tmStr, ok := tm.(string); ok {
+			if parsedTime, err := time.Parse(time.RFC3339, tmStr); err == nil {
+				timeMin = parsedTime
+			}
 		}
 	}
 
-	timeMax := timeMin.Add(24 * time.Hour)
-	if val, ok := args["timeMax"].(string); ok && val != "" {
-		if parsedTime, err := time.Parse(time.RFC3339, val); err == nil {
-			timeMax = parsedTime
+	timeMax := time.Time{}
+	if tm, exists := args["timeMax"]; exists && tm != nil {
+		if tmStr, ok := tm.(string); ok {
+			if parsedTime, err := time.Parse(time.RFC3339, tmStr); err == nil {
+				timeMax = parsedTime
+			}
 		}
 	}
 
-	events, err := s.calSvc.ListEvents(s.config.Google.CalendarID, timeMin, timeMax)
+	calendarID := s.google.GetCalendarID()
+	events, err := s.google.ListEvents(calendarID, timeMin, timeMax)
 	if err != nil {
-		return "", fmt.Errorf("failed to list events: %w", err)
+		s.logger.Error("failed to list calendar events", zap.Error(err))
+		return "", fmt.Errorf("failed to list calendar events: %w", err)
 	}
 
-	response := a2a.CalendarEventResponse{
-		Events:  events,
-		Message: fmt.Sprintf("Found %d events between %s and %s", len(events), timeMin.Format("2006-01-02 15:04"), timeMax.Format("2006-01-02 15:04")),
-		Success: true,
+	filteredEvents := events
+	if query != "" {
+		filteredEvents = []*calendar.Event{}
+		for _, event := range events {
+			if strings.Contains(strings.ToLower(event.Summary), strings.ToLower(query)) ||
+				strings.Contains(strings.ToLower(event.Description), strings.ToLower(query)) {
+				filteredEvents = append(filteredEvents, event)
+			}
+		}
 	}
 
-	jsonBytes, err := json.Marshal(response)
+	if len(filteredEvents) > maxResults {
+		filteredEvents = filteredEvents[:maxResults]
+	}
+
+	s.logger.Info("calendar events retrieved successfully", zap.Int("count", len(filteredEvents)))
+
+	var eventList []map[string]any
+	for _, event := range filteredEvents {
+		eventData := map[string]any{
+			"eventId": event.Id,
+			"summary": event.Summary,
+			"status":  event.Status,
+		}
+
+		if event.Start != nil {
+			eventData["startTime"] = event.Start.DateTime
+		}
+		if event.End != nil {
+			eventData["endTime"] = event.End.DateTime
+		}
+		if event.Description != "" {
+			eventData["description"] = event.Description
+		}
+		if event.Location != "" {
+			eventData["location"] = event.Location
+		}
+		if event.HtmlLink != "" {
+			eventData["htmlLink"] = event.HtmlLink
+		}
+		if len(event.Attendees) > 0 {
+			var attendees []string
+			for _, attendee := range event.Attendees {
+				attendees = append(attendees, attendee.Email)
+			}
+			eventData["attendees"] = attendees
+		}
+
+		eventList = append(eventList, eventData)
+	}
+
+	result := map[string]any{
+		"success": true,
+		"events":  eventList,
+		"count":   len(eventList),
+	}
+
+	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal response: %w", err)
+		return "", fmt.Errorf("failed to marshal result: %w", err)
 	}
 
-	s.logger.Info("✅ Successfully listed events", zap.Int("count", len(events)))
-	return string(jsonBytes), nil
-}
-
-// getMockEvents returns mock events for testing
-func (s *ListCalendarEventsSkill) getMockEvents() string {
-	mockEvents := []*calendar.Event{
-		{
-			Id:          "mock-event-1",
-			Summary:     "Team Meeting",
-			Description: "Weekly team standup meeting",
-			Start: &calendar.EventDateTime{
-				DateTime: time.Now().Add(1 * time.Hour).Format(time.RFC3339),
-			},
-			End: &calendar.EventDateTime{
-				DateTime: time.Now().Add(2 * time.Hour).Format(time.RFC3339),
-			},
-			Location: "Conference Room A",
-		},
-		{
-			Id:          "mock-event-2",
-			Summary:     "Client Call",
-			Description: "Quarterly review with client",
-			Start: &calendar.EventDateTime{
-				DateTime: time.Now().Add(3 * time.Hour).Format(time.RFC3339),
-			},
-			End: &calendar.EventDateTime{
-				DateTime: time.Now().Add(4 * time.Hour).Format(time.RFC3339),
-			},
-			Location: "Virtual",
-		},
-	}
-
-	response := a2a.CalendarEventResponse{
-		Events:  mockEvents,
-		Message: fmt.Sprintf("Found %d mock events for demonstration", len(mockEvents)),
-		Success: true,
-	}
-
-	jsonBytes, _ := json.Marshal(response)
-	return string(jsonBytes)
+	return string(resultJSON), nil
 }

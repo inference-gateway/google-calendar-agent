@@ -9,13 +9,14 @@
 # - Directories: build/
 # - Comments: lines starting with #
 
-skills/list_calendar_events.go
-skills/create_calendar_event.go
-skills/update_calendar_event.go
-skills/delete_calendar_event.go
-skills/get_calendar_event.go
-skills/find_available_time.go
+internal/google/google.go
 skills/check_conflicts.go
+skills/create_calendar_event.go
+skills/delete_calendar_event.go
+skills/find_available_time.go
+skills/get_calendar_event.go
+skills/list_calendar_events.go
+skills/update_calendar_event.go
 
 # Go dependency files
 go.sum

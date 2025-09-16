@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.15](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.14...v0.4.15) (2025-08-28)
+
+### ♻️ Improvements
+
+* Integrate LLM client and update environment configuration for A2A agent ([ffb5d88](https://github.com/inference-gateway/google-calendar-agent/commit/ffb5d88fb61a1d5c22ddd4ee7ba1105ee9cd1a8c))
+
 ## [0.4.14](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.13...v0.4.14) (2025-08-28)
 
 ### 🐛 Bug Fixes
