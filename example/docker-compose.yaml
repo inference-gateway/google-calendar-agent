@@ -3,7 +3,6 @@ services:
   google-calendar-agent:
     build:
       context: ..
-    pull_policy: always
     env_file:
       - .env.agent
     restart: unless-stopped
