@@ -4,35 +4,7 @@ This example demonstrates how to run the Google Calendar Agent with the Inferenc
 
 ## Architecture
 
-### Through Inference Gateway
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│                 │    │                 │    |                 |
-│ User/Client     │───▶│ Inference       │───▶│ Calendar Agent  │
-│                 │    │ Gateway         │    │                 │
-│                 │    │ (Port 8080)     │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │                       │
-                                │                       │
-                                ▼                       ▼
-                       ┌─────────────────┐    ┌─────────────────┐
-                       │                 │    │                 │
-                       │ LLM Providers   │    │ Google Calendar │
-                       │ (OpenAI, Groq,  │    │ API             │
-                       │  Anthropic,etc) │    │                 │
-                       └─────────────────┘    └─────────────────┘
-```
-
-**Flow Description:**
-
-1. User sends request to Inference Gateway (port 8080)
-2. Inference Gateway processes the request and determines if an agent is needed
-3. Calendar Agent interacts with Google Calendar API for calendar operations
-4. Inference Gateway uses LLM providers for natural language processing
-5. Response flows back through Gateway to the user
-
-### Direct Access with A2A Debugger
+### Access with A2A Debugger or CLI
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
