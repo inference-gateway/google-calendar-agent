@@ -279,7 +279,7 @@ task validate-env       # Check environment configuration
 | -------------------------------- | --------------------------------------- | --------- | -------- |
 | `GOOGLE_MOCK_MODE`               | Run without Google Calendar integration | `false`   | No       |
 | `GOOGLE_CALENDAR_ID`             | Target calendar ID                      | `primary` | No       |
-| `GOOGLE_SERVICE_ACCOUNT_JSON`        | Service account JSON (single line)      | -         | Yes\*    |
+| `GOOGLE_SERVICE_ACCOUNT_JSON`    | Service account JSON (single line)      | -         | Yes\*    |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path to credentials file                | -         | Yes\*    |
 | `GOOGLE_CALENDAR_READ_ONLY`      | Read-only calendar access               | `false`   | No       |
 | `GOOGLE_CALENDAR_TIMEZONE`       | Default timezone                        | `UTC`     | No       |
