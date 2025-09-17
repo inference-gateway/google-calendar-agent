@@ -7,7 +7,6 @@ package google
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	config "github.com/inference-gateway/google-calendar-agent/config"
@@ -45,23 +44,13 @@ func NewServiceFactory(logger *zap.Logger, cfg *config.Config) (CalendarService,
 
 // shouldUseMockMode determines if mock mode should be used based on config
 func shouldUseMockMode(cfg *config.Config) bool {
-	// Check config mock mode setting
-	if cfg.Google.MockMode != "" {
-		if mock, err := strconv.ParseBool(cfg.Google.MockMode); err == nil {
-			return mock
-		}
-	}
-
-	// If no Google credentials are provided, use mock mode
-	return cfg.Google.ServiceAccountJSON == "" &&
-		cfg.Google.CredentialsPath == ""
+	return cfg.Google.MockMode
 }
 
 // createRealCalendarService creates a real Google Calendar service using config
 func createRealCalendarService(ctx context.Context, logger *zap.Logger, cfg *config.Config) (CalendarService, error) {
 	var opts []option.ClientOption
 
-	// Handle service account JSON from config
 	if cfg.Google.ServiceAccountJSON != "" {
 		opts = append(opts, option.WithCredentialsJSON([]byte(cfg.Google.ServiceAccountJSON)))
 	} else if cfg.Google.CredentialsPath != "" {
@@ -70,7 +59,6 @@ func createRealCalendarService(ctx context.Context, logger *zap.Logger, cfg *con
 		return nil, fmt.Errorf("no Google credentials found: set GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_CREDENTIALS_PATH")
 	}
 
-	// Use full access scopes by default
 	scopes := []string{
 		calendar.CalendarReadonlyScope,
 		calendar.CalendarScope,

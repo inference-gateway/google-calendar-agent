@@ -125,7 +125,7 @@ tasks:
     desc: Start in demo mode (no Google Calendar integration required)
     cmds:
       - |
-        DEMO_MODE=true \
+        GOOGLE_MOCK_MODE=true \
         docker-compose -f {{.DOCKER_COMPOSE_FILE}} up
 
   prod:

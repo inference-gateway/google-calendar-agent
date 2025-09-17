@@ -92,14 +92,14 @@ docker compose run --rm a2a-debugger tasks history <context-id>
 - **Google Calendar Agent**: Manages calendar events with natural language processing
 - **Inference Gateway**: High-performance LLM gateway supporting multiple providers
 - **Multi-Provider Support**: OpenAI, Groq, Anthropic, DeepSeek, Cohere, Cloudflare
-- **Demo Mode**: Run without Google Calendar integration for testing
+- **Mock Mode**: Run without Google Calendar integration for testing
 - **Health Checks**: Built-in health monitoring for both services
 - **Automatic Restart**: Services restart automatically on failure
 
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- Google Calendar API credentials (unless running in demo mode)
+- Google Calendar API credentials (unless running in mock mode)
 - API keys for at least one LLM provider
 
 ## Quick Start
@@ -122,8 +122,8 @@ Edit the `.env` file and configure the required settings:
 #### For Demo Mode (No Google Calendar Integration)
 
 ```bash
-# Set demo mode to true
-DEMO_MODE=true
+# Set mock mode to true
+GOOGLE_MOCK_MODE=true
 
 # Configure at least one LLM provider
 GROQ_API_KEY=your_groq_api_key_here
@@ -134,12 +134,12 @@ A2A_AGENT_CLIENT_MODEL=deepseek-r1-distill-llama-70b
 #### For Production Mode (With Google Calendar)
 
 ```bash
-# Disable demo mode
-DEMO_MODE=false
+# Disable mock mode
+GOOGLE_MOCK_MODE=false
 
 # Configure Google Calendar
 GOOGLE_CALENDAR_ID=primary
-GOOGLE_CALENDAR_SA_JSON={"type":"service_account","project_id":"..."}
+GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"..."}
 
 # Configure LLM provider
 GROQ_API_KEY=your_groq_api_key_here
@@ -277,14 +277,14 @@ task validate-env       # Check environment configuration
 
 | Environment Variable             | Description                             | Default   | Required |
 | -------------------------------- | --------------------------------------- | --------- | -------- |
-| `DEMO_MODE`                      | Run without Google Calendar integration | `false`   | No       |
+| `GOOGLE_MOCK_MODE`               | Run without Google Calendar integration | `false`   | No       |
 | `GOOGLE_CALENDAR_ID`             | Target calendar ID                      | `primary` | No       |
-| `GOOGLE_CALENDAR_SA_JSON`        | Service account JSON (single line)      | -         | Yes\*    |
+| `GOOGLE_SERVICE_ACCOUNT_JSON`        | Service account JSON (single line)      | -         | Yes\*    |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path to credentials file                | -         | Yes\*    |
 | `GOOGLE_CALENDAR_READ_ONLY`      | Read-only calendar access               | `false`   | No       |
 | `GOOGLE_CALENDAR_TIMEZONE`       | Default timezone                        | `UTC`     | No       |
 
-\* Required unless `DEMO_MODE=true`
+\* Required unless `GOOGLE_MOCK_MODE=true`
 
 ### Supported LLM Providers
 
@@ -347,7 +347,7 @@ A2A_AGENT_CLIENT_MODEL=@cf/meta/llama-3.1-8b-instruct
 4. Create a Service Account
 5. Download the JSON credentials file
 6. Share your calendar with the service account email
-7. Set `GOOGLE_CALENDAR_SA_JSON` to the JSON content (single line)
+7. Set `GOOGLE_SERVICE_ACCOUNT_JSON` to the JSON content (single line)
 
 ## API Usage Examples
 

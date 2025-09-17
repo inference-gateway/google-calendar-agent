@@ -234,7 +234,7 @@ spec:
   config:
     google:
       calendarId: "primary"
-      mockMode: "false"
+      mockMode: false
       serviceAccountJson: ""
       credentialsPath: ""
   server:
@@ -244,12 +244,12 @@ spec:
     go:
       module: github.com/inference-gateway/google-calendar-agent
       version: "1.24"
-    acronyms:
-      - a2a
-      - api
-      - rfc
-      - json
-      - yaml
+  acronyms:
+    - a2a
+    - api
+    - rfc
+    - json
+    - yaml
   scm:
     provider: github
     url: https://github.com/inference-gateway/google-calendar-agent
