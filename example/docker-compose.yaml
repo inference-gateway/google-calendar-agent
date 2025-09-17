@@ -45,7 +45,7 @@ services:
     pull_policy: always
     entrypoint:
       - /a2a
-      - --set-url
+      - --server-url
       - http://google-calendar-agent:8080
     networks:
       - a2a-network
