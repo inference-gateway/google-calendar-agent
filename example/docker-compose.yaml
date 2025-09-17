@@ -1,5 +1,15 @@
 ---
 services:
+  google-calendar-agent:
+    build:
+      context: ..
+    pull_policy: always
+    env_file:
+      - .env.agent
+    restart: unless-stopped
+    networks:
+      - a2a-network
+
   inference-gateway:
     image: ghcr.io/inference-gateway/inference-gateway:latest
     pull_policy: always
@@ -7,16 +17,6 @@ services:
       - "8080:8080"
     env_file:
       - .env.gateway
-    restart: unless-stopped
-    networks:
-      - a2a-network
-
-  google-calendar-agent:
-    build:
-      context: ..
-    pull_policy: always
-    env_file:
-      - .env.agent
     restart: unless-stopped
     networks:
       - a2a-network
