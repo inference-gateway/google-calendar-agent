@@ -9,7 +9,7 @@ spec:
     streaming: true
     pushNotifications: false
     stateTransitionHistory: false
-  dependencies:
+  services:
     google:
       type: service
       interface: CalendarService
@@ -233,17 +233,19 @@ spec:
       Your responses should be accurate, helpful, and focused on calendar management tasks.
   config:
     google:
-      calendarId: "primary"
-      mockMode: false
       serviceAccountJson: ""
       credentialsPath: ""
+    googleCalendar:
+      Id: "primary"
+      mockMode: false
+      timezone: "UTC"
   server:
     port: 8080
     debug: false
   language:
     go:
       module: github.com/inference-gateway/google-calendar-agent
-      version: "1.24"
+      version: "1.25.0"
   acronyms:
     - a2a
     - api

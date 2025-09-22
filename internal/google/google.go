@@ -44,7 +44,7 @@ func NewServiceFactory(logger *zap.Logger, cfg *config.Config) (CalendarService,
 
 // shouldUseMockMode determines if mock mode should be used based on config
 func shouldUseMockMode(cfg *config.Config) bool {
-	return cfg.Google.MockMode
+	return cfg.GoogleCalendar.MockMode
 }
 
 // createRealCalendarService creates a real Google Calendar service using config
@@ -84,8 +84,8 @@ type CalendarServiceImpl struct {
 
 // GetCalendarID returns the calendar ID from config or default to "primary"
 func (g *CalendarServiceImpl) GetCalendarID() string {
-	if g.config.Google.CalendarID != "" {
-		return g.config.Google.CalendarID
+	if g.config.GoogleCalendar.ID != "" {
+		return g.config.GoogleCalendar.ID
 	}
 	return "primary"
 }
@@ -277,8 +277,8 @@ func NewMockCalendarService(logger *zap.Logger, cfg *config.Config) *MockCalenda
 
 // GetCalendarID returns the calendar ID from config or default to "primary"
 func (m *MockCalendarService) GetCalendarID() string {
-	if m.config.Google.CalendarID != "" {
-		return m.config.Google.CalendarID
+	if m.config.GoogleCalendar.ID != "" {
+		return m.config.GoogleCalendar.ID
 	}
 	return "primary"
 }

@@ -2,7 +2,7 @@
 
 # Google-Calendar-Agent
 [![CI](https://github.com/inference-gateway/google-calendar-agent/workflows/CI/badge.svg)](https://github.com/inference-gateway/google-calendar-agent/actions/workflows/ci.yml)
-[![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://golang.org)
+[![Go Version](https://img.shields.io/badge/Go-1.25.0+-00ADD8?style=flat&logo=go)](https://golang.org)
 [![A2A Protocol](https://img.shields.io/badge/A2A-Protocol-blue?style=flat)](https://github.com/inference-gateway/adk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -52,6 +52,18 @@ docker run -p 8080:8080 google-calendar-agent
 ## Configuration
 
 Configure the agent via environment variables:
+
+### Custom Configuration
+
+The following custom configuration variables are available:
+
+| Category | Variable | Description | Default |
+|----------|----------|-------------|---------|
+| **Google** | `GOOGLE_CREDENTIALS_PATH` | CredentialsPath configuration | `` |
+| **Google** | `GOOGLE_SERVICE_ACCOUNT_JSON` | ServiceAccountJson configuration | `` |
+| **GoogleCalendar** | `GOOGLE_CALENDAR_ID` | Id configuration | `primary` |
+| **GoogleCalendar** | `GOOGLE_CALENDAR_MOCK_MODE` | MockMode configuration | `false` |
+| **GoogleCalendar** | `GOOGLE_CALENDAR_TIMEZONE` | Timezone configuration | `UTC` |
 
 | Category | Variable | Description | Default |
 |----------|----------|-------------|---------|

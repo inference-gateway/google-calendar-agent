@@ -79,12 +79,11 @@ docker compose run --rm a2a-debugger tasks history <context-id>
 ### 1. Clone and Setup
 
 ```bash
-# Navigate to the basic example directory
-cd examples/basic
+# Navigate to the example directory
+cd example
 
 # Copy the environment template
-cp .env.gateway.example .env.gateway
-cp .env.agent.example .env.agent
+cp .env.example .env
 ```
 
 ### 2. Configure Environment Variables
@@ -250,10 +249,8 @@ task validate-env       # Check environment configuration
 | Environment Variable             | Description                             | Default   | Required |
 | -------------------------------- | --------------------------------------- | --------- | -------- |
 | `GOOGLE_MOCK_MODE`               | Run without Google Calendar integration | `false`   | No       |
-| `GOOGLE_CALENDAR_ID`             | Target calendar ID                      | `primary` | No       |
-| `GOOGLE_SERVICE_ACCOUNT_JSON`    | Service account JSON (single line)      | -         | Yes\*    |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path to credentials file                | -         | Yes\*    |
-| `GOOGLE_CALENDAR_READ_ONLY`      | Read-only calendar access               | `false`   | No       |
+| `GOOGLE_CALENDAR_ID`             | Target calendar ID                      | `primary` | No       |
 | `GOOGLE_CALENDAR_TIMEZONE`       | Default timezone                        | `UTC`     | No       |
 
 \* Required unless `GOOGLE_MOCK_MODE=true`
