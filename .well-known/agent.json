@@ -1,112 +1,66 @@
 {
-  "name": "Google Calendar Agent",
-  "description": "AI-powered Google Calendar assistant that helps you manage your calendar events, find free time, and schedule meetings efficiently.",
-  "version": "0.4.15",
-  "url": "https://google-calendar-agent.inference-gateway.com",
-  "documentationUrl": "https://github.com/inference-gateway/google-calendar-agent",
-  "iconUrl": "https://google-calendar-agent.inference-gateway.com/icon.png",
-  "provider": {
-    "organization": "Inference Gateway",
-    "url": "https://github.com/inference-gateway"
-  },
-  "capabilities": {
-    "streaming": true,
-    "pushNotifications": true,
-    "stateTransitionHistory": true
-  },
-  "defaultInputModes": ["text"],
-  "defaultOutputModes": ["text", "json"],
-  "skills": [
-    {
-      "id": "list_calendar_events",
-      "name": "List Calendar Events",
-      "description": "List upcoming events from Google Calendar",
-      "tags": ["calendar", "events", "list"],
-      "examples": [
-        "List my calendar events for today",
-        "Show me my upcoming meetings",
-        "What events do I have this week?"
-      ],
-      "inputModes": ["text"],
-      "outputModes": ["text", "json"]
-    },
-    {
-      "id": "create_calendar_event",
-      "name": "Create Calendar Event",
-      "description": "Create a new event in Google Calendar",
-      "tags": ["calendar", "events", "create"],
-      "examples": [
-        "Create a meeting for tomorrow at 2pm",
-        "Schedule a dentist appointment for next Friday",
-        "Add a reminder for my anniversary"
-      ],
-      "inputModes": ["text"],
-      "outputModes": ["text", "json"]
-    },
-    {
-      "id": "update_calendar_event",
-      "name": "Update Calendar Event",
-      "description": "Update an existing event in Google Calendar",
-      "tags": ["calendar", "events", "update"],
-      "examples": [
-        "Change my 3pm meeting to 4pm",
-        "Update the location of my appointment",
-        "Add attendees to my meeting"
-      ],
-      "inputModes": ["text"],
-      "outputModes": ["text", "json"]
-    },
-    {
-      "id": "delete_calendar_event",
-      "name": "Delete Calendar Event",
-      "description": "Delete an event from Google Calendar",
-      "tags": ["calendar", "events", "delete"],
-      "examples": [
-        "Cancel my 2pm meeting",
-        "Delete tomorrow's dentist appointment",
-        "Remove the duplicate event"
-      ],
-      "inputModes": ["text"],
-      "outputModes": ["text", "json"]
-    },
-    {
-      "id": "get_calendar_event",
-      "name": "Get Calendar Event",
-      "description": "Get details of a specific event in Google Calendar",
-      "tags": ["calendar", "events", "details"],
-      "examples": [
-        "Get details of my 3pm meeting",
-        "Show me information about my appointment",
-        "What's the location of my next meeting?"
-      ],
-      "inputModes": ["text"],
-      "outputModes": ["text", "json"]
-    },
-    {
-      "id": "find_available_time",
-      "name": "Find Available Time",
-      "description": "Find free time slots in Google Calendar",
-      "tags": ["calendar", "availability", "scheduling"],
-      "examples": [
-        "When am I free this week?",
-        "Find a 1-hour slot for a meeting",
-        "What's my availability tomorrow?"
-      ],
-      "inputModes": ["text"],
-      "outputModes": ["text", "json"]
-    },
-    {
-      "id": "check_conflicts",
-      "name": "Check Conflicts",
-      "description": "Check for scheduling conflicts in Google Calendar",
-      "tags": ["calendar", "conflicts", "scheduling"],
-      "examples": [
-        "Do I have any conflicts this week?",
-        "Check if I'm double-booked tomorrow",
-        "Are there any overlapping meetings?"
-      ],
-      "inputModes": ["text"],
-      "outputModes": ["text", "json"]
-    }
-  ]
+	"name": "google-calendar-agent",
+	"version": "0.4.14",
+	"description": "A Google Calendar A2A agent for AI assistants to interact with Google Calendar",
+	"protocolVersion": "0.3.0",
+	"url": "",
+	"preferredTransport": "JSONRPC",
+	"defaultInputModes": ["text"],
+	"defaultOutputModes": ["text"],
+	"capabilities": {
+		"streaming": true,
+		"pushNotifications": false,
+		"stateTransitionHistory": false
+	},
+	"skills": [
+		{
+			"id": "list_calendar_events",
+			"name": "list_calendar_events",
+			"description": "List upcoming events from Google Calendar",
+			"tags": ["calendar","events","list","google"],
+			"schema": {"properties":{"maxResults":{"description":"Maximum number of events to return (default: 10, max: 100)","maximum":100,"minimum":1,"type":"integer"},"query":{"description":"Free text search terms to find events. Optional.","type":"string"},"timeMax":{"description":"End time (RFC3339 format, e.g., 2024-01-01T23:59:59Z). Optional.","type":"string"},"timeMin":{"description":"Start time (RFC3339 format, e.g., 2024-01-01T00:00:00Z). Defaults to now.","type":"string"}},"type":"object"}
+		},
+		{
+			"id": "create_calendar_event",
+			"name": "create_calendar_event",
+			"description": "Create a new event in Google Calendar",
+			"tags": ["calendar","events","create","google"],
+			"schema": {"properties":{"attendees":{"description":"List of attendee email addresses. Optional.","items":{"type":"string"},"type":"array"},"description":{"description":"Event description. Optional.","type":"string"},"endTime":{"description":"End time in RFC3339 format (required, e.g., 2024-01-01T11:00:00Z)","type":"string"},"location":{"description":"Event location. Optional.","type":"string"},"startTime":{"description":"Start time in RFC3339 format (required, e.g., 2024-01-01T10:00:00Z)","type":"string"},"summary":{"description":"Event title/summary (required)","type":"string"}},"required":["summary","startTime","endTime"],"type":"object"}
+		},
+		{
+			"id": "update_calendar_event",
+			"name": "update_calendar_event",
+			"description": "Update an existing event in Google Calendar",
+			"tags": ["calendar","events","update","google"],
+			"schema": {"properties":{"description":{"description":"Event description. Optional.","type":"string"},"endTime":{"description":"End time in RFC3339 format. Optional.","type":"string"},"eventId":{"description":"Event ID to update (required)","type":"string"},"location":{"description":"Event location. Optional.","type":"string"},"startTime":{"description":"Start time in RFC3339 format. Optional.","type":"string"},"summary":{"description":"Event title/summary. Optional.","type":"string"}},"required":["eventId"],"type":"object"}
+		},
+		{
+			"id": "delete_calendar_event",
+			"name": "delete_calendar_event",
+			"description": "Delete an event from Google Calendar",
+			"tags": ["calendar","events","delete","google"],
+			"schema": {"properties":{"eventId":{"description":"Event ID to delete (required)","type":"string"}},"required":["eventId"],"type":"object"}
+		},
+		{
+			"id": "get_calendar_event",
+			"name": "get_calendar_event",
+			"description": "Get details of a specific event from Google Calendar",
+			"tags": ["calendar","events","get","google"],
+			"schema": {"properties":{"eventId":{"description":"Event ID to retrieve (required)","type":"string"}},"required":["eventId"],"type":"object"}
+		},
+		{
+			"id": "find_available_time",
+			"name": "find_available_time",
+			"description": "Find available time slots in the calendar",
+			"tags": ["calendar","availability","scheduling","google"],
+			"schema": {"properties":{"duration":{"description":"Duration in minutes for the desired time slot (default: 60)","maximum":480,"minimum":15,"type":"integer"},"endDate":{"description":"End date for search (RFC3339 format, e.g., 2024-01-01T23:59:59Z)","type":"string"},"startDate":{"description":"Start date for search (RFC3339 format, e.g., 2024-01-01T00:00:00Z)","type":"string"}},"required":["startDate","endDate"],"type":"object"}
+		},
+		{
+			"id": "check_conflicts",
+			"name": "check_conflicts",
+			"description": "Check for scheduling conflicts in the specified time range",
+			"tags": ["calendar","conflicts","scheduling","google"],
+			"schema": {"properties":{"endTime":{"description":"End time to check (RFC3339 format, required)","type":"string"},"startTime":{"description":"Start time to check (RFC3339 format, required)","type":"string"}},"required":["startTime","endTime"],"type":"object"}
+		}
+	]
 }

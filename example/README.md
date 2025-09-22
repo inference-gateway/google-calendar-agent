@@ -4,35 +4,7 @@ This example demonstrates how to run the Google Calendar Agent with the Inferenc
 
 ## Architecture
 
-### Through Inference Gateway
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│                 │    │                 │    |                 |
-│ User/Client     │───▶│ Inference       │───▶│ Calendar Agent  │
-│                 │    │ Gateway         │    │                 │
-│                 │    │ (Port 8080)     │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │                       │
-                                │                       │
-                                ▼                       ▼
-                       ┌─────────────────┐    ┌─────────────────┐
-                       │                 │    │                 │
-                       │ LLM Providers   │    │ Google Calendar │
-                       │ (OpenAI, Groq,  │    │ API             │
-                       │  Anthropic,etc) │    │                 │
-                       └─────────────────┘    └─────────────────┘
-```
-
-**Flow Description:**
-
-1. User sends request to Inference Gateway (port 8080)
-2. Inference Gateway processes the request and determines if an agent is needed
-3. Calendar Agent interacts with Google Calendar API for calendar operations
-4. Inference Gateway uses LLM providers for natural language processing
-5. Response flows back through Gateway to the user
-
-### Direct Access with A2A Debugger
+### Access with A2A Debugger or CLI
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -92,14 +64,14 @@ docker compose run --rm a2a-debugger tasks history <context-id>
 - **Google Calendar Agent**: Manages calendar events with natural language processing
 - **Inference Gateway**: High-performance LLM gateway supporting multiple providers
 - **Multi-Provider Support**: OpenAI, Groq, Anthropic, DeepSeek, Cohere, Cloudflare
-- **Demo Mode**: Run without Google Calendar integration for testing
+- **Mock Mode**: Run without Google Calendar integration for testing
 - **Health Checks**: Built-in health monitoring for both services
 - **Automatic Restart**: Services restart automatically on failure
 
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- Google Calendar API credentials (unless running in demo mode)
+- Google Calendar API credentials (unless running in mock mode)
 - API keys for at least one LLM provider
 
 ## Quick Start
@@ -107,12 +79,11 @@ docker compose run --rm a2a-debugger tasks history <context-id>
 ### 1. Clone and Setup
 
 ```bash
-# Navigate to the basic example directory
-cd examples/basic
+# Navigate to the example directory
+cd example
 
 # Copy the environment template
-cp .env.gateway.example .env.gateway
-cp .env.agent.example .env.agent
+cp .env.example .env
 ```
 
 ### 2. Configure Environment Variables
@@ -122,8 +93,8 @@ Edit the `.env` file and configure the required settings:
 #### For Demo Mode (No Google Calendar Integration)
 
 ```bash
-# Set demo mode to true
-DEMO_MODE=true
+# Set mock mode to true
+GOOGLE_MOCK_MODE=true
 
 # Configure at least one LLM provider
 GROQ_API_KEY=your_groq_api_key_here
@@ -134,12 +105,12 @@ A2A_AGENT_CLIENT_MODEL=deepseek-r1-distill-llama-70b
 #### For Production Mode (With Google Calendar)
 
 ```bash
-# Disable demo mode
-DEMO_MODE=false
+# Disable mock mode
+GOOGLE_MOCK_MODE=false
 
 # Configure Google Calendar
 GOOGLE_CALENDAR_ID=primary
-GOOGLE_CALENDAR_SA_JSON={"type":"service_account","project_id":"..."}
+GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"..."}
 
 # Configure LLM provider
 GROQ_API_KEY=your_groq_api_key_here
@@ -215,6 +186,35 @@ curl -N -X POST http://localhost:8080/v1/chat/completions \
   }'
 ```
 
+#### Test with Inference Gateway CLI (Recommended for Convenience)
+
+For the easiest interaction experience, use the inference-gateway CLI which provides an interactive chat interface:
+
+```bash
+# Start an interactive chat session with the agent (most convenient)
+docker compose run --rm cli
+
+# Alternative: Run a one-off command
+docker compose run --rm cli agent "What events do I have today?"
+
+# Alternative: Start in interactive chat mode
+docker compose run --rm cli chat
+```
+
+**CLI Benefits:**
+- **Interactive Experience**: Natural conversation flow instead of curl commands
+- **Automatic Formatting**: Responses are properly formatted and easy to read
+- **Session Management**: Maintains conversation context across multiple queries
+- **Real-time Streaming**: See responses as they're generated
+- **Command History**: Use arrow keys to navigate previous commands
+- **Error Handling**: Clear error messages and retry options
+
+The CLI is perfect for:
+- Testing agent functionality interactively
+- Debugging agent responses in real-time
+- Validating that the agent integration is working correctly
+- Daily usage without technical complexity
+
 ## Available Tasks
 
 This example includes a Taskfile for easy management. Here are the available commands:
@@ -257,14 +257,12 @@ task validate-env       # Check environment configuration
 
 | Environment Variable             | Description                             | Default   | Required |
 | -------------------------------- | --------------------------------------- | --------- | -------- |
-| `DEMO_MODE`                      | Run without Google Calendar integration | `false`   | No       |
-| `GOOGLE_CALENDAR_ID`             | Target calendar ID                      | `primary` | No       |
-| `GOOGLE_CALENDAR_SA_JSON`        | Service account JSON (single line)      | -         | Yes\*    |
+| `GOOGLE_MOCK_MODE`               | Run without Google Calendar integration | `false`   | No       |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path to credentials file                | -         | Yes\*    |
-| `GOOGLE_CALENDAR_READ_ONLY`      | Read-only calendar access               | `false`   | No       |
+| `GOOGLE_CALENDAR_ID`             | Target calendar ID                      | `primary` | No       |
 | `GOOGLE_CALENDAR_TIMEZONE`       | Default timezone                        | `UTC`     | No       |
 
-\* Required unless `DEMO_MODE=true`
+\* Required unless `GOOGLE_MOCK_MODE=true`
 
 ### Supported LLM Providers
 
@@ -327,7 +325,7 @@ A2A_AGENT_CLIENT_MODEL=@cf/meta/llama-3.1-8b-instruct
 4. Create a Service Account
 5. Download the JSON credentials file
 6. Share your calendar with the service account email
-7. Set `GOOGLE_CALENDAR_SA_JSON` to the JSON content (single line)
+7. Set `GOOGLE_SERVICE_ACCOUNT_JSON` to the JSON content (single line)
 
 ## API Usage Examples
 

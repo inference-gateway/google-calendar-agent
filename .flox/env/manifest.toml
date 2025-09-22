@@ -2,11 +2,26 @@ version = 1
 
 [install]
 go.pkg-path = "go"
-go.version = "^1.24"
+go.version = "1.25.0"
+
+golangci-lint.pkg-path = "golangci-lint"
+golangci-lint.version = "^2.4.0"
+golangci-lint.pkg-group = "common"
+
+go-task.pkg-path = "go-task"
+go-task.pkg-group = "common"
+
+git.pkg-path = "git"
+git.pkg-group = "common"
+
+docker.pkg-path = "docker"
+docker.pkg-group = "common"
+
+claude-code.pkg-path = "claude-code"
+claude-code.pkg-group = "common"
 
 [hook]
-on-activate = """
-  export GOENV="$FLOX_ENV_CACHE/goenv"
-
-  go get .
-"""
+on-activate = '''
+  echo "🌟 Welcome to google-calendar-agent development environment!"
+  echo "Go version: $(go version)"
+'''
