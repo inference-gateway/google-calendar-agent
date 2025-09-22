@@ -186,25 +186,34 @@ curl -N -X POST http://localhost:8080/v1/chat/completions \
   }'
 ```
 
-#### Test with Inference Gateway CLI
+#### Test with Inference Gateway CLI (Recommended for Convenience)
 
-You can use the inference-gateway CLI to interact with the agent through a chat interface:
+For the easiest interaction experience, use the inference-gateway CLI which provides an interactive chat interface:
 
 ```bash
-# Start an interactive chat session with the agent
+# Start an interactive chat session with the agent (most convenient)
 docker compose run --rm cli
 
-# Or run a one-off command
+# Alternative: Run a one-off command
 docker compose run --rm cli agent "What events do I have today?"
 
-# Or interactive chat mode
+# Alternative: Start in interactive chat mode
 docker compose run --rm cli chat
 ```
 
-The CLI provides a convenient way to:
-- Test agent functionality interactively
-- Debug agent responses in real-time
-- Validate that the agent integration is working correctly
+**CLI Benefits:**
+- **Interactive Experience**: Natural conversation flow instead of curl commands
+- **Automatic Formatting**: Responses are properly formatted and easy to read
+- **Session Management**: Maintains conversation context across multiple queries
+- **Real-time Streaming**: See responses as they're generated
+- **Command History**: Use arrow keys to navigate previous commands
+- **Error Handling**: Clear error messages and retry options
+
+The CLI is perfect for:
+- Testing agent functionality interactively
+- Debugging agent responses in real-time
+- Validating that the agent integration is working correctly
+- Daily usage without technical complexity
 
 ## Available Tasks
 
