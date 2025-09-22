@@ -6,7 +6,7 @@ version: '3'
 
 vars:
   APP_NAME: google-calendar-agent
-  VERSION: 0.4.14
+  VERSION: 0.4.16
 
 tasks:
   validate:
