@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.18](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.17...v0.4.18) (2025-09-26)
+
+### ♻️ Improvements
+
+* Bump ADK version to 0.11.1 ([7ab7bdb](https://github.com/inference-gateway/google-calendar-agent/commit/7ab7bdb758d9e915a003a44f600bfb24d7b74976))
+
 ## [0.4.17](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.16...v0.4.17) (2025-09-26)
 
 ### ♻️ Improvements

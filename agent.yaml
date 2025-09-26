@@ -3,7 +3,7 @@ kind: Agent
 metadata:
   name: google-calendar-agent
   description: A Google Calendar A2A agent for AI assistants to interact with Google Calendar
-  version: 0.4.17
+  version: 0.4.18
 spec:
   capabilities:
     streaming: true

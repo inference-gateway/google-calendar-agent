@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	Version          = "0.4.17"
+	Version          = "0.4.18"
 	AgentName        = "google-calendar-agent"
 	AgentDescription = "A Google Calendar A2A agent for AI assistants to interact with Google Calendar"
 )
