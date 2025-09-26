@@ -20,7 +20,7 @@ k8s/*.yaml linguist-generated=true
 k8s/*.yml linguist-generated=true
 
 # Agent capabilities
-.well-known/agent.json linguist-generated=true
+.well-known/agent-card.json linguist-generated=true
 
 # Documentation (partially generated)
 README.md linguist-documentation=true

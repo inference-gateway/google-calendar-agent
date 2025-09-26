@@ -33,7 +33,7 @@ docker run -p 8080:8080 google-calendar-agent
 
 ## Endpoints
 
-- `GET /.well-known/agent.json` - Agent metadata and capabilities
+- `GET /.well-known/agent-card.json` - Agent metadata and capabilities
 - `GET /health` - Health check endpoint
 - `POST /a2a` - A2A protocol endpoint
 
@@ -75,7 +75,7 @@ The following custom configuration variables are available:
 | **Server** | `A2A_SERVER_WRITE_TIMEOUT` | HTTP server write timeout | `120s` |
 | **Server** | `A2A_SERVER_IDLE_TIMEOUT` | HTTP server idle timeout | `120s` |
 | **Server** | `A2A_SERVER_DISABLE_HEALTHCHECK_LOG` | Disable logging for health check requests | `true` |
-| **Agent Metadata** | `A2A_AGENT_CARD_FILE_PATH` | Path to agent card JSON file | `.well-known/agent.json` |
+| **Agent Metadata** | `A2A_AGENT_CARD_FILE_PATH` | Path to agent card JSON file | `.well-known/agent-card.json` |
 | **LLM Client** | `A2A_AGENT_CLIENT_PROVIDER` | LLM provider (`openai`, `anthropic`, `azure`, `ollama`, `deepseek`) |`` |
 | **LLM Client** | `A2A_AGENT_CLIENT_MODEL` | Model to use |`` |
 | **LLM Client** | `A2A_AGENT_CLIENT_API_KEY` | API key for LLM provider | - |
