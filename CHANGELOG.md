@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.17](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.16...v0.4.17) (2025-09-26)
+
+### ♻️ Improvements
+
+* Update agent metadata file references and regenerate files for ADL CLI v0.21.6 ([#19](https://github.com/inference-gateway/google-calendar-agent/issues/19)) ([7717b32](https://github.com/inference-gateway/google-calendar-agent/commit/7717b32972f4dd429555210c58e115e0e3937d41))
+
 ## [0.4.16](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.15...v0.4.16) (2025-09-22)
 
 ### ♻️ Improvements
