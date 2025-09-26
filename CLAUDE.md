@@ -10,7 +10,7 @@ google-calendar-agent is an A2A (Agent-to-Agent) server implementing the [A2A Pr
 
 ### ADL-Generated Structure
 
-The codebase is generated using ADL CLI 0.21.4 and follows a strict generation pattern:
+The codebase is generated using ADL CLI 0.21.6 and follows a strict generation pattern:
 - **Generated Files**: Marked with `DO NOT EDIT` headers - manual changes will be overwritten
 - **Configuration Source**: `agent.yaml` - defines agent capabilities, skills, and metadata
 - **Server Implementation**: Built on the ADK (Agent Development Kit) framework from `github.com/inference-gateway/adk`
@@ -23,7 +23,7 @@ The codebase is generated using ADL CLI 0.21.4 and follows a strict generation p
   - A2A server with streaming and background task handlers
   - Graceful shutdown handling
 
-- **Agent Configuration**: `.well-known/agent.json` - Serves agent metadata at runtime
+- **Agent Configuration**: `.well-known/agent-card.json` - Serves agent metadata at runtime
 - **Environment Configuration**: Extensive env vars with `A2A_` prefix (see README for full list)
 
 ## Development Commands
@@ -116,13 +116,13 @@ Activate with: `flox activate` (if Flox is installed)
 
 - **Generated Files**: Never manually edit files with "DO NOT EDIT" headers
 - **Configuration Changes**: Always modify `agent.yaml` and regenerate
-- **ADL Version**: Ensure ADL CLI 0.21.4 or compatible version for regeneration
+- **ADL Version**: Ensure ADL CLI 0.21.6 or compatible version for regeneration
 - **Port Configuration**: Default 8080, configurable via `A2A_PORT` or `A2A_SERVER_PORT`
 
 ## Debugging Tips
 
 - Enable debug mode: `A2A_DEBUG=true`
 - Check health: `GET /health`
-- View agent metadata: `GET /.well-known/agent.json`
+- View agent metadata: `GET /.well-known/agent-card.json`
 - Monitor streaming updates: Set `A2A_STREAMING_STATUS_UPDATE_INTERVAL`
 - Use A2A Debugger container for interactive testing
