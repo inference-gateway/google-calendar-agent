@@ -3,7 +3,7 @@ module github.com/inference-gateway/google-calendar-agent
 go 1.25.0
 
 require (
-	github.com/inference-gateway/adk v0.11.0
+	github.com/inference-gateway/adk v0.11.1
 	github.com/sethvargo/go-envconfig v1.3.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/api v0.250.0
