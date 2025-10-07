@@ -5,20 +5,24 @@ go.pkg-path = "go"
 go.version = "1.25.0"
 
 golangci-lint.pkg-path = "golangci-lint"
-golangci-lint.version = "^2.4.0"
+golangci-lint.version = "2.5.0"
 golangci-lint.pkg-group = "common"
 
 go-task.pkg-path = "go-task"
+go-task.version = "^3.45.4"
 go-task.pkg-group = "common"
 
 git.pkg-path = "git"
+git.version = "2.51.0"
 git.pkg-group = "common"
 
 docker.pkg-path = "docker"
+docker.version = "28.4.0"
 docker.pkg-group = "common"
 
 claude-code.pkg-path = "claude-code"
 claude-code.pkg-group = "common"
+claude-code.version = "^2.0.1"
 
 [hook]
 on-activate = '''

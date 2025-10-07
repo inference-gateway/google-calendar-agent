@@ -9,6 +9,10 @@
 # - Directories: build/
 # - Comments: lines starting with #
 
+# Add your own files to ignore here:
+# my-custom-file.go
+# config/secrets.yaml
+
 internal/google/google.go
 skills/check_conflicts.go
 skills/create_calendar_event.go
@@ -17,10 +21,3 @@ skills/find_available_time.go
 skills/get_calendar_event.go
 skills/list_calendar_events.go
 skills/update_calendar_event.go
-
-# Go dependency files
-go.sum
-
-# Add your own files to ignore here:
-# my-custom-file.go
-# config/secrets.yaml
