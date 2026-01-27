@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.21](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.20...v0.4.21) (2026-01-27)
+
+### 🔧 Miscellaneous
+
+* **deps:** Bump versions to latest ([3de78d3](https://github.com/inference-gateway/google-calendar-agent/commit/3de78d3e93534a7acc5844ff99b5a52abe7db7e6))
+
 ## [0.4.20](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.19...v0.4.20) (2025-10-20)
 
 ### 🔧 Miscellaneous
