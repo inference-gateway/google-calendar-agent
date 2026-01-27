@@ -245,7 +245,7 @@ spec:
   language:
     go:
       module: github.com/inference-gateway/google-calendar-agent
-      version: "1.25.0"
+      version: "1.25.5"
   acronyms:
     - a2a
     - api

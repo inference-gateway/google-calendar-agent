@@ -1,8 +1,9 @@
 <div align="center">
 
 # Google-Calendar-Agent
+
 [![CI](https://github.com/inference-gateway/google-calendar-agent/workflows/CI/badge.svg)](https://github.com/inference-gateway/google-calendar-agent/actions/workflows/ci.yml)
-[![Go Version](https://img.shields.io/badge/Go-1.25.0+-00ADD8?style=flat&logo=go)](https://golang.org)
+[![Go Version](https://img.shields.io/badge/Go-1.25.5+-00ADD8?style=flat&logo=go)](https://golang.org)
 [![A2A Protocol](https://img.shields.io/badge/A2A-Protocol-blue?style=flat)](https://github.com/inference-gateway/adk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -23,12 +24,22 @@ docker build -t google-calendar-agent .
 docker run -p 8080:8080 google-calendar-agent
 ```
 
+## Quick Install
+
+Add this agent to your Inference Gateway CLI:
+
+```bash
+infer agents add google-calendar-agent http://localhost:8080 \
+  --oci ghcr.io/inference-gateway/google-calendar-agent:latest \
+  --run
+```
+
 ## Features
 
 - ✅ A2A protocol compliant
 - ✅ AI-powered capabilities
 - ✅ Streaming support
-- ✅ Production ready
+- ✅ Enterprise-ready
 - ✅ Minimal dependencies
 
 ## Endpoints
@@ -41,13 +52,13 @@ docker run -p 8080:8080 google-calendar-agent
 
 | Skill | Description | Parameters |
 |-------|-------------|------------|
-| `list_calendar_events` | List upcoming events from Google Calendar |maxResults, query, timeMax, timeMin |
-| `create_calendar_event` | Create a new event in Google Calendar |attendees, description, endTime, location, startTime, summary |
-| `update_calendar_event` | Update an existing event in Google Calendar |description, endTime, eventId, location, startTime, summary |
-| `delete_calendar_event` | Delete an event from Google Calendar |eventId |
-| `get_calendar_event` | Get details of a specific event from Google Calendar |eventId |
-| `find_available_time` | Find available time slots in the calendar |duration, endDate, startDate |
-| `check_conflicts` | Check for scheduling conflicts in the specified time range |endTime, startTime |
+| `list_calendar_events` | List upcoming events from Google Calendar | maxResults, query, timeMax, timeMin |
+| `create_calendar_event` | Create a new event in Google Calendar | attendees, description, endTime, location, startTime, summary |
+| `update_calendar_event` | Update an existing event in Google Calendar | description, endTime, eventId, location, startTime, summary |
+| `delete_calendar_event` | Delete an event from Google Calendar | eventId |
+| `get_calendar_event` | Get details of a specific event from Google Calendar | eventId |
+| `find_available_time` | Find available time slots in the calendar | duration, endDate, startDate |
+| `check_conflicts` | Check for scheduling conflicts in the specified time range | endTime, startTime |
 
 ## Configuration
 
@@ -151,6 +162,7 @@ docker build \
 ```
 
 **Available Build Arguments:**
+
 - `VERSION` - Agent version (default: `0.4.20`)
 - `AGENT_NAME` - Agent name (default: `google-calendar-agent`)
 - `AGENT_DESCRIPTION` - Agent description (default: `A Google Calendar A2A agent for AI assistants to interact with Google Calendar`)
