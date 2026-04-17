@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.22](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.21...v0.4.22) (2026-04-17)
+
+### 👷 CI
+
+* **workflow:** Update Claude Code Action configuration and dependencies ([61c8db5](https://github.com/inference-gateway/google-calendar-agent/commit/61c8db5136250fc0c603b61fc1ce828b7e5035db))
+
+### 🔧 Miscellaneous
+
+* Bump devcontainer dependecies ([e201fa6](https://github.com/inference-gateway/google-calendar-agent/commit/e201fa650bd9ed77f6300e9b530692ef9eb0596c))
+* **deps:** Bump ADL CLI to 0.27.6 and re-generate the codebase ([d4e7fea](https://github.com/inference-gateway/google-calendar-agent/commit/d4e7feadcb1b517b18c5c08f77f031b92700ceed))
+
 ## [0.4.21](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.20...v0.4.21) (2026-01-27)
 
 ### 🔧 Miscellaneous
