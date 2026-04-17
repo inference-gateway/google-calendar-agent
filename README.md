@@ -163,7 +163,7 @@ docker build \
 
 **Available Build Arguments:**
 
-- `VERSION` - Agent version (default: `0.4.22`)
+- `VERSION` - Agent version (default: `0.4.23`)
 - `AGENT_NAME` - Agent name (default: `google-calendar-agent`)
 - `AGENT_DESCRIPTION` - Agent description (default: `A Google Calendar A2A agent for AI assistants to interact with Google Calendar`)
 
