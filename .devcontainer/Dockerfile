@@ -1,11 +1,11 @@
-FROM mcr.microsoft.com/devcontainers/go:2-1.25-bookworm
+FROM mcr.microsoft.com/devcontainers/go:2-1.26-bookworm
 
-ENV TASK_VERSION=v3.43.3 \
-    GORELEASER_VERSION=v2.9.0 \
-    GOLANG_CI_LINT_VERSION=v2.1.6 \
-    GITHUB_CLI_VERSION=2.68.1 \
+ENV TASK_VERSION=v3.48.0 \
+    GORELEASER_VERSION=v2.15.2 \
+    GOLANG_CI_LINT_VERSION=v2.11.4 \
+    GITHUB_CLI_VERSION=2.89.0 \
     NODE_VERSION=lts \
-    SEMANTIC_RELEASE_VERSION=v24.2.5
+    SEMANTIC_RELEASE_VERSION=v25.0.2
 
 RUN apt-get update && \
     # Determine architecture
@@ -45,7 +45,7 @@ RUN apt-get update && \
 USER vscode
 
 RUN go install github.com/maxbrunsfeld/counterfeiter/v6@v6.11.2
-RUN go install go.uber.org/mock/mockgen@v0.5.0
+RUN go install go.uber.org/mock/mockgen@v0.6.0
 
 # Use Powerlevel10k theme
 RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/vscode/.powerlevel10k
