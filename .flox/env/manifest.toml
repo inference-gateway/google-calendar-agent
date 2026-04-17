@@ -18,11 +18,11 @@ git.pkg-group = "common"
 git.outputs = "all"
 
 docker.pkg-path = "docker"
-docker.version = "^29.3.1"
+docker.version = "^29.4.0"
 docker.pkg-group = "common"
 
 claude-code.pkg-path = "claude-code"
-claude-code.version = "^2.1.92"
+claude-code.version = "^2.1.104"
 claude-code.pkg-group = "common"
 
 [hook]
