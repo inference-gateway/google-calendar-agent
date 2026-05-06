@@ -162,7 +162,7 @@ curl http://localhost:8080/v1/a2a/agents
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
@@ -175,7 +175,7 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 curl -N -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
@@ -295,7 +295,7 @@ A2A_AGENT_CLIENT_MODEL=claude-3-opus-20240229
 ```bash
 DEEPSEEK_API_KEY=your_deepseek_api_key
 A2A_AGENT_CLIENT_PROVIDER=deepseek
-A2A_AGENT_CLIENT_MODEL=deepseek-chat
+A2A_AGENT_CLIENT_MODEL=deepseek-v4-flash
 ```
 
 #### Cohere
@@ -336,7 +336,7 @@ A2A_AGENT_CLIENT_MODEL=@cf/meta/llama-3.1-8b-instruct
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
@@ -349,7 +349,7 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 curl -N -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
@@ -367,7 +367,7 @@ curl -N -X POST http://localhost:8080/v1/chat/completions \
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
@@ -380,7 +380,7 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 curl -N -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
@@ -398,7 +398,7 @@ curl -N -X POST http://localhost:8080/v1/chat/completions \
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
@@ -411,7 +411,7 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 curl -N -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
@@ -429,7 +429,7 @@ curl -N -X POST http://localhost:8080/v1/chat/completions \
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
@@ -442,7 +442,7 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 curl -N -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
