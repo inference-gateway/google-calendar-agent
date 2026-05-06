@@ -30,10 +30,9 @@ jobs:
       run: |
         curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v2.12.1
 
-    - name: Install Task
-      uses: arduino/setup-task@v2
-      with:
-        version: 3.x
+    - name: Install task
+      run: |
+        curl -s https://taskfile.dev/install.sh | sh -s -- -b /usr/local/bin v3.48.0
 
     - name: Install ADL CLI
       run: |
