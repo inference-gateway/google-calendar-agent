@@ -36,33 +36,31 @@ jobs:
           fetch-depth: 1
 
       - name: Set up Go
-        uses: actions/setup-go@v6.2.0
+        uses: actions/setup-go@v6.4.0
         with:
           go-version-file: go.mod
           cache: true
 
       - name: Install golangci-lint
         run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v2.8.0
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/local/bin v2.12.1
 
       - name: Install task
         run: |
-          curl -s https://taskfile.dev/install.sh | sh -s -- -b /usr/local/bin v3.45.5
+          curl -s https://taskfile.dev/install.sh | sh -s -- -b /usr/local/bin v3.48.0
 
       - name: Run Claude Code
         id: claude
-        uses: anthropics/claude-code-action@main
+        uses: anthropics/claude-code-action@v1.0.114
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           additional_permissions: |
             actions: read
           use_commit_signing: true
           base_branch: main
-          branch_prefix: "claude/"
+          branch_prefix: 'claude/'
           claude_args: |
+            --model claude-opus-4-7
+            --system-prompt "You must NEVER push directly to the main branch. Always create a new feature branch (claude/feature-name), make changes there, and open a pull request to main. Use conventional commits with a capital description, e.g. 'feat(client): Add retry mechanism for streaming requests' or 'fix(auth): Resolve token validation issue'. Follow the development workflow specified in the coding instructions."
             --allowedTools "Bash(task:*),Bash(go:*),Bash(gh:*),Bash(git:*)"
-            --mcp-config '{"mcpServers":{"context7":{"command":"npx","args":["-y","@upstash/context7-mcp@latest"],"env":{}}}}'
-          settings: |
-            {
-              "systemPrompt": "IMPORTANT: You must NEVER push directly to the main branch. Always:\n1. Create a new feature branch (claude/feature-name)\n2. Make your changes on the feature branch\n3. Open a pull request to main\n4. Wait for review and approval before merging\n\nIMPORTANT: Always add a new line at the end of each file and follow the coding style guidelines.\n\nVERY IMPORTANT: You DO NOT care about backward compatibility - if you DO NOT need the code, simply delete it.\n\nVERY IMPORTANT: You DO NOT add inline comments above code inside of a function body - docblocks are ok for function and types signatures.\n\nCOMMIT MESSAGE FORMAT: Always use conventional commits with capital letters.\nFollow the format: \"type(scope): Description\" where the description starts with a capital letter.\nExamples: \"feat(a2a): Add retry mechanism for agent connections\", \"fix(auth): Resolve token validation issue\"\n\nFollow the development workflow specified in the coding instructions."
-            }
+            --mcp-config '{"mcpServers":{"context7":{"command":"npx","args":["-y","@upstash/context7-mcp@latest"]}}}'
