@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.24](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.23...v0.4.24) (2026-05-07)
+
+### ♻️ Improvements
+
+* Rename all instances of deepseek-chat to deepseek-v4-flash ([840f47c](https://github.com/inference-gateway/google-calendar-agent/commit/840f47c0d6eb92f11be2e2015a004e0380dde6e2))
+* Update task installation method in CI and CD workflows ([d17adb4](https://github.com/inference-gateway/google-calendar-agent/commit/d17adb4ec935657da99afeaff541768c15aa8826))
+
+### 👷 CI
+
+* Bump claude code action ([ce7db09](https://github.com/inference-gateway/google-calendar-agent/commit/ce7db090b86804edb9360e7b74a7bad36a4dec96))
+* **deps:** Bump golangci-lint to latest ([0efd5e4](https://github.com/inference-gateway/google-calendar-agent/commit/0efd5e4099603f2f0dcdc615a64efd8204f6fbfb))
+* Update golangci-lint installation script to use the latest URL and version ([ffbe1ab](https://github.com/inference-gateway/google-calendar-agent/commit/ffbe1abaa2fd9e6f4cb859854f6b6cc0734a97bb))
+
 ## [0.4.23](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.22...v0.4.23) (2026-04-17)
 
 ### 🔧 Miscellaneous
