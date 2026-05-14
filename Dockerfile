@@ -2,7 +2,7 @@
 # This file was automatically generated from an ADL (Agent Definition Language) specification.
 # Manual changes to this file may be overwritten during regeneration.
 
-FROM golang:1.26.1-alpine AS builder
+FROM golang:1.26.3-alpine AS builder
 
 # Build arguments for version injection
 ARG VERSION="0.4.24"
