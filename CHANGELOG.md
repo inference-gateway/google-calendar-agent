@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.25](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.24...v0.4.25) (2026-05-19)
+
+### ♻️ Improvements
+
+* Migrate to latest ADL schema (CLI 0.30.7) ([#24](https://github.com/inference-gateway/google-calendar-agent/issues/24)) ([eeebcc4](https://github.com/inference-gateway/google-calendar-agent/commit/eeebcc4c11db37640a30b2eecd4f7d9eb604ee01))
+
+### 👷 CI
+
+* **dependabot:** Add dependabot to help with dependecies upgrades ([763fc1f](https://github.com/inference-gateway/google-calendar-agent/commit/763fc1ff2d8c5c668d72b8f660d34034ea20064d))
+* **deps:** Bump the github-actions group with 5 updates ([#22](https://github.com/inference-gateway/google-calendar-agent/issues/22)) ([6da8fff](https://github.com/inference-gateway/google-calendar-agent/commit/6da8fff14ca8f8b1c901b33a31f870c57cea901d))
+* Enable display report for Claude Code action ([4233df6](https://github.com/inference-gateway/google-calendar-agent/commit/4233df64d4b3a7a6fbafbabd877e054a6f82c952))
+* Update create-github-app-token action to v3.2.0 ([c7a8264](https://github.com/inference-gateway/google-calendar-agent/commit/c7a82649e25744bbce3c4af0ad3e7afbc7bec05d))
+
+### 🔧 Miscellaneous
+
+* Create CODEOWNERS ([f724e2f](https://github.com/inference-gateway/google-calendar-agent/commit/f724e2ff302c0ce3dcb6cef43de6b57e5c5adcff))
+* Remove outdated issue templates for bug reports, feature requests, and refactor requests ([3dcbdcc](https://github.com/inference-gateway/google-calendar-agent/commit/3dcbdcc35e2bdd78e734e31f43bf05ef580fbd48))
+
+### 🔨 Miscellaneous
+
+* **deps:** Bump golang in the docker group ([#21](https://github.com/inference-gateway/google-calendar-agent/issues/21)) ([080c1fd](https://github.com/inference-gateway/google-calendar-agent/commit/080c1fd4a44e85f82208cece972bd89a1517068c))
+* **deps:** Bump the gomod group with 3 updates ([#23](https://github.com/inference-gateway/google-calendar-agent/issues/23)) ([676401c](https://github.com/inference-gateway/google-calendar-agent/commit/676401cf60f8d5597ba81f85fa480af92e07026a))
+
 ## [0.4.24](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.23...v0.4.24) (2026-05-07)
 
 ### ♻️ Improvements
