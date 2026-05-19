@@ -3,7 +3,7 @@ module github.com/inference-gateway/google-calendar-agent
 go 1.26.2
 
 require (
-	github.com/inference-gateway/adk v0.18.2
+	github.com/inference-gateway/adk v0.18.3
 	github.com/sethvargo/go-envconfig v1.3.0
 	go.uber.org/zap v1.28.0
 	google.golang.org/api v0.280.0
@@ -43,7 +43,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.15 // indirect
 	github.com/googleapis/gax-go/v2 v2.22.0 // indirect
-	github.com/inference-gateway/sdk v1.16.3 // indirect
+	github.com/inference-gateway/sdk v1.16.4 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.18.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
