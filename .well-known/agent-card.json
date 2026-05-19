@@ -16,7 +16,7 @@
 		{
 			"id": "schedule-meeting",
 			"name": "schedule-meeting",
-			"description": "Use this when the user asks to schedule a meeting, book a slot, or "find a time that works". Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event.",
+			"description": "Use this when the user asks to schedule a meeting, book a slot, or find a time that works. Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event.",
 			"tags": ["calendar","scheduling","meeting"]
 		}
 	]

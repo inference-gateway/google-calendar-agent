@@ -91,7 +91,7 @@ To modify tools:
 
 ### Skills (markdown system-prompt playbooks)
 The following skills are currently shipped with the agent:
-- **schedule-meeting** (bare scaffold): Use this when the user asks to schedule a meeting, book a slot, or "find a time that works". Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event.
+- **schedule-meeting** (bare scaffold): Use this when the user asks to schedule a meeting, book a slot, or find a time that works. Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event.
 
 Each skill lives in its own directory at `skills/<id>/SKILL.md` and is
 loaded into the system prompt at startup. Bare skills can ship arbitrary

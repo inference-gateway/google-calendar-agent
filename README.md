@@ -65,7 +65,7 @@ infer agents add google-calendar-agent http://localhost:8080 \
 
 | Skill | Description | Source |
 |-------|-------------|--------|
-| `schedule-meeting` | Use this when the user asks to schedule a meeting, book a slot, or "find a time that works". Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event. | bare scaffold (`skills/schedule-meeting.md`) |
+| `schedule-meeting` | Use this when the user asks to schedule a meeting, book a slot, or find a time that works. Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event. | bare scaffold (`skills/schedule-meeting.md`) |
 
 ## Configuration
 
