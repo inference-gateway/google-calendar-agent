@@ -1,9 +1,9 @@
-apiVersion: adl.dev/v1
+apiVersion: adl.inference-gateway.com/v1
 kind: Agent
 metadata:
   name: google-calendar-agent
   description: A Google Calendar A2A agent for AI assistants to interact with Google Calendar
-  version: 0.4.24
+  version: 0.5.0
 spec:
   capabilities:
     streaming: true
@@ -15,7 +15,8 @@ spec:
       interface: CalendarService
       factory: NewServiceFactory
       description: Google Calendar API service for managing calendar events
-  skills:
+  tools:
+    - id: read
     - id: list_calendar_events
       name: list_calendar_events
       description: List upcoming events from Google Calendar
@@ -205,6 +206,18 @@ spec:
       inject:
         - logger
         - google
+  skills:
+    - id: schedule-meeting
+      bare: true
+      name: schedule-meeting
+      description: >-
+        Use this when the user asks to schedule a meeting, book a slot, or
+        "find a time that works". Resolves a conflict-free booking by finding
+        open slots, validating no overlap, and creating the event.
+      tags:
+        - calendar
+        - scheduling
+        - meeting
   agent:
     provider: ""
     model: ""
@@ -232,6 +245,10 @@ spec:
 
       Your responses should be accurate, helpful, and focused on calendar management tasks.
   config:
+    tools:
+      read:
+        enabled: true
+        max_lines: 2000
     google:
       serviceAccountJson: ""
       credentialsPath: ""
@@ -245,7 +262,7 @@ spec:
   language:
     go:
       module: github.com/inference-gateway/google-calendar-agent
-      version: "1.26.1"
+      version: "1.26.2"
   acronyms:
     - a2a
     - api
@@ -256,7 +273,7 @@ spec:
     provider: github
     url: https://github.com/inference-gateway/google-calendar-agent
     github_app: true
-    issue_templates: true
+    issue_templates: false
   sandbox:
     flox:
       enabled: true

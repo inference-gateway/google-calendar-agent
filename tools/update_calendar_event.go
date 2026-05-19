@@ -1,4 +1,4 @@
-package skills
+package tools
 
 import (
 	"context"
@@ -11,15 +11,15 @@ import (
 	calendar "google.golang.org/api/calendar/v3"
 )
 
-// UpdateCalendarEventSkill struct holds the skill with dependencies
-type UpdateCalendarEventSkill struct {
+// UpdateCalendarEventTool struct holds the tool with dependencies
+type UpdateCalendarEventTool struct {
 	logger *zap.Logger
 	google google.CalendarService
 }
 
-// NewUpdateCalendarEventSkill creates a new update_calendar_event skill
-func NewUpdateCalendarEventSkill(logger *zap.Logger, google google.CalendarService) server.Tool {
-	skill := &UpdateCalendarEventSkill{
+// NewUpdateCalendarEventTool creates a new update_calendar_event tool
+func NewUpdateCalendarEventTool(logger *zap.Logger, google google.CalendarService) server.Tool {
+	tool := &UpdateCalendarEventTool{
 		logger: logger,
 		google: google,
 	}
@@ -56,12 +56,12 @@ func NewUpdateCalendarEventSkill(logger *zap.Logger, google google.CalendarServi
 			},
 			"required": []string{"eventId"},
 		},
-		skill.UpdateCalendarEventHandler,
+		tool.UpdateCalendarEventHandler,
 	)
 }
 
-// UpdateCalendarEventHandler handles the update_calendar_event skill execution
-func (s *UpdateCalendarEventSkill) UpdateCalendarEventHandler(ctx context.Context, args map[string]any) (string, error) {
+// UpdateCalendarEventHandler handles the update_calendar_event tool execution
+func (s *UpdateCalendarEventTool) UpdateCalendarEventHandler(ctx context.Context, args map[string]any) (string, error) {
 	s.logger.Debug("updating calendar event", zap.Any("args", args))
 
 	eventID, ok := args["eventId"].(string)
