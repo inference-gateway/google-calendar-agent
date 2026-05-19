@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	server "github.com/inference-gateway/adk/server"
-	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 	zap "go.uber.org/zap"
+
+	server "github.com/inference-gateway/adk/server"
+
+	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 )
 
 // GetCalendarEventTool struct holds the tool with dependencies

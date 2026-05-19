@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"time"
 
-	server "github.com/inference-gateway/adk/server"
-	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 	zap "go.uber.org/zap"
 	calendar "google.golang.org/api/calendar/v3"
+
+	server "github.com/inference-gateway/adk/server"
+
+	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 )
 
 // FindAvailableTimeTool struct holds the tool with dependencies

@@ -385,6 +385,59 @@ curl -X POST http://localhost:8080/v1/chat/completions \
   }'
 ```
 
+## Interactive Chat via the Inference Gateway CLI
+
+The compose file ships a `cli` service (profile: `manual`) that gives you an
+interactive chat front-end backed by the inference-gateway, with the
+google-calendar-agent registered as an A2A peer. Useful for end-to-end
+smoke tests and demos without writing curl payloads.
+
+```bash
+# 1. Start the gateway and agent in the background
+docker compose up -d inference-gateway google-calendar-agent
+
+# 2. Drop into the chat (manual profile must be activated)
+docker compose --profile manual run --rm cli
+```
+
+The CLI is wired up with two A2A tools enabled:
+
+- `query_agent` - fetch the agent's card and skill manifest
+- `submit_task` - send a task to the agent and stream its response
+
+All other CLI tools (`bash`, `read`, `write`, `edit`, `web_fetch`, …) are
+disabled in `docker-compose.yaml` so the demo stays focused on calendar
+interactions.
+
+### Things to try in the chat
+
+```text
+> What can the calendar agent do?
+> Schedule a 30 minute sync with alice@example.com tomorrow afternoon
+> What's on my calendar this week?
+> Find a free 1-hour slot for the team on Thursday
+```
+
+When you ask to schedule a meeting, the agent loads its `schedule-meeting`
+skill playbook from `skills/schedule-meeting/SKILL.md` and chains
+`find_available_time` → `check_conflicts` → `create_calendar_event` to
+produce a conflict-free booking.
+
+### Choosing a different model
+
+The CLI defaults to `${PROVIDER:-deepseek}/${MODEL:-deepseek-v4-flash}`.
+Override per-invocation via env vars:
+
+```bash
+PROVIDER=anthropic MODEL=claude-4-7-opus-latest \
+  docker compose --profile manual run --rm cli
+```
+
+### Exiting
+
+Type `/quit` (or press Ctrl-C twice) to leave the chat session. `--rm`
+removes the container on exit so each run starts fresh.
+
 ## Troubleshooting
 
 ### Common Issues
