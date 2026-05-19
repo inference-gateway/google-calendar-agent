@@ -10,7 +10,7 @@ google-calendar-agent is an A2A (Agent-to-Agent) server implementing the [A2A Pr
 
 ### ADL-Generated Structure
 
-The codebase is generated using ADL CLI 0.30.6 and follows a strict generation pattern:
+The codebase is generated using ADL CLI 0.30.7 and follows a strict generation pattern:
 - **Generated Files**: Marked with `DO NOT EDIT` headers - manual changes will be overwritten
 - **Configuration Source**: `agent.yaml` - defines agent capabilities, skills, and metadata
 - **Server Implementation**: Built on the ADK (Agent Development Kit) framework from `github.com/inference-gateway/adk`
@@ -82,6 +82,7 @@ The following tools are currently defined:
 - **get_calendar_event**: Get details of a specific event from Google Calendar
 - **find_available_time**: Find available time slots in the calendar
 - **check_conflicts**: Check for scheduling conflicts in the specified time range
+- **get_current_datetime**: Return the current date/time and the user's IANA timezone. Call this FIRST for any time-relative request (today, tomorrow, next Friday) before emitting RFC3339 timestamps to other calendar tools, so events land in the user's local timezone instead of an LLM-assumed default.
 
 To modify tools:
 1. Update `agent.yaml` `spec.tools` with tool definitions
@@ -133,7 +134,7 @@ Activate with: `flox activate` (if Flox is installed)
 
 - **Generated Files**: Never manually edit files with "DO NOT EDIT" headers
 - **Configuration Changes**: Always modify `agent.yaml` and regenerate
-- **ADL Version**: Ensure ADL CLI 0.30.6 or compatible version for regeneration
+- **ADL Version**: Ensure ADL CLI 0.30.7 or compatible version for regeneration
 - **Port Configuration**: Default 8080, configurable via `A2A_PORT` or `A2A_SERVER_PORT`
 
 ## Debugging Tips

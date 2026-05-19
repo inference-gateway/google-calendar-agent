@@ -19,7 +19,7 @@ services:
       GOOGLE_CREDENTIALS_PATH: /tmp/google-credentials.json
       GOOGLE_CALENDAR_MOCK_MODE: false
       GOOGLE_CALENDAR_ID: ${GOOGLE_CALENDAR_ID}
-      GOOGLE_CALENDAR_TIMEZONE: CET
+      GOOGLE_CALENDAR_TIMEZONE: Europe/Berlin
     restart: unless-stopped
     networks:
       - a2a-network

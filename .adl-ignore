@@ -15,6 +15,7 @@ tools/create_calendar_event.go
 tools/delete_calendar_event.go
 tools/find_available_time.go
 tools/get_calendar_event.go
+tools/get_current_datetime.go
 tools/list_calendar_events.go
 tools/update_calendar_event.go
 skills/schedule-meeting/

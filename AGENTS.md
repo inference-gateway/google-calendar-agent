@@ -38,6 +38,16 @@ When helping users:
 - Handle both simple and complex scheduling scenarios
 - Maintain data accuracy and consistency with Google Calendar
 
+Time and timezone handling:
+- For any time-relative request ("today", "tomorrow", "next Friday",
+  "in 2 hours"), call the get_current_datetime tool FIRST to anchor
+  the current time and the user's IANA timezone. Do not guess.
+- Emit RFC3339 timestamps with the offset of the user's timezone
+  (e.g. 2026-05-20T14:00:00+02:00 for CEST), not UTC and not a
+  provider-default like Pacific Time.
+- If the user names an explicit timezone, prefer that over the
+  configured default.
+
 Your responses should be accurate, helpful, and focused on calendar management tasks.
 
 
@@ -45,7 +55,7 @@ Your responses should be accurate, helpful, and focused on calendar management t
 
 ## Tools
 
-This agent exposes 8 function-call tools:
+This agent exposes 9 function-call tools:
 
 ### Read (built-in)
 - **Description**: Read a file from disk. Returns its contents, optionally sliced by line offset/limit. Use this to load SKILL.md bodies on demand.
@@ -90,6 +100,12 @@ This agent exposes 8 function-call tools:
 ### check_conflicts
 - **Description**: Check for scheduling conflicts in the specified time range
 - **Tags**: calendar, conflicts, scheduling, google
+- **Input Schema**: Defined in agent configuration
+- **Output Schema**: Defined in agent configuration
+
+### get_current_datetime
+- **Description**: Return the current date/time and the user's IANA timezone. Call this FIRST for any time-relative request (today, tomorrow, next Friday) before emitting RFC3339 timestamps to other calendar tools, so events land in the user's local timezone instead of an LLM-assumed default.
+- **Tags**: time, timezone, context
 - **Input Schema**: Defined in agent configuration
 - **Output Schema**: Defined in agent configuration
 
@@ -184,6 +200,7 @@ docker run -p 8080:8080 google-calendar-agent
 │   └── get_calendar_event.go     # Get details of a specific event from Google Calendar
 │   └── find_available_time.go    # Find available time slots in the calendar
 │   └── check_conflicts.go        # Check for scheduling conflicts in the specified time range
+│   └── get_current_datetime.go   # Return the current date/time and the user's IANA timezone. Call this FIRST for any time-relative request (today, tomorrow, next Friday) before emitting RFC3339 timestamps to other calendar tools, so events land in the user's local timezone instead of an LLM-assumed default.
 ├── skills/                       # Skill directories (SKILL.md + optional assets)
 │   └── schedule-meeting/         # Use this when the user asks to schedule a meeting, book a slot, or find a time that works. Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event.
 │       └── SKILL.md              # Playbook prepended to the system prompt

@@ -60,6 +60,7 @@ infer agents add google-calendar-agent http://localhost:8080 \
 | `get_calendar_event` | Get details of a specific event from Google Calendar | eventId |
 | `find_available_time` | Find available time slots in the calendar | duration, endDate, startDate |
 | `check_conflicts` | Check for scheduling conflicts in the specified time range | endTime, startTime |
+| `get_current_datetime` | Return the current date/time and the user's IANA timezone. Call this FIRST for any time-relative request (today, tomorrow, next Friday) before emitting RFC3339 timestamps to other calendar tools, so events land in the user's local timezone instead of an LLM-assumed default. | None |
 
 ## Skills (loaded into the system prompt)
 
