@@ -3,7 +3,7 @@
 # Google-Calendar-Agent
 
 [![CI](https://github.com/inference-gateway/google-calendar-agent/workflows/CI/badge.svg)](https://github.com/inference-gateway/google-calendar-agent/actions/workflows/ci.yml)
-[![Go Version](https://img.shields.io/badge/Go-1.26.1+-00ADD8?style=flat&logo=go)](https://golang.org)
+[![Go Version](https://img.shields.io/badge/Go-1.26.2+-00ADD8?style=flat&logo=go)](https://golang.org)
 [![A2A Protocol](https://img.shields.io/badge/A2A-Protocol-blue?style=flat)](https://github.com/inference-gateway/adk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -48,10 +48,11 @@ infer agents add google-calendar-agent http://localhost:8080 \
 - `GET /health` - Health check endpoint
 - `POST /a2a` - A2A protocol endpoint
 
-## Available Skills
+## Available Tools
 
-| Skill | Description | Parameters |
-|-------|-------------|------------|
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `Read` | Read a file from disk. Returns its contents, optionally sliced by line offset/limit. Use this to load SKILL.md bodies on demand. | file_path, offset, limit |
 | `list_calendar_events` | List upcoming events from Google Calendar | maxResults, query, timeMax, timeMin |
 | `create_calendar_event` | Create a new event in Google Calendar | attendees, description, endTime, location, startTime, summary |
 | `update_calendar_event` | Update an existing event in Google Calendar | description, endTime, eventId, location, startTime, summary |
@@ -59,6 +60,13 @@ infer agents add google-calendar-agent http://localhost:8080 \
 | `get_calendar_event` | Get details of a specific event from Google Calendar | eventId |
 | `find_available_time` | Find available time slots in the calendar | duration, endDate, startDate |
 | `check_conflicts` | Check for scheduling conflicts in the specified time range | endTime, startTime |
+| `get_current_datetime` | Return the current date/time and the user's IANA timezone. Call this FIRST for any time-relative request (today, tomorrow, next Friday) before emitting RFC3339 timestamps to other calendar tools, so events land in the user's local timezone instead of an LLM-assumed default. | None |
+
+## Skills (loaded into the system prompt)
+
+| Skill | Description | Source |
+|-------|-------------|--------|
+| `schedule-meeting` | Use this when the user asks to schedule a meeting, book a slot, or find a time that works. Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event. | bare scaffold (`skills/schedule-meeting.md`) |
 
 ## Configuration
 
@@ -66,15 +74,21 @@ Configure the agent via environment variables:
 
 ### Custom Configuration
 
-The following custom configuration variables are available:
+The following custom configuration variables are available. Defaults are
+derived from `spec.config.*` in `agent.yaml`; the env vars below override
+them at runtime.
 
-| Category | Variable | Description | Default |
-|----------|----------|-------------|---------|
-| **Google** | `GOOGLE_CREDENTIALS_PATH` | CredentialsPath configuration | `` |
-| **Google** | `GOOGLE_SERVICE_ACCOUNT_JSON` | ServiceAccountJson configuration | `` |
-| **GoogleCalendar** | `GOOGLE_CALENDAR_ID` | Id configuration | `primary` |
-| **GoogleCalendar** | `GOOGLE_CALENDAR_MOCK_MODE` | MockMode configuration | `false` |
-| **GoogleCalendar** | `GOOGLE_CALENDAR_TIMEZONE` | Timezone configuration | `UTC` |
+| Category | Variable | Default |
+|----------|----------|---------|
+| **Google** | `GOOGLE_CREDENTIALS_PATH` | `` |
+| **Google** | `GOOGLE_SERVICE_ACCOUNT_JSON` | `` |
+| **GoogleCalendar** | `GOOGLE_CALENDAR_ID` | `primary` |
+| **GoogleCalendar** | `GOOGLE_CALENDAR_MOCK_MODE` | `false` |
+| **GoogleCalendar** | `GOOGLE_CALENDAR_TIMEZONE` | `UTC` |
+| **Tools** | `TOOLS_READ_ENABLED` | `true` |
+| **Tools** | `TOOLS_READ_MAX_LINES` | `2000` |
+
+### Environment Variables
 
 | Category | Variable | Description | Default |
 |----------|----------|-------------|---------|
@@ -163,7 +177,7 @@ docker build \
 
 **Available Build Arguments:**
 
-- `VERSION` - Agent version (default: `0.4.24`)
+- `VERSION` - Agent version (default: `0.5.0`)
 - `AGENT_NAME` - Agent name (default: `google-calendar-agent`)
 - `AGENT_DESCRIPTION` - Agent description (default: `A Google Calendar A2A agent for AI assistants to interact with Google Calendar`)
 

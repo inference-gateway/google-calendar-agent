@@ -1,4 +1,4 @@
-package skills
+package tools
 
 import (
 	"context"
@@ -6,20 +6,22 @@ import (
 	"fmt"
 	"time"
 
-	server "github.com/inference-gateway/adk/server"
-	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 	zap "go.uber.org/zap"
+
+	server "github.com/inference-gateway/adk/server"
+
+	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 )
 
-// CheckConflictsSkill struct holds the skill with dependencies
-type CheckConflictsSkill struct {
+// CheckConflictsTool struct holds the tool with dependencies
+type CheckConflictsTool struct {
 	logger *zap.Logger
 	google google.CalendarService
 }
 
-// NewCheckConflictsSkill creates a new check_conflicts skill
-func NewCheckConflictsSkill(logger *zap.Logger, google google.CalendarService) server.Tool {
-	skill := &CheckConflictsSkill{
+// NewCheckConflictsTool creates a new check_conflicts tool
+func NewCheckConflictsTool(logger *zap.Logger, google google.CalendarService) server.Tool {
+	tool := &CheckConflictsTool{
 		logger: logger,
 		google: google,
 	}
@@ -40,12 +42,12 @@ func NewCheckConflictsSkill(logger *zap.Logger, google google.CalendarService) s
 			},
 			"required": []string{"startTime", "endTime"},
 		},
-		skill.CheckConflictsHandler,
+		tool.CheckConflictsHandler,
 	)
 }
 
-// CheckConflictsHandler handles the check_conflicts skill execution
-func (s *CheckConflictsSkill) CheckConflictsHandler(ctx context.Context, args map[string]any) (string, error) {
+// CheckConflictsHandler handles the check_conflicts tool execution
+func (s *CheckConflictsTool) CheckConflictsHandler(ctx context.Context, args map[string]any) (string, error) {
 	s.logger.Debug("checking for conflicts", zap.Any("args", args))
 
 	startTimeStr, ok := args["startTime"].(string)

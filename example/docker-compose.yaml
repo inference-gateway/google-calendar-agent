@@ -19,7 +19,7 @@ services:
       GOOGLE_CREDENTIALS_PATH: /tmp/google-credentials.json
       GOOGLE_CALENDAR_MOCK_MODE: false
       GOOGLE_CALENDAR_ID: ${GOOGLE_CALENDAR_ID}
-      GOOGLE_CALENDAR_TIMEZONE: CET
+      GOOGLE_CALENDAR_TIMEZONE: Europe/Berlin
     restart: unless-stopped
     networks:
       - a2a-network
@@ -38,7 +38,7 @@ services:
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY}
       MISTRAL_API_KEY: ${MISTRAL_API_KEY}
-      ENVIRONMENT: development
+      ENVIRONMENT: ${ENVIRONMENT:-production}
       SERVER_HOST: 0.0.0.0
       SERVER_PORT: 8080
       SERVER_READ_TIMEOUT: 230s
@@ -61,8 +61,8 @@ services:
       INFER_GATEWAY_URL: http://inference-gateway:8080
       INFER_A2A_ENABLED: true
       INFER_TOOLS_ENABLED: true
-      INFER_TOOLS_QUERY_ENABLED: true
-      INFER_TOOLS_TASK_ENABLED:  true
+      INFER_A2A_TOOLS_QUERY_AGENT_ENABLED: true
+      INFER_A2A_TOOLS_SUBMIT_TASK_ENABLED: true
       INFER_TOOLS_BASH_ENABLED: false
       INFER_TOOLS_TODO_WRITE_ENABLED: false
       INFER_TOOLS_WRITE_ENABLED: false

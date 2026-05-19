@@ -1,9 +1,9 @@
-apiVersion: adl.dev/v1
+apiVersion: adl.inference-gateway.com/v1
 kind: Agent
 metadata:
   name: google-calendar-agent
   description: A Google Calendar A2A agent for AI assistants to interact with Google Calendar
-  version: 0.4.24
+  version: 0.5.0
 spec:
   capabilities:
     streaming: true
@@ -15,7 +15,8 @@ spec:
       interface: CalendarService
       factory: NewServiceFactory
       description: Google Calendar API service for managing calendar events
-  skills:
+  tools:
+    - id: read
     - id: list_calendar_events
       name: list_calendar_events
       description: List upcoming events from Google Calendar
@@ -205,6 +206,34 @@ spec:
       inject:
         - logger
         - google
+    - id: get_current_datetime
+      name: get_current_datetime
+      description: >-
+        Return the current date/time and the user's IANA timezone. Call this
+        FIRST for any time-relative request (today, tomorrow, next Friday)
+        before emitting RFC3339 timestamps to other calendar tools, so events
+        land in the user's local timezone instead of an LLM-assumed default.
+      tags:
+        - time
+        - timezone
+        - context
+      schema:
+        type: object
+        properties: {}
+      inject:
+        - logger
+  skills:
+    - id: schedule-meeting
+      bare: true
+      name: schedule-meeting
+      description: >-
+        Use this when the user asks to schedule a meeting, book a slot, or
+        find a time that works. Resolves a conflict-free booking by finding
+        open slots, validating no overlap, and creating the event.
+      tags:
+        - calendar
+        - scheduling
+        - meeting
   agent:
     provider: ""
     model: ""
@@ -230,8 +259,22 @@ spec:
       - Handle both simple and complex scheduling scenarios
       - Maintain data accuracy and consistency with Google Calendar
 
+      Time and timezone handling:
+      - For any time-relative request ("today", "tomorrow", "next Friday",
+        "in 2 hours"), call the get_current_datetime tool FIRST to anchor
+        the current time and the user's IANA timezone. Do not guess.
+      - Emit RFC3339 timestamps with the offset of the user's timezone
+        (e.g. 2026-05-20T14:00:00+02:00 for CEST), not UTC and not a
+        provider-default like Pacific Time.
+      - If the user names an explicit timezone, prefer that over the
+        configured default.
+
       Your responses should be accurate, helpful, and focused on calendar management tasks.
   config:
+    tools:
+      read:
+        enabled: true
+        max_lines: 2000
     google:
       serviceAccountJson: ""
       credentialsPath: ""
@@ -245,7 +288,7 @@ spec:
   language:
     go:
       module: github.com/inference-gateway/google-calendar-agent
-      version: "1.26.1"
+      version: "1.26.2"
   acronyms:
     - a2a
     - api
@@ -256,7 +299,7 @@ spec:
     provider: github
     url: https://github.com/inference-gateway/google-calendar-agent
     github_app: true
-    issue_templates: true
+    issue_templates: false
   sandbox:
     flox:
       enabled: true

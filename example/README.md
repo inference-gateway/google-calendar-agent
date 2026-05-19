@@ -4,7 +4,35 @@ This example demonstrates how to run the Google Calendar Agent with the Inferenc
 
 ## Architecture
 
-### Access with A2A Debugger or CLI
+### Through Inference Gateway
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│                 │    │                 │    |                 |
+│ User/Client     │───▶│ Inference       │───▶│ Calendar Agent  │
+│                 │    │ Gateway         │    │                 │
+│                 │    │ (Port 8080)     │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │                       │
+                                │                       │
+                                ▼                       ▼
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │                 │    │                 │
+                       │ LLM Providers   │    │ Google Calendar │
+                       │ (OpenAI, Groq,  │    │ API             │
+                       │  Anthropic,etc) │    │                 │
+                       └─────────────────┘    └─────────────────┘
+```
+
+**Flow Description:**
+
+1. User sends request to Inference Gateway (port 8080)
+2. Inference Gateway processes the request and determines if an agent is needed
+3. Calendar Agent interacts with Google Calendar API for calendar operations
+4. Inference Gateway uses LLM providers for natural language processing
+5. Response flows back through Gateway to the user
+
+### Direct Access with A2A Debugger
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -64,14 +92,14 @@ docker compose run --rm a2a-debugger tasks history <context-id>
 - **Google Calendar Agent**: Manages calendar events with natural language processing
 - **Inference Gateway**: High-performance LLM gateway supporting multiple providers
 - **Multi-Provider Support**: OpenAI, Groq, Anthropic, DeepSeek, Cohere, Cloudflare
-- **Mock Mode**: Run without Google Calendar integration for testing
+- **Demo Mode**: Run without Google Calendar integration for testing
 - **Health Checks**: Built-in health monitoring for both services
 - **Automatic Restart**: Services restart automatically on failure
 
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- Google Calendar API credentials (unless running in mock mode)
+- Google Calendar API credentials (unless running in demo mode)
 - API keys for at least one LLM provider
 
 ## Quick Start
@@ -79,11 +107,12 @@ docker compose run --rm a2a-debugger tasks history <context-id>
 ### 1. Clone and Setup
 
 ```bash
-# Navigate to the example directory
-cd example
+# Navigate to the basic example directory
+cd examples/basic
 
 # Copy the environment template
-cp .env.example .env
+cp .env.gateway.example .env.gateway
+cp .env.agent.example .env.agent
 ```
 
 ### 2. Configure Environment Variables
@@ -93,29 +122,29 @@ Edit the `.env` file and configure the required settings:
 #### For Demo Mode (No Google Calendar Integration)
 
 ```bash
-# Set mock mode to true
-GOOGLE_MOCK_MODE=true
+# Set demo mode to true
+DEMO_MODE=true
 
 # Configure at least one LLM provider
 GROQ_API_KEY=your_groq_api_key_here
-A2A_AGENT_CLIENT_PROVIDER=groq
-A2A_AGENT_CLIENT_MODEL=deepseek-r1-distill-llama-70b
+LLM_PROVIDER=groq
+LLM_MODEL=deepseek-r1-distill-llama-70b
 ```
 
 #### For Production Mode (With Google Calendar)
 
 ```bash
-# Disable mock mode
-GOOGLE_MOCK_MODE=false
+# Disable demo mode
+DEMO_MODE=false
 
 # Configure Google Calendar
 GOOGLE_CALENDAR_ID=primary
-GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"..."}
+GOOGLE_CALENDAR_SA_JSON={"type":"service_account","project_id":"..."}
 
 # Configure LLM provider
 GROQ_API_KEY=your_groq_api_key_here
-A2A_AGENT_CLIENT_PROVIDER=groq
-A2A_AGENT_CLIENT_MODEL=deepseek-r1-distill-llama-70b
+LLM_PROVIDER=groq
+LLM_MODEL=deepseek-r1-distill-llama-70b
 ```
 
 ### 3. Start the Services
@@ -158,11 +187,11 @@ curl http://localhost:8080/v1/a2a/agents
 #### Test Chat Completions
 
 ```bash
-# Test through Inference Gateway (non-streaming)
+# Test through Inference Gateway
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-v4-flash",
+    "model": "deepseek/deepseek-chat",
     "messages": [
       {
         "role": "user",
@@ -170,50 +199,7 @@ curl -X POST http://localhost:8080/v1/chat/completions \
       }
     ]
   }'
-
-# Test through Inference Gateway (streaming)
-curl -N -X POST http://localhost:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "deepseek/deepseek-v4-flash",
-    "messages": [
-      {
-        "role": "user",
-        "content": "List my events for today"
-      }
-    ],
-    "stream": true
-  }'
 ```
-
-#### Test with Inference Gateway CLI (Recommended for Convenience)
-
-For the easiest interaction experience, use the inference-gateway CLI which provides an interactive chat interface:
-
-```bash
-# Start an interactive chat session with the agent (most convenient)
-docker compose run --rm cli
-
-# Alternative: Run a one-off command
-docker compose run --rm cli agent "What events do I have today?"
-
-# Alternative: Start in interactive chat mode
-docker compose run --rm cli chat
-```
-
-**CLI Benefits:**
-- **Interactive Experience**: Natural conversation flow instead of curl commands
-- **Automatic Formatting**: Responses are properly formatted and easy to read
-- **Session Management**: Maintains conversation context across multiple queries
-- **Real-time Streaming**: See responses as they're generated
-- **Command History**: Use arrow keys to navigate previous commands
-- **Error Handling**: Clear error messages and retry options
-
-The CLI is perfect for:
-- Testing agent functionality interactively
-- Debugging agent responses in real-time
-- Validating that the agent integration is working correctly
-- Daily usage without technical complexity
 
 ## Available Tasks
 
@@ -257,12 +243,14 @@ task validate-env       # Check environment configuration
 
 | Environment Variable             | Description                             | Default   | Required |
 | -------------------------------- | --------------------------------------- | --------- | -------- |
-| `GOOGLE_MOCK_MODE`               | Run without Google Calendar integration | `false`   | No       |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Path to credentials file                | -         | Yes\*    |
+| `DEMO_MODE`                      | Run without Google Calendar integration | `false`   | No       |
 | `GOOGLE_CALENDAR_ID`             | Target calendar ID                      | `primary` | No       |
+| `GOOGLE_CALENDAR_SA_JSON`        | Service account JSON (single line)      | -         | Yes\*    |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Path to credentials file                | -         | Yes\*    |
+| `GOOGLE_CALENDAR_READ_ONLY`      | Read-only calendar access               | `false`   | No       |
 | `GOOGLE_CALENDAR_TIMEZONE`       | Default timezone                        | `UTC`     | No       |
 
-\* Required unless `GOOGLE_MOCK_MODE=true`
+\* Required unless `DEMO_MODE=true`
 
 ### Supported LLM Providers
 
@@ -270,40 +258,40 @@ task validate-env       # Check environment configuration
 
 ```bash
 GROQ_API_KEY=your_groq_api_key
-A2A_AGENT_CLIENT_PROVIDER=groq
-A2A_AGENT_CLIENT_MODEL=deepseek-r1-distill-llama-70b
+LLM_PROVIDER=groq
+LLM_MODEL=deepseek-r1-distill-llama-70b
 ```
 
 #### OpenAI
 
 ```bash
 OPENAI_API_KEY=your_openai_api_key
-A2A_AGENT_CLIENT_PROVIDER=openai
-A2A_AGENT_CLIENT_MODEL=gpt-4o
+LLM_PROVIDER=openai
+LLM_MODEL=gpt-4o
 ```
 
 #### Anthropic
 
 ```bash
 ANTHROPIC_API_KEY=your_anthropic_api_key
-A2A_AGENT_CLIENT_PROVIDER=anthropic
-A2A_AGENT_CLIENT_MODEL=claude-3-opus-20240229
+LLM_PROVIDER=anthropic
+LLM_MODEL=claude-3-opus-20240229
 ```
 
 #### DeepSeek (Cost-Effective)
 
 ```bash
 DEEPSEEK_API_KEY=your_deepseek_api_key
-A2A_AGENT_CLIENT_PROVIDER=deepseek
-A2A_AGENT_CLIENT_MODEL=deepseek-v4-flash
+LLM_PROVIDER=deepseek
+LLM_MODEL=deepseek-chat
 ```
 
 #### Cohere
 
 ```bash
 COHERE_API_KEY=your_cohere_api_key
-A2A_AGENT_CLIENT_PROVIDER=cohere
-A2A_AGENT_CLIENT_MODEL=command-r-plus
+LLM_PROVIDER=cohere
+LLM_MODEL=command-r-plus
 ```
 
 #### Cloudflare Workers AI
@@ -311,8 +299,8 @@ A2A_AGENT_CLIENT_MODEL=command-r-plus
 ```bash
 CLOUDFLARE_API_TOKEN=your_cloudflare_token
 CLOUDFLARE_ACCOUNT_ID=your_account_id
-A2A_AGENT_CLIENT_PROVIDER=cloudflare
-A2A_AGENT_CLIENT_MODEL=@cf/meta/llama-3.1-8b-instruct
+LLM_PROVIDER=cloudflare
+LLM_MODEL=@cf/meta/llama-3.1-8b-instruct
 ```
 
 ## Google Calendar Setup
@@ -325,111 +313,69 @@ A2A_AGENT_CLIENT_MODEL=@cf/meta/llama-3.1-8b-instruct
 4. Create a Service Account
 5. Download the JSON credentials file
 6. Share your calendar with the service account email
-7. Set `GOOGLE_SERVICE_ACCOUNT_JSON` to the JSON content (single line)
+7. Set `GOOGLE_CALENDAR_SA_JSON` to the JSON content (single line)
 
 ## API Usage Examples
 
 ### List Calendar Events
 
 ```bash
-# Through Inference Gateway (non-streaming)
+# Through Inference Gateway
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-v4-flash",
+    "model": "deepseek/deepseek-chat",
     "messages": [
       {
         "role": "user",
         "content": "What events do I have this week?"
       }
     ]
-  }'
-
-# Through Inference Gateway (streaming - real-time response)
-curl -N -X POST http://localhost:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "deepseek/deepseek-v4-flash",
-    "messages": [
-      {
-        "role": "user",
-        "content": "What events do I have this week?"
-      }
-    ],
-    "stream": true
   }'
 ```
 
 ### Create Calendar Event
 
 ```bash
-# Through Inference Gateway (non-streaming)
+# Through Inference Gateway
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-v4-flash",
+    "model": "deepseek/deepseek-chat",
     "messages": [
       {
         "role": "user",
         "content": "Schedule a team meeting tomorrow at 2 PM for 1 hour"
       }
     ]
-  }'
-
-# Through Inference Gateway (streaming - real-time response)
-curl -N -X POST http://localhost:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "deepseek/deepseek-v4-flash",
-    "messages": [
-      {
-        "role": "user",
-        "content": "Schedule a team meeting tomorrow at 2 PM for 1 hour"
-      }
-    ],
-    "stream": true
   }'
 ```
 
 ### Update Calendar Event
 
 ```bash
-# Through Inference Gateway (non-streaming)
+# Through Inference Gateway
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-v4-flash",
+    "model": "deepseek/deepseek-chat",
     "messages": [
       {
         "role": "user",
         "content": "Move my 2 PM meeting to 3 PM"
       }
     ]
-  }'
-
-# Through Inference Gateway (streaming - real-time response)
-curl -N -X POST http://localhost:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "deepseek/deepseek-v4-flash",
-    "messages": [
-      {
-        "role": "user",
-        "content": "Move my 2 PM meeting to 3 PM"
-      }
-    ],
-    "stream": true
   }'
 ```
 
 ### Delete Calendar Event
 
 ```bash
-# Through Inference Gateway (non-streaming)
+# Through Inference Gateway
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-v4-flash",
+    "model": "deepseek/deepseek-chat",
     "messages": [
       {
         "role": "user",
@@ -437,21 +383,60 @@ curl -X POST http://localhost:8080/v1/chat/completions \
       }
     ]
   }'
-
-# Through Inference Gateway (streaming - real-time response)
-curl -N -X POST http://localhost:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "deepseek/deepseek-v4-flash",
-    "messages": [
-      {
-        "role": "user",
-        "content": "Cancel my meeting with John tomorrow"
-      }
-    ],
-    "stream": true
-  }'
 ```
+
+## Interactive Chat via the Inference Gateway CLI
+
+The compose file ships a `cli` service (profile: `manual`) that gives you an
+interactive chat front-end backed by the inference-gateway, with the
+google-calendar-agent registered as an A2A peer. Useful for end-to-end
+smoke tests and demos without writing curl payloads.
+
+```bash
+# 1. Start the gateway and agent in the background
+docker compose up -d inference-gateway google-calendar-agent
+
+# 2. Drop into the chat (manual profile must be activated)
+docker compose --profile manual run --rm cli
+```
+
+The CLI is wired up with two A2A tools enabled:
+
+- `query_agent` - fetch the agent's card and skill manifest
+- `submit_task` - send a task to the agent and stream its response
+
+All other CLI tools (`bash`, `read`, `write`, `edit`, `web_fetch`, …) are
+disabled in `docker-compose.yaml` so the demo stays focused on calendar
+interactions.
+
+### Things to try in the chat
+
+```text
+> What can the calendar agent do?
+> Schedule a 30 minute sync with alice@example.com tomorrow afternoon
+> What's on my calendar this week?
+> Find a free 1-hour slot for the team on Thursday
+```
+
+When you ask to schedule a meeting, the agent loads its `schedule-meeting`
+skill playbook from `skills/schedule-meeting/SKILL.md` and chains
+`find_available_time` → `check_conflicts` → `create_calendar_event` to
+produce a conflict-free booking.
+
+### Choosing a different model
+
+The CLI defaults to `${PROVIDER:-deepseek}/${MODEL:-deepseek-v4-flash}`.
+Override per-invocation via env vars:
+
+```bash
+PROVIDER=anthropic MODEL=claude-4-7-opus-latest \
+  docker compose --profile manual run --rm cli
+```
+
+### Exiting
+
+Type `/quit` (or press Ctrl-C twice) to leave the chat session. `--rm`
+removes the container on exit so each run starts fresh.
 
 ## Troubleshooting
 

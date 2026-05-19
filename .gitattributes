@@ -22,6 +22,9 @@ k8s/*.yml linguist-generated=true
 # Agent capabilities
 .well-known/agent-card.json linguist-generated=true
 
+# Built-in tools (generated from ADL CLI templates)
+tools/read.go linguist-generated=true
+
 # Documentation (partially generated)
 README.md linguist-documentation=true
 

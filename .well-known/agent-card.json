@@ -1,6 +1,6 @@
 {
 	"name": "google-calendar-agent",
-	"version": "0.4.24",
+	"version": "0.5.0",
 	"description": "A Google Calendar A2A agent for AI assistants to interact with Google Calendar",
 	"protocolVersion": "0.3.0",
 	"url": "",
@@ -14,53 +14,10 @@
 	},
 	"skills": [
 		{
-			"id": "list_calendar_events",
-			"name": "list_calendar_events",
-			"description": "List upcoming events from Google Calendar",
-			"tags": ["calendar","events","list","google"],
-			"schema": {"properties":{"maxResults":{"description":"Maximum number of events to return (default: 10, max: 100)","maximum":100,"minimum":1,"type":"integer"},"query":{"description":"Free text search terms to find events. Optional.","type":"string"},"timeMax":{"description":"End time (RFC3339 format, e.g., 2024-01-01T23:59:59Z). Optional.","type":"string"},"timeMin":{"description":"Start time (RFC3339 format, e.g., 2024-01-01T00:00:00Z). Defaults to now.","type":"string"}},"type":"object"}
-		},
-		{
-			"id": "create_calendar_event",
-			"name": "create_calendar_event",
-			"description": "Create a new event in Google Calendar",
-			"tags": ["calendar","events","create","google"],
-			"schema": {"properties":{"attendees":{"description":"List of attendee email addresses. Optional.","items":{"type":"string"},"type":"array"},"description":{"description":"Event description. Optional.","type":"string"},"endTime":{"description":"End time in RFC3339 format (required, e.g., 2024-01-01T11:00:00Z)","type":"string"},"location":{"description":"Event location. Optional.","type":"string"},"startTime":{"description":"Start time in RFC3339 format (required, e.g., 2024-01-01T10:00:00Z)","type":"string"},"summary":{"description":"Event title/summary (required)","type":"string"}},"required":["summary","startTime","endTime"],"type":"object"}
-		},
-		{
-			"id": "update_calendar_event",
-			"name": "update_calendar_event",
-			"description": "Update an existing event in Google Calendar",
-			"tags": ["calendar","events","update","google"],
-			"schema": {"properties":{"description":{"description":"Event description. Optional.","type":"string"},"endTime":{"description":"End time in RFC3339 format. Optional.","type":"string"},"eventId":{"description":"Event ID to update (required)","type":"string"},"location":{"description":"Event location. Optional.","type":"string"},"startTime":{"description":"Start time in RFC3339 format. Optional.","type":"string"},"summary":{"description":"Event title/summary. Optional.","type":"string"}},"required":["eventId"],"type":"object"}
-		},
-		{
-			"id": "delete_calendar_event",
-			"name": "delete_calendar_event",
-			"description": "Delete an event from Google Calendar",
-			"tags": ["calendar","events","delete","google"],
-			"schema": {"properties":{"eventId":{"description":"Event ID to delete (required)","type":"string"}},"required":["eventId"],"type":"object"}
-		},
-		{
-			"id": "get_calendar_event",
-			"name": "get_calendar_event",
-			"description": "Get details of a specific event from Google Calendar",
-			"tags": ["calendar","events","get","google"],
-			"schema": {"properties":{"eventId":{"description":"Event ID to retrieve (required)","type":"string"}},"required":["eventId"],"type":"object"}
-		},
-		{
-			"id": "find_available_time",
-			"name": "find_available_time",
-			"description": "Find available time slots in the calendar",
-			"tags": ["calendar","availability","scheduling","google"],
-			"schema": {"properties":{"duration":{"description":"Duration in minutes for the desired time slot (default: 60)","maximum":480,"minimum":15,"type":"integer"},"endDate":{"description":"End date for search (RFC3339 format, e.g., 2024-01-01T23:59:59Z)","type":"string"},"startDate":{"description":"Start date for search (RFC3339 format, e.g., 2024-01-01T00:00:00Z)","type":"string"}},"required":["startDate","endDate"],"type":"object"}
-		},
-		{
-			"id": "check_conflicts",
-			"name": "check_conflicts",
-			"description": "Check for scheduling conflicts in the specified time range",
-			"tags": ["calendar","conflicts","scheduling","google"],
-			"schema": {"properties":{"endTime":{"description":"End time to check (RFC3339 format, required)","type":"string"},"startTime":{"description":"Start time to check (RFC3339 format, required)","type":"string"}},"required":["startTime","endTime"],"type":"object"}
+			"id": "schedule-meeting",
+			"name": "schedule-meeting",
+			"description": "Use this when the user asks to schedule a meeting, book a slot, or find a time that works. Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event.",
+			"tags": ["calendar","scheduling","meeting"]
 		}
 	]
 }

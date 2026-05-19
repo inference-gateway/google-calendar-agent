@@ -5,7 +5,7 @@ This file describes the agents available in this A2A (Agent-to-Agent) system.
 ## Agent Overview
 
 ### google-calendar-agent
-**Version**: 0.4.24  
+**Version**: 0.5.0  
 **Description**: A Google Calendar A2A agent for AI assistants to interact with Google Calendar
 
 This agent is built using the Agent Definition Language (ADL) and provides A2A communication capabilities.
@@ -38,14 +38,28 @@ When helping users:
 - Handle both simple and complex scheduling scenarios
 - Maintain data accuracy and consistency with Google Calendar
 
+Time and timezone handling:
+- For any time-relative request ("today", "tomorrow", "next Friday",
+  "in 2 hours"), call the get_current_datetime tool FIRST to anchor
+  the current time and the user's IANA timezone. Do not guess.
+- Emit RFC3339 timestamps with the offset of the user's timezone
+  (e.g. 2026-05-20T14:00:00+02:00 for CEST), not UTC and not a
+  provider-default like Pacific Time.
+- If the user names an explicit timezone, prefer that over the
+  configured default.
+
 Your responses should be accurate, helpful, and focused on calendar management tasks.
 
 
 **Configuration:**
 
-## Skills
+## Tools
 
-This agent provides 7 skills:
+This agent exposes 9 function-call tools:
+
+### Read (built-in)
+- **Description**: Read a file from disk. Returns its contents, optionally sliced by line offset/limit. Use this to load SKILL.md bodies on demand.
+- **Parameters**: file_path, offset, limit
 
 ### list_calendar_events
 - **Description**: List upcoming events from Google Calendar
@@ -88,6 +102,21 @@ This agent provides 7 skills:
 - **Tags**: calendar, conflicts, scheduling, google
 - **Input Schema**: Defined in agent configuration
 - **Output Schema**: Defined in agent configuration
+
+### get_current_datetime
+- **Description**: Return the current date/time and the user's IANA timezone. Call this FIRST for any time-relative request (today, tomorrow, next Friday) before emitting RFC3339 timestamps to other calendar tools, so events land in the user's local timezone instead of an LLM-assumed default.
+- **Tags**: time, timezone, context
+- **Input Schema**: Defined in agent configuration
+- **Output Schema**: Defined in agent configuration
+
+## Skills
+
+This agent ships 1 markdown skill that are loaded into the system prompt at startup:
+
+### schedule-meeting
+- **Description**: Use this when the user asks to schedule a meeting, book a slot, or find a time that works. Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event.
+- **Tags**: calendar, scheduling, meeting
+- **Source**: scaffolded locally (`skills/schedule-meeting/SKILL.md`)
 
 ## Server Configuration
 
@@ -162,7 +191,8 @@ docker run -p 8080:8080 google-calendar-agent
 ```
 .
 ├── main.go                       # Server entry point
-├── skills/                       # Business logic skills
+├── tools/                        # Function-call tools
+│   └── read.go                   # Read a file from disk. Returns its contents, optionally sliced by line offset/limit. Use this to load SKILL.md bodies on demand.
 │   └── list_calendar_events.go   # List upcoming events from Google Calendar
 │   └── create_calendar_event.go  # Create a new event in Google Calendar
 │   └── update_calendar_event.go  # Update an existing event in Google Calendar
@@ -170,6 +200,10 @@ docker run -p 8080:8080 google-calendar-agent
 │   └── get_calendar_event.go     # Get details of a specific event from Google Calendar
 │   └── find_available_time.go    # Find available time slots in the calendar
 │   └── check_conflicts.go        # Check for scheduling conflicts in the specified time range
+│   └── get_current_datetime.go   # Return the current date/time and the user's IANA timezone. Call this FIRST for any time-relative request (today, tomorrow, next Friday) before emitting RFC3339 timestamps to other calendar tools, so events land in the user's local timezone instead of an LLM-assumed default.
+├── skills/                       # Skill directories (SKILL.md + optional assets)
+│   └── schedule-meeting/         # Use this when the user asks to schedule a meeting, book a slot, or find a time that works. Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event.
+│       └── SKILL.md              # Playbook prepended to the system prompt
 ├── .well-known/                  # Agent configuration
 │   └── agent-card.json           # Agent metadata
 ├── go.mod                        # Go module definition
@@ -197,11 +231,11 @@ task test:coverage
 
 ## Agent Metadata
 
-This agent was generated using ADL CLI v0.4.24 with the following configuration:
+This agent was generated using ADL CLI v0.5.0 with the following configuration:
 
 - **Language**: Go
 - **Template**: Minimal A2A Agent
-- **ADL Version**: adl.dev/v1
+- **ADL Version**: adl.inference-gateway.com/v1
 
 ---
 

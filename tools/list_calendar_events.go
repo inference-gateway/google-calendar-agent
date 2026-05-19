@@ -1,4 +1,4 @@
-package skills
+package tools
 
 import (
 	"context"
@@ -7,21 +7,23 @@ import (
 	"strings"
 	"time"
 
-	server "github.com/inference-gateway/adk/server"
-	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 	zap "go.uber.org/zap"
 	calendar "google.golang.org/api/calendar/v3"
+
+	server "github.com/inference-gateway/adk/server"
+
+	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 )
 
-// ListCalendarEventsSkill struct holds the skill with dependencies
-type ListCalendarEventsSkill struct {
+// ListCalendarEventsTool struct holds the tool with dependencies
+type ListCalendarEventsTool struct {
 	logger *zap.Logger
 	google google.CalendarService
 }
 
-// NewListCalendarEventsSkill creates a new list_calendar_events skill
-func NewListCalendarEventsSkill(logger *zap.Logger, google google.CalendarService) server.Tool {
-	skill := &ListCalendarEventsSkill{
+// NewListCalendarEventsTool creates a new list_calendar_events tool
+func NewListCalendarEventsTool(logger *zap.Logger, google google.CalendarService) server.Tool {
+	tool := &ListCalendarEventsTool{
 		logger: logger,
 		google: google,
 	}
@@ -51,12 +53,12 @@ func NewListCalendarEventsSkill(logger *zap.Logger, google google.CalendarServic
 				},
 			},
 		},
-		skill.ListCalendarEventsHandler,
+		tool.ListCalendarEventsHandler,
 	)
 }
 
-// ListCalendarEventsHandler handles the list_calendar_events skill execution
-func (s *ListCalendarEventsSkill) ListCalendarEventsHandler(ctx context.Context, args map[string]any) (string, error) {
+// ListCalendarEventsHandler handles the list_calendar_events tool execution
+func (s *ListCalendarEventsTool) ListCalendarEventsHandler(ctx context.Context, args map[string]any) (string, error) {
 	s.logger.Debug("listing calendar events", zap.Any("args", args))
 
 	maxResults := 10

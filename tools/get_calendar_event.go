@@ -1,24 +1,26 @@
-package skills
+package tools
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 
-	server "github.com/inference-gateway/adk/server"
-	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 	zap "go.uber.org/zap"
+
+	server "github.com/inference-gateway/adk/server"
+
+	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 )
 
-// GetCalendarEventSkill struct holds the skill with dependencies
-type GetCalendarEventSkill struct {
+// GetCalendarEventTool struct holds the tool with dependencies
+type GetCalendarEventTool struct {
 	logger *zap.Logger
 	google google.CalendarService
 }
 
-// NewGetCalendarEventSkill creates a new get_calendar_event skill
-func NewGetCalendarEventSkill(logger *zap.Logger, google google.CalendarService) server.Tool {
-	skill := &GetCalendarEventSkill{
+// NewGetCalendarEventTool creates a new get_calendar_event tool
+func NewGetCalendarEventTool(logger *zap.Logger, google google.CalendarService) server.Tool {
+	tool := &GetCalendarEventTool{
 		logger: logger,
 		google: google,
 	}
@@ -35,12 +37,12 @@ func NewGetCalendarEventSkill(logger *zap.Logger, google google.CalendarService)
 			},
 			"required": []string{"eventId"},
 		},
-		skill.GetCalendarEventHandler,
+		tool.GetCalendarEventHandler,
 	)
 }
 
-// GetCalendarEventHandler handles the get_calendar_event skill execution
-func (s *GetCalendarEventSkill) GetCalendarEventHandler(ctx context.Context, args map[string]any) (string, error) {
+// GetCalendarEventHandler handles the get_calendar_event tool execution
+func (s *GetCalendarEventTool) GetCalendarEventHandler(ctx context.Context, args map[string]any) (string, error) {
 	s.logger.Debug("getting calendar event", zap.Any("args", args))
 
 	eventID, ok := args["eventId"].(string)

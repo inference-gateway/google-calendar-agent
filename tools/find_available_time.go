@@ -1,4 +1,4 @@
-package skills
+package tools
 
 import (
 	"context"
@@ -6,21 +6,23 @@ import (
 	"fmt"
 	"time"
 
-	server "github.com/inference-gateway/adk/server"
-	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 	zap "go.uber.org/zap"
 	calendar "google.golang.org/api/calendar/v3"
+
+	server "github.com/inference-gateway/adk/server"
+
+	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 )
 
-// FindAvailableTimeSkill struct holds the skill with dependencies
-type FindAvailableTimeSkill struct {
+// FindAvailableTimeTool struct holds the tool with dependencies
+type FindAvailableTimeTool struct {
 	logger *zap.Logger
 	google google.CalendarService
 }
 
-// NewFindAvailableTimeSkill creates a new find_available_time skill
-func NewFindAvailableTimeSkill(logger *zap.Logger, google google.CalendarService) server.Tool {
-	skill := &FindAvailableTimeSkill{
+// NewFindAvailableTimeTool creates a new find_available_time tool
+func NewFindAvailableTimeTool(logger *zap.Logger, google google.CalendarService) server.Tool {
+	tool := &FindAvailableTimeTool{
 		logger: logger,
 		google: google,
 	}
@@ -47,12 +49,12 @@ func NewFindAvailableTimeSkill(logger *zap.Logger, google google.CalendarService
 			},
 			"required": []string{"startDate", "endDate"},
 		},
-		skill.FindAvailableTimeHandler,
+		tool.FindAvailableTimeHandler,
 	)
 }
 
-// FindAvailableTimeHandler handles the find_available_time skill execution
-func (s *FindAvailableTimeSkill) FindAvailableTimeHandler(ctx context.Context, args map[string]any) (string, error) {
+// FindAvailableTimeHandler handles the find_available_time tool execution
+func (s *FindAvailableTimeTool) FindAvailableTimeHandler(ctx context.Context, args map[string]any) (string, error) {
 	s.logger.Debug("finding available time", zap.Any("args", args))
 
 	startDateStr, ok := args["startDate"].(string)
@@ -129,8 +131,7 @@ type timeSlot struct {
 }
 
 // findAvailableSlots finds available time slots between existing events
-func (s *FindAvailableTimeSkill) findAvailableSlots(startDate, endDate time.Time, duration time.Duration, events []*calendar.Event) []timeSlot {
-	// Create a list of busy periods
+func (s *FindAvailableTimeTool) findAvailableSlots(startDate, endDate time.Time, duration time.Duration, events []*calendar.Event) []timeSlot {
 	var busyPeriods []timeSlot
 	for _, event := range events {
 		if event.Start != nil && event.End != nil {
@@ -147,7 +148,6 @@ func (s *FindAvailableTimeSkill) findAvailableSlots(startDate, endDate time.Time
 		}
 	}
 
-	// Sort busy periods by start time
 	for i := 0; i < len(busyPeriods)-1; i++ {
 		for j := i + 1; j < len(busyPeriods); j++ {
 			if busyPeriods[i].startTime.After(busyPeriods[j].startTime) {
@@ -156,10 +156,8 @@ func (s *FindAvailableTimeSkill) findAvailableSlots(startDate, endDate time.Time
 		}
 	}
 
-	// Find gaps between busy periods that can accommodate the requested duration
 	var availableSlots []timeSlot
 
-	// Check for availability from start date to first event
 	if len(busyPeriods) > 0 {
 		if busyPeriods[0].startTime.Sub(startDate) >= duration {
 			availableSlots = append(availableSlots, timeSlot{
@@ -169,7 +167,6 @@ func (s *FindAvailableTimeSkill) findAvailableSlots(startDate, endDate time.Time
 			})
 		}
 	} else {
-		// No events, entire period is available
 		availableSlots = append(availableSlots, timeSlot{
 			startTime: startDate,
 			endTime:   startDate.Add(duration),
@@ -178,7 +175,6 @@ func (s *FindAvailableTimeSkill) findAvailableSlots(startDate, endDate time.Time
 		return availableSlots
 	}
 
-	// Check gaps between events
 	for i := 0; i < len(busyPeriods)-1; i++ {
 		gapStart := busyPeriods[i].endTime
 		gapEnd := busyPeriods[i+1].startTime
@@ -193,7 +189,6 @@ func (s *FindAvailableTimeSkill) findAvailableSlots(startDate, endDate time.Time
 		}
 	}
 
-	// Check for availability from last event to end date
 	if len(busyPeriods) > 0 {
 		lastEventEnd := busyPeriods[len(busyPeriods)-1].endTime
 		if endDate.Sub(lastEventEnd) >= duration {

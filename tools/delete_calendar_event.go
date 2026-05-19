@@ -1,24 +1,26 @@
-package skills
+package tools
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 
-	server "github.com/inference-gateway/adk/server"
-	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 	zap "go.uber.org/zap"
+
+	server "github.com/inference-gateway/adk/server"
+
+	google "github.com/inference-gateway/google-calendar-agent/internal/google"
 )
 
-// DeleteCalendarEventSkill struct holds the skill with dependencies
-type DeleteCalendarEventSkill struct {
+// DeleteCalendarEventTool struct holds the tool with dependencies
+type DeleteCalendarEventTool struct {
 	logger *zap.Logger
 	google google.CalendarService
 }
 
-// NewDeleteCalendarEventSkill creates a new delete_calendar_event skill
-func NewDeleteCalendarEventSkill(logger *zap.Logger, google google.CalendarService) server.Tool {
-	skill := &DeleteCalendarEventSkill{
+// NewDeleteCalendarEventTool creates a new delete_calendar_event tool
+func NewDeleteCalendarEventTool(logger *zap.Logger, google google.CalendarService) server.Tool {
+	tool := &DeleteCalendarEventTool{
 		logger: logger,
 		google: google,
 	}
@@ -35,12 +37,12 @@ func NewDeleteCalendarEventSkill(logger *zap.Logger, google google.CalendarServi
 			},
 			"required": []string{"eventId"},
 		},
-		skill.DeleteCalendarEventHandler,
+		tool.DeleteCalendarEventHandler,
 	)
 }
 
-// DeleteCalendarEventHandler handles the delete_calendar_event skill execution
-func (s *DeleteCalendarEventSkill) DeleteCalendarEventHandler(ctx context.Context, args map[string]any) (string, error) {
+// DeleteCalendarEventHandler handles the delete_calendar_event tool execution
+func (s *DeleteCalendarEventTool) DeleteCalendarEventHandler(ctx context.Context, args map[string]any) (string, error) {
 	s.logger.Debug("deleting calendar event", zap.Any("args", args))
 
 	eventID, ok := args["eventId"].(string)
