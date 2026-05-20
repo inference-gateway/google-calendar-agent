@@ -58,12 +58,14 @@ jobs:
           cache: true
 
       - name: Install task
-        run: |
-          curl -s https://taskfile.dev/install.sh | sh -s -- -b /usr/local/bin v3.48.0
+        uses: arduino/setup-task@v2.0.0
+        with:
+          version: 3.48.0
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install ADL CLI
         run: |
-          curl -fsSL https://raw.githubusercontent.com/inference-gateway/adl-cli/main/install.sh | bash
+          curl -fsSL https://raw.githubusercontent.com/inference-gateway/adl-cli/v0.30.7/install.sh | bash
           adl --version
 
       - name: Download dependencies
