@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.26](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.25...v0.4.26) (2026-05-20)
+
+### 👷 CI
+
+* **deps:** Update installation steps for golangci-lint and task in CI/CD workflows ([e03d156](https://github.com/inference-gateway/google-calendar-agent/commit/e03d1564340ed54bf8dc2a9dcbac750247f61ae9))
+
+### 🔧 Miscellaneous
+
+* **deps:** Bump ADL CLI to version 0.30.10 ([67e13a5](https://github.com/inference-gateway/google-calendar-agent/commit/67e13a58bf5cae005355936f016689322eb13ba6))
+
 ## [0.4.25](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.24...v0.4.25) (2026-05-19)
 
 ### ♻️ Improvements
