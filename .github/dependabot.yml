@@ -23,6 +23,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: golang
+        versions:
+          - ">=1.26.3"
     groups:
       docker:
         patterns:
