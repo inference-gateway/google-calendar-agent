@@ -78,8 +78,8 @@ github.com/googleapis/enterprise-certificate-proxy v0.3.15 h1:xolVQTEXusUcAA5Ugt
 github.com/googleapis/enterprise-certificate-proxy v0.3.15/go.mod h1:vqVt9yG9480NtzREnTlmGSBmFrA+bzb0yl0TxoBQXOg=
 github.com/googleapis/gax-go/v2 v2.22.0 h1:PjIWBpgGIVKGoCXuiCoP64altEJCj3/Ei+kSU5vlZD4=
 github.com/googleapis/gax-go/v2 v2.22.0/go.mod h1:irWBbALSr0Sk3qlqb9SyJ1h68WjgeFuiOzI4Rqw5+aY=
-github.com/inference-gateway/adk v0.18.3 h1:LBk5BDv626VLsPxTzLht6LOZ+P0YyYe57tPkbUqQaWA=
-github.com/inference-gateway/adk v0.18.3/go.mod h1:0aWSOC2iLSYeSVSu7KC5GWNX+vhdo6/i01K14q46OHc=
+github.com/inference-gateway/adk v0.18.4 h1:AiwGlKTBwpuC3E84EZjA7VjahY70QoUgNqGU2kudsxw=
+github.com/inference-gateway/adk v0.18.4/go.mod h1:0aWSOC2iLSYeSVSu7KC5GWNX+vhdo6/i01K14q46OHc=
 github.com/inference-gateway/sdk v1.16.4 h1:2iB++slMI2EKq9MMcvQDBrqNsDFvYVAn2mXVi6O/clE=
 github.com/inference-gateway/sdk v1.16.4/go.mod h1:Qcm7duXS/Hz/xvs8yQhxLUbCUTWN/x88+npRWyeRst4=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
