@@ -26,7 +26,10 @@ updates:
     ignore:
       - dependency-name: golang
         versions:
-          - ">=1.26.3"
+          - ">1.26.2"
+      - dependency-name: ubuntu
+        versions:
+          - ">24.04"
     groups:
       docker:
         patterns:
