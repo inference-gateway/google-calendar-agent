@@ -296,9 +296,9 @@ spec:
     url: https://github.com/inference-gateway/google-calendar-agent
     github_app: true
     issue_templates: false
-    dependabot: false
-    ci: false
-    cd: false
+    dependabot: true
+    ci: true
+    cd: true
   development:
     sandbox:
       flox:
@@ -308,4 +308,4 @@ spec:
       dockerCompose:
         enabled: false
     ai:
-      enabled: false
+      enabled: true
