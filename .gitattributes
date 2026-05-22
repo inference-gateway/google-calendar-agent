@@ -15,6 +15,10 @@ Taskfile.yml linguist-generated=true
 .github/workflows/cd.yml linguist-generated=true
 .releaserc.yaml linguist-generated=true
 
+# AI assistant documentation (generated)
+CLAUDE.md linguist-generated=true
+AGENTS.md linguist-generated=true
+
 # Kubernetes manifests
 k8s/*.yaml linguist-generated=true
 k8s/*.yml linguist-generated=true
