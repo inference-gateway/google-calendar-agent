@@ -140,7 +140,7 @@ Key environment variables you'll need to configure:
 - `PORT` - Server port (configured: 8080)
 
 ### Development Environment
-**Flox Environment**: ✅ Configured for reproducible development setup
+- **Flox Environment**: ✅ Configured for reproducible development setup (`flox activate`)
 
 ## Usage
 
