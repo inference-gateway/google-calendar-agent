@@ -3,6 +3,7 @@
 # Google-Calendar-Agent
 
 [![CI](https://github.com/inference-gateway/google-calendar-agent/workflows/CI/badge.svg)](https://github.com/inference-gateway/google-calendar-agent/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/inference-gateway/google-calendar-agent?label=coverage&logo=codecov)](https://codecov.io/gh/inference-gateway/google-calendar-agent)
 [![Go Version](https://img.shields.io/badge/Go-1.26.2+-00ADD8?style=flat&logo=go)](https://golang.org)
 [![A2A Protocol](https://img.shields.io/badge/A2A-Protocol-blue?style=flat)](https://github.com/inference-gateway/adk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -15,14 +16,31 @@ A enterprise-ready [Agent-to-Agent (A2A)](https://github.com/inference-gateway/a
 
 ## Quick Start
 
+The generated binary is a CLI. `start` boots the A2A server; `--help` and
+`--version` work as you'd expect.
+
 ```bash
 # Run the agent
-go run .
+go run . start
+
+# Or build and invoke the CLI directly
+task build
+./bin/google-calendar-agent --help
+./bin/google-calendar-agent --version
+./bin/google-calendar-agent start
 
 # Or with Docker
 docker build -t google-calendar-agent .
 docker run -p 8080:8080 google-calendar-agent
 ```
+
+### CLI
+
+| Command | Description |
+|---------|-------------|
+| `google-calendar-agent start` | Start the A2A server (blocks until SIGINT/SIGTERM) |
+| `google-calendar-agent --help` | Show top-level help (and per-subcommand with `<cmd> --help`) |
+| `google-calendar-agent --version` | Print the embedded version and exit |
 
 ## Quick Install
 
