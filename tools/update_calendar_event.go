@@ -78,28 +78,44 @@ func (s *UpdateCalendarEventTool) UpdateCalendarEventHandler(ctx context.Context
 		return "", fmt.Errorf("failed to get existing calendar event: %w", err)
 	}
 
-	if summary, exists := args["summary"]; exists && summary != nil {
-		existingEvent.Summary = summary.(string)
-	}
-
-	if description, exists := args["description"]; exists && description != nil {
-		existingEvent.Description = description.(string)
-	}
-
-	if location, exists := args["location"]; exists && location != nil {
-		existingEvent.Location = location.(string)
-	}
-
-	if startTime, exists := args["startTime"]; exists && startTime != nil {
-		existingEvent.Start = &calendar.EventDateTime{
-			DateTime: startTime.(string),
+	if v, exists := args["summary"]; exists && v != nil {
+		s, ok := v.(string)
+		if !ok {
+			return "", fmt.Errorf("summary must be a string, got %T", v)
 		}
+		existingEvent.Summary = s
 	}
 
-	if endTime, exists := args["endTime"]; exists && endTime != nil {
-		existingEvent.End = &calendar.EventDateTime{
-			DateTime: endTime.(string),
+	if v, exists := args["description"]; exists && v != nil {
+		s, ok := v.(string)
+		if !ok {
+			return "", fmt.Errorf("description must be a string, got %T", v)
 		}
+		existingEvent.Description = s
+	}
+
+	if v, exists := args["location"]; exists && v != nil {
+		s, ok := v.(string)
+		if !ok {
+			return "", fmt.Errorf("location must be a string, got %T", v)
+		}
+		existingEvent.Location = s
+	}
+
+	if v, exists := args["startTime"]; exists && v != nil {
+		s, ok := v.(string)
+		if !ok {
+			return "", fmt.Errorf("startTime must be a string, got %T", v)
+		}
+		existingEvent.Start = &calendar.EventDateTime{DateTime: s}
+	}
+
+	if v, exists := args["endTime"]; exists && v != nil {
+		s, ok := v.(string)
+		if !ok {
+			return "", fmt.Errorf("endTime must be a string, got %T", v)
+		}
+		existingEvent.End = &calendar.EventDateTime{DateTime: s}
 	}
 
 	updatedEvent, err := s.google.UpdateEvent(calendarID, eventID, existingEvent)

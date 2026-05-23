@@ -63,32 +63,46 @@ func (s *ListCalendarEventsTool) ListCalendarEventsHandler(ctx context.Context, 
 
 	maxResults := 10
 	if mr, exists := args["maxResults"]; exists && mr != nil {
-		if mrInt, ok := mr.(float64); ok {
-			maxResults = int(mrInt)
+		mrFloat, ok := mr.(float64)
+		if !ok {
+			return "", fmt.Errorf("maxResults must be a number, got %T", mr)
 		}
+		maxResults = int(mrFloat)
 	}
 
 	query := ""
 	if q, exists := args["query"]; exists && q != nil {
-		query = q.(string)
+		qStr, ok := q.(string)
+		if !ok {
+			return "", fmt.Errorf("query must be a string, got %T", q)
+		}
+		query = qStr
 	}
 
 	timeMin := time.Now()
 	if tm, exists := args["timeMin"]; exists && tm != nil {
-		if tmStr, ok := tm.(string); ok {
-			if parsedTime, err := time.Parse(time.RFC3339, tmStr); err == nil {
-				timeMin = parsedTime
-			}
+		tmStr, ok := tm.(string)
+		if !ok {
+			return "", fmt.Errorf("timeMin must be a string, got %T", tm)
 		}
+		parsedTime, err := time.Parse(time.RFC3339, tmStr)
+		if err != nil {
+			return "", fmt.Errorf("invalid timeMin format (expected RFC3339): %w", err)
+		}
+		timeMin = parsedTime
 	}
 
 	timeMax := time.Time{}
 	if tm, exists := args["timeMax"]; exists && tm != nil {
-		if tmStr, ok := tm.(string); ok {
-			if parsedTime, err := time.Parse(time.RFC3339, tmStr); err == nil {
-				timeMax = parsedTime
-			}
+		tmStr, ok := tm.(string)
+		if !ok {
+			return "", fmt.Errorf("timeMax must be a string, got %T", tm)
 		}
+		parsedTime, err := time.Parse(time.RFC3339, tmStr)
+		if err != nil {
+			return "", fmt.Errorf("invalid timeMax format (expected RFC3339): %w", err)
+		}
+		timeMax = parsedTime
 	}
 
 	calendarID := s.google.GetCalendarID()
