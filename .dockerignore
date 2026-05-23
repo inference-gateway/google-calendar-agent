@@ -1,7 +1,37 @@
-**_test.go
-.devcontainer
+# VCS / IDE / OS
 .git
 .github
-README.md
-Taskfile.yaml
+.gitignore
+.gitattributes
+.editorconfig
+.adl-ignore
+.vscode
+.idea
+.DS_Store
+
+# Build outputs
+bin/
+dist/
+target/
+node_modules/
+*.log
+coverage.*
+
+# Sandbox / dev metadata
+.devcontainer/
+.flox/
+docker-compose.yaml
+docker-compose.*.yaml
 Dockerfile
+.dockerignore
+
+# Env files (never bake into image)
+.env
+.env.*
+!.env.example
+
+# Docs
+README.md
+CLAUDE.md
+AGENTS.md
+GEMINI.md
