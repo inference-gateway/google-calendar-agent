@@ -84,17 +84,25 @@ func (s *CreateCalendarEventTool) CreateCalendarEventHandler(ctx context.Context
 
 	description := ""
 	if desc, exists := args["description"]; exists && desc != nil {
-		description = desc.(string)
+		s, ok := desc.(string)
+		if !ok {
+			return "", fmt.Errorf("description must be a string, got %T", desc)
+		}
+		description = s
 	}
 
 	location := ""
 	if loc, exists := args["location"]; exists && loc != nil {
-		location = loc.(string)
+		s, ok := loc.(string)
+		if !ok {
+			return "", fmt.Errorf("location must be a string, got %T", loc)
+		}
+		location = s
 	}
 
 	var attendeeEmails []string
 	if attendees, exists := args["attendees"]; exists && attendees != nil {
-		if attendeeList, ok := attendees.([]interface{}); ok {
+		if attendeeList, ok := attendees.([]any); ok {
 			for _, attendee := range attendeeList {
 				if email, ok := attendee.(string); ok {
 					attendeeEmails = append(attendeeEmails, email)

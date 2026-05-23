@@ -214,8 +214,23 @@ func (g *CalendarServiceImpl) GetEvent(calendarID, eventID string) (*calendar.Ev
 	return event, nil
 }
 
+// ListCalendars returns the list of calendars accessible to the configured credential
 func (g *CalendarServiceImpl) ListCalendars() ([]*calendar.CalendarListEntry, error) {
-	return nil, fmt.Errorf("not implemented")
+	g.logger.Debug("listing calendars",
+		zap.String("component", "google-calendar-service"),
+		zap.String("operation", "list-calendars"))
+
+	list, err := g.service.CalendarList.List().Do()
+	if err != nil {
+		g.logger.Error("failed to list calendars",
+			zap.String("component", "google-calendar-service"),
+			zap.String("operation", "list-calendars"),
+			zap.Error(err))
+		return nil, fmt.Errorf("unable to list calendars: %w", err)
+	}
+
+	g.logger.Debug("Successfully listed calendars", zap.Int("count", len(list.Items)))
+	return list.Items, nil
 }
 
 // CheckConflicts checks for conflicts of events in the calendar by given start and end time

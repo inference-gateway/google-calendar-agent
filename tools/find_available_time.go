@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"time"
 
 	zap "go.uber.org/zap"
@@ -132,12 +133,17 @@ type timeSlot struct {
 
 // findAvailableSlots finds available time slots between existing events
 func (s *FindAvailableTimeTool) findAvailableSlots(startDate, endDate time.Time, duration time.Duration, events []*calendar.Event) []timeSlot {
+	loc, _, _ := resolveTimezone()
+
 	var busyPeriods []timeSlot
 	for _, event := range events {
-		if event.Start != nil && event.End != nil {
+		if event.Start == nil || event.End == nil {
+			continue
+		}
+
+		if event.Start.DateTime != "" {
 			eventStart, err1 := time.Parse(time.RFC3339, event.Start.DateTime)
 			eventEnd, err2 := time.Parse(time.RFC3339, event.End.DateTime)
-
 			if err1 == nil && err2 == nil {
 				busyPeriods = append(busyPeriods, timeSlot{
 					startTime: eventStart,
@@ -145,16 +151,25 @@ func (s *FindAvailableTimeTool) findAvailableSlots(startDate, endDate time.Time,
 					duration:  eventEnd.Sub(eventStart),
 				})
 			}
+			continue
 		}
-	}
 
-	for i := 0; i < len(busyPeriods)-1; i++ {
-		for j := i + 1; j < len(busyPeriods); j++ {
-			if busyPeriods[i].startTime.After(busyPeriods[j].startTime) {
-				busyPeriods[i], busyPeriods[j] = busyPeriods[j], busyPeriods[i]
+		if event.Start.Date != "" && event.End.Date != "" {
+			startDay, err1 := time.ParseInLocation("2006-01-02", event.Start.Date, loc)
+			endDay, err2 := time.ParseInLocation("2006-01-02", event.End.Date, loc)
+			if err1 == nil && err2 == nil {
+				busyPeriods = append(busyPeriods, timeSlot{
+					startTime: startDay,
+					endTime:   endDay,
+					duration:  endDay.Sub(startDay),
+				})
 			}
 		}
 	}
+
+	sort.Slice(busyPeriods, func(i, j int) bool {
+		return busyPeriods[i].startTime.Before(busyPeriods[j].startTime)
+	})
 
 	var availableSlots []timeSlot
 
