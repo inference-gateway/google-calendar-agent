@@ -150,8 +150,8 @@ Key environment variables you'll need to configure:
 # Install dependencies
 go mod download
 
-# Run the agent
-go run main.go
+# Run the agent (the binary is a CLI; `start` boots the server)
+go run . start
 
 # Or use Task
 task run

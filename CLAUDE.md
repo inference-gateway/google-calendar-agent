@@ -10,14 +10,15 @@ google-calendar-agent is an A2A (Agent-to-Agent) server implementing the [A2A Pr
 
 ### ADL-Generated Structure
 
-The codebase is generated using ADL CLI 0.34.2 and follows a strict generation pattern:
+The codebase is generated using ADL CLI 0.36.1 and follows a strict generation pattern:
 - **Generated Files**: Marked with `DO NOT EDIT` headers - manual changes will be overwritten
 - **Configuration Source**: `agent.yaml` - defines agent capabilities, skills, and metadata
 - **Server Implementation**: Built on the ADK (Agent Development Kit) framework from `github.com/inference-gateway/adk`
 
 ### Key Components
 
-- **Main Entry Point**: `main.go` - Configures and starts the A2A server with:
+- **Main Entry Point**: `main.go` - A cobra-based CLI. The root command exposes
+  `--version` and `--help`; the `start` subcommand boots the A2A server with:
   - OpenAI-compatible LLM client configuration
   - Agent builder with system prompt from `agent.yaml`
   - A2A server with streaming and background task handlers
@@ -129,7 +130,7 @@ When implementing tests:
 
 - **Generated Files**: Never manually edit files with "DO NOT EDIT" headers
 - **Configuration Changes**: Always modify `agent.yaml` and regenerate
-- **ADL Version**: Ensure ADL CLI 0.34.2 or compatible version for regeneration
+- **ADL Version**: Ensure ADL CLI 0.36.1 or compatible version for regeneration
 - **Port Configuration**: Default 8080, configurable via `A2A_PORT` or `A2A_SERVER_PORT`
 
 ## Debugging Tips
