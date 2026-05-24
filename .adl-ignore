@@ -19,6 +19,3 @@ tools/get_current_datetime.go
 tools/list_calendar_events.go
 tools/update_calendar_event.go
 skills/schedule-meeting/
-
-# Go dependency lock file
-go.sum
