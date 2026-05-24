@@ -81,8 +81,8 @@ github.com/googleapis/gax-go/v2 v2.22.0 h1:PjIWBpgGIVKGoCXuiCoP64altEJCj3/Ei+kSU
 github.com/googleapis/gax-go/v2 v2.22.0/go.mod h1:irWBbALSr0Sk3qlqb9SyJ1h68WjgeFuiOzI4Rqw5+aY=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/inference-gateway/adk v0.18.4 h1:AiwGlKTBwpuC3E84EZjA7VjahY70QoUgNqGU2kudsxw=
-github.com/inference-gateway/adk v0.18.4/go.mod h1:0aWSOC2iLSYeSVSu7KC5GWNX+vhdo6/i01K14q46OHc=
+github.com/inference-gateway/adk v0.19.0 h1:Xoo9QGTzL7/7v6hEQDde6w/MhSz7y4oFwdqbjW/EQHE=
+github.com/inference-gateway/adk v0.19.0/go.mod h1:0aWSOC2iLSYeSVSu7KC5GWNX+vhdo6/i01K14q46OHc=
 github.com/inference-gateway/sdk v1.16.4 h1:2iB++slMI2EKq9MMcvQDBrqNsDFvYVAn2mXVi6O/clE=
 github.com/inference-gateway/sdk v1.16.4/go.mod h1:Qcm7duXS/Hz/xvs8yQhxLUbCUTWN/x88+npRWyeRst4=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
