@@ -163,7 +163,7 @@ task fmt
 
 The generator owns the baseline toolchain pins (SDK, server framework,
 logging, CLI, sandbox utilities). To extend the project without forking
-the templates, declare extras in `agent.yaml` — every empty list below
+the templates, declare extras in `agent.yaml` - every empty list below
 is rendered by `adl init --defaults` precisely so it's discoverable:
 
 | Where | Purpose | Example entry | Rendered into |
