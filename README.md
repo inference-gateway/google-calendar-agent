@@ -3,7 +3,7 @@
 # Google-Calendar-Agent
 
 [![CI](https://github.com/inference-gateway/google-calendar-agent/workflows/CI/badge.svg)](https://github.com/inference-gateway/google-calendar-agent/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/codecov/c/github/inference-gateway/google-calendar-agent?label=coverage&logo=codecov)](https://codecov.io/gh/inference-gateway/google-calendar-agent)
+[![Go Report Card](https://img.shields.io/badge/Go%20Report%20Card-A+-brightgreen?style=flat&logo=go&logoColor=white)](https://goreportcard.com/report/github.com/inference-gateway/google-calendar-agent)
 [![Go Version](https://img.shields.io/badge/Go-1.26.2+-00ADD8?style=flat&logo=go)](https://golang.org)
 [![A2A Protocol](https://img.shields.io/badge/A2A-Protocol-blue?style=flat)](https://github.com/inference-gateway/adk)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
@@ -158,6 +158,24 @@ task lint
 # Format code
 task fmt
 ```
+
+### Adding Dependencies
+
+The generator owns the baseline toolchain pins (SDK, server framework,
+logging, CLI, sandbox utilities). To extend the project without forking
+the templates, declare extras in `agent.yaml` — every empty list below
+is rendered by `adl init --defaults` precisely so it's discoverable:
+
+| Where | Purpose | Example entry | Rendered into |
+|-------|---------|---------------|---------------|
+| `spec.language.go.vendor.deps` | Runtime Go modules | `github.com/stretchr/testify@v1.10.0` | `go.mod` `require` block |
+| `spec.language.go.vendor.devdeps` | Executable dev tools (Go 1.24 `tool` directive) | `golang.org/x/tools/cmd/stringer@v0.20.0` | `go.mod` `tool` directive |
+| `spec.development.deps` | Cross-cutting sandbox tools (not tied to one language) | `kubectl@1.31.0`, `terraform@1.9.5`, `deno@2.1.4` | Flox `manifest.toml` / devcontainer feature |
+
+Entries use the `<package>@<version>` form. Built-in pins always win on
+conflict; the generator prints a warning and skips the user entry when
+shadowing is attempted. After editing `agent.yaml`, re-run `task generate`
+to refresh the manifests.
 
 ### Debugging
 
