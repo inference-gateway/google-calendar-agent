@@ -285,6 +285,9 @@ spec:
     go:
       module: github.com/inference-gateway/google-calendar-agent
       version: "1.26.2"
+      vendor:
+        deps: []
+        devdeps: []
   acronyms:
     - a2a
     - api
@@ -318,3 +321,4 @@ spec:
         enabled: false
       opencode:
         enabled: false
+    deps: []
