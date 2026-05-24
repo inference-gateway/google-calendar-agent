@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.27](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.26...v0.4.27) (2026-05-24)
+
+### ♻️ Improvements
+
+* **Taskfile:** Remove explicit flags from generate command ([8120e89](https://github.com/inference-gateway/google-calendar-agent/commit/8120e892ef27006db8a99130c2ef880dc19c5adc))
+* **tools:** Panic-safe arg parsing, all-day events, test coverage ([#46](https://github.com/inference-gateway/google-calendar-agent/issues/46)) ([47eb895](https://github.com/inference-gateway/google-calendar-agent/commit/47eb895f6416ff6828bf1c9babe2d676dbed1802))
+
+### 👷 CI
+
+* **claude:** Simplify conditions for triggering Claude Code actions ([5cc64d1](https://github.com/inference-gateway/google-calendar-agent/commit/5cc64d1bad16da29cf0e78247828be6b95ab17bb))
+* **deps:** Update claude-code-action to version 1.0.130 ([19052cf](https://github.com/inference-gateway/google-calendar-agent/commit/19052cfb8ab81a90fc8d79ea90179d98c412bab6))
+
+### 🔧 Miscellaneous
+
+* **adl:** Refresh agent.yaml defaults from ADL CLI v0.33.1 ([#30](https://github.com/inference-gateway/google-calendar-agent/issues/30)) ([7e8f4d1](https://github.com/inference-gateway/google-calendar-agent/commit/7e8f4d1cd89cb55ec793cd38f51be052c2d4a697))
+* **adl:** Refresh agent.yaml defaults from ADL CLI v0.36.0 ([#41](https://github.com/inference-gateway/google-calendar-agent/issues/41)) ([b020b6e](https://github.com/inference-gateway/google-calendar-agent/commit/b020b6ee9d06b8990e212c210390a03df0f15c9c))
+* **adl:** Refresh agent.yaml defaults from ADL CLI v0.38.1 ([#49](https://github.com/inference-gateway/google-calendar-agent/issues/49)) ([23c7947](https://github.com/inference-gateway/google-calendar-agent/commit/23c7947de8cfc57192633fcaf955d60fb057d09d))
+* **dependabot:** Update golang and ubuntu version ignore rules in dependabot configuration ([02d33b8](https://github.com/inference-gateway/google-calendar-agent/commit/02d33b8b5ed816473ad903de6bbe3ade58e90aae))
+* **deps:** Add ignore rule for golang dependency in dependabot configuration ([a5d590e](https://github.com/inference-gateway/google-calendar-agent/commit/a5d590eb733e94a8fd1417495a0548df0d61b959))
+* **deps:** Bump ADL CLI v0.30.10 -> v0.31.0 ([#29](https://github.com/inference-gateway/google-calendar-agent/issues/29)) ([a1c9557](https://github.com/inference-gateway/google-calendar-agent/commit/a1c95574c86ac5ed6d12c653e5ed917dc49da370))
+* **deps:** Bump ADL CLI v0.31.0 -> v0.34.0 ([#32](https://github.com/inference-gateway/google-calendar-agent/issues/32)) ([4b3488f](https://github.com/inference-gateway/google-calendar-agent/commit/4b3488f93ed972e2ce9b7b91625a516186070b2e))
+* **deps:** Bump ADL CLI v0.34.0 -> v0.34.1 ([#36](https://github.com/inference-gateway/google-calendar-agent/issues/36)) ([4f3205d](https://github.com/inference-gateway/google-calendar-agent/commit/4f3205d3994519443a5a99d89d8c27e6916378c2))
+* **deps:** Bump ADL CLI v0.34.1 -> v0.34.2 ([#39](https://github.com/inference-gateway/google-calendar-agent/issues/39)) ([92290bb](https://github.com/inference-gateway/google-calendar-agent/commit/92290bb494980849004fde63937145f5e57f1495))
+* **deps:** Bump ADL CLI v0.34.2 -> v0.36.1 ([#42](https://github.com/inference-gateway/google-calendar-agent/issues/42)) ([649e18c](https://github.com/inference-gateway/google-calendar-agent/commit/649e18c5c673294e3f10c8bf42b398ede6daf6f2))
+* **deps:** Bump ADL CLI v0.36.1 -> v0.36.2 ([#45](https://github.com/inference-gateway/google-calendar-agent/issues/45)) ([2a61be6](https://github.com/inference-gateway/google-calendar-agent/commit/2a61be6a9459d57c24689d297995852dd76cf38e))
+* **deps:** Bump ADL CLI v0.36.2 -> v0.36.4 ([#47](https://github.com/inference-gateway/google-calendar-agent/issues/47)) ([67bc044](https://github.com/inference-gateway/google-calendar-agent/commit/67bc0446fc7ea02e95bbf244f421dbafcf793ab6))
+* **deps:** Bump ADL CLI v0.36.4 -> v0.38.1 ([#48](https://github.com/inference-gateway/google-calendar-agent/issues/48)) ([56076f3](https://github.com/inference-gateway/google-calendar-agent/commit/56076f3f3e91eeac2e2fbb899fa2c4e0f830ad06))
+* **deps:** Bump ADL CLI v0.38.1 -> v0.39.0 ([#51](https://github.com/inference-gateway/google-calendar-agent/issues/51)) ([c856a60](https://github.com/inference-gateway/google-calendar-agent/commit/c856a6061faceb91b3086fcf81966c25dd754d83))
+* **deps:** Bump ADL CLI v0.39.0 -> v0.39.1 ([#52](https://github.com/inference-gateway/google-calendar-agent/issues/52)) ([88d92dd](https://github.com/inference-gateway/google-calendar-agent/commit/88d92ddede43a71700266ad9fd92f4ba192c8c5f))
+* **flox:** Generate manifest lock file ([3e8902c](https://github.com/inference-gateway/google-calendar-agent/commit/3e8902c9024110d4ee7e64b1afe9d2ab050b21af))
+* **license:** Update license to Apache 2.0 ([3f2aa30](https://github.com/inference-gateway/google-calendar-agent/commit/3f2aa303fcde9d972f612ed6c2ec88e4009a7680))
+* Update .adl-ignore ([0cf6060](https://github.com/inference-gateway/google-calendar-agent/commit/0cf60603ed12835f25d765f29a66369fb1a8f198))
+
+### 🔨 Miscellaneous
+
+* **deps:** Bump anthropics/claude-code-action ([#26](https://github.com/inference-gateway/google-calendar-agent/issues/26)) ([3b3d18f](https://github.com/inference-gateway/google-calendar-agent/commit/3b3d18f064415a5c51695b0f99f9e221ccde6350))
+* **deps:** Bump anthropics/claude-code-action ([#28](https://github.com/inference-gateway/google-calendar-agent/issues/28)) ([0e2e4dc](https://github.com/inference-gateway/google-calendar-agent/commit/0e2e4dca9c301023fc576b9a2bb3c599450675e2))
+* **deps:** Bump github.com/inference-gateway/adk in the gomod group ([#27](https://github.com/inference-gateway/google-calendar-agent/issues/27)) ([0075e2a](https://github.com/inference-gateway/google-calendar-agent/commit/0075e2a2bfd12d7a07112d7bd7fe5146d7e31f7d))
+* **deps:** Bump github.com/inference-gateway/adk in the gomod group ([#37](https://github.com/inference-gateway/google-calendar-agent/issues/37)) ([474a6c8](https://github.com/inference-gateway/google-calendar-agent/commit/474a6c83d4bb5457729e5110baf0ce41a456a4b9))
+* **deps:** Bump the github-actions group with 2 updates ([#40](https://github.com/inference-gateway/google-calendar-agent/issues/40)) ([e7d226a](https://github.com/inference-gateway/google-calendar-agent/commit/e7d226aa606eb27fa1d4a8fe1fff8de90da1f6e5))
+
 ## [0.4.26](https://github.com/inference-gateway/google-calendar-agent/compare/v0.4.25...v0.4.26) (2026-05-20)
 
 ### 👷 CI
