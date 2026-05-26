@@ -34,7 +34,7 @@ import (
 // via `-ldflags "-X 'main.Version=...'"` (see Dockerfile). They default
 // to the values declared in the ADL.
 var (
-	Version          = "0.4.28"
+	Version          = "0.4.29"
 	AgentName        = "google-calendar-agent"
 	AgentDescription = "A Google Calendar A2A agent for AI assistants to interact with Google Calendar"
 )

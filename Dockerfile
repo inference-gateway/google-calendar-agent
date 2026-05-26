@@ -5,7 +5,7 @@
 FROM golang:1.26.2-alpine AS builder
 
 # Build arguments for version injection
-ARG VERSION="0.4.28"
+ARG VERSION="0.4.29"
 ARG AGENT_NAME="google-calendar-agent"
 ARG AGENT_DESCRIPTION="A Google Calendar A2A agent for AI assistants to interact with Google Calendar"
 
