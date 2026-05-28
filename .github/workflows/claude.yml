@@ -77,5 +77,6 @@ jobs:
           base_branch: main
           branch_prefix: 'claude/'
           claude_args: |
+            --effort max
             --model claude-opus-4-7
             --allowedTools "Bash(task:*),Bash(gh:*),Bash(git:*),Bash(go:*)"
