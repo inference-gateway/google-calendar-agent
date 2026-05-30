@@ -302,7 +302,7 @@ spec:
     dependabot: true
     ci: true
     cd: true
-  development:
+  development;
     sandbox:
       flox:
         enabled: true
@@ -311,14 +311,15 @@ spec:
       dockerCompose:
         enabled: false
     ai:
-      claudecode:
-        enabled: true
-      infer:
-        enabled: true
-      codex:
-        enabled: false
-      gemini:
-        enabled: false
-      opencode:
-        enabled: false
+      orchestrators:
+        claudecode:
+          enabled: true
+        infer:
+          enabled: true
+        codex:
+          enabled: false
+        gemini:
+          enabled: false
+        opencode:
+          enabled: false
     deps: []
