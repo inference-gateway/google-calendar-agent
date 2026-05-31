@@ -302,7 +302,7 @@ spec:
     dependabot: true
     ci: true
     cd: true
-  development;
+  development:
     sandbox:
       flox:
         enabled: true
