@@ -10,7 +10,7 @@ golangci-lint.version = "^2.12.2"
 golangci-lint.pkg-group = "common"
 
 go-task.pkg-path = "go-task"
-go-task.version = "^3.51.1"
+go-task.version = "^3.48.0"
 go-task.pkg-group = "common"
 
 git.pkg-path = "git"
