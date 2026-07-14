@@ -70,7 +70,8 @@ jobs:
         uses: actions/create-github-app-token@v3.2.0
         with:
           client-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+client-id: ${{ secrets.INFERENCE_GATEWAY_MAINTAINER_APP_ID }}
+private-key: ${{ secrets.INFERENCE_GATEWAY_MAINTAINER_APP_PRIVATE_KEY }}
 
       - name: Get GitHub App User ID
         id: get-user-id
