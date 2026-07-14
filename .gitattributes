@@ -23,6 +23,7 @@ Taskfile.yml linguist-generated=true
 CLAUDE.md linguist-generated=true
 AGENTS.md linguist-generated=true
 .github/workflows/claude.yml linguist-generated=true
+.github/workflows/infer.yml linguist-generated=true
 
 # Kubernetes manifests
 k8s/*.yaml linguist-generated=true
