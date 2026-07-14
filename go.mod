@@ -4,7 +4,7 @@ go 1.26.4
 
 require (
 	github.com/inference-gateway/adk v0.22.0
-	github.com/sethvargo/go-envconfig v1.3.0
+	github.com/sethvargo/go-envconfig v1.3.1
 	github.com/spf13/cobra v1.10.2
 	go.uber.org/zap v1.28.0
 	google.golang.org/api v0.288.0
