@@ -1,7 +1,7 @@
 schema-version = "1.13.0"
 
 [install]
-adl.flake = "github:inference-gateway/adl-cli/v0.48.0"
+adl.flake = "github:inference-gateway/adl-cli/v0.48.1"
 go.pkg-path = "go"
 go.version = "1.26.4"
 
