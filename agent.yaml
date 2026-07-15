@@ -323,3 +323,40 @@ spec:
         opencode:
           enabled: false
     deps: []
+  examples:
+    - title: List upcoming events
+      description: >-
+        Ask "What's on my calendar this week?" and the agent calls
+        list_calendar_events to return your upcoming events with their
+        times, locations, and attendees.
+    - title: Schedule a conflict-free meeting
+      description: >-
+        Ask "Schedule a 30-minute sync with alice@example.com tomorrow
+        afternoon." The schedule-meeting skill chains find_available_time,
+        check_conflicts, and create_calendar_event to book a slot that does
+        not overlap anything already on the calendar.
+    - title: Find a free time slot
+      description: >-
+        Ask "Find a free 1-hour slot on Thursday" and the agent uses
+        find_available_time to propose open windows, anchoring "Thursday" to
+        your timezone with get_current_datetime first.
+    - title: Reschedule or cancel an event
+      description: >-
+        Ask "Move my 2 PM meeting to 3 PM" or "Cancel my standup tomorrow";
+        the agent looks the event up with get_calendar_event and then calls
+        update_calendar_event or delete_calendar_event.
+  documentation:
+    pages:
+      - title: Setup
+        path: docs/setup.md
+        description: Install, build, and run the Google Calendar agent.
+      - title: Configuration
+        path: docs/configuration.md
+        description: >-
+          Environment variables for the LLM client, Google Calendar
+          credentials, mock mode, and the server.
+      - title: Usage
+        path: docs/usage.md
+        description: >-
+          Available calendar tools, the schedule-meeting skill, timezone
+          handling, and example requests.

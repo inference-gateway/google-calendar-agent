@@ -80,11 +80,25 @@ infer agents add google-calendar-agent http://localhost:8080 \
 | `check_conflicts` | Check for scheduling conflicts in the specified time range | endTime, startTime |
 | `get_current_datetime` | Return the current date/time and the user's IANA timezone. Call this FIRST for any time-relative request (today, tomorrow, next Friday) before emitting RFC3339 timestamps to other calendar tools, so events land in the user's local timezone instead of an LLM-assumed default. | None |
 
+## Examples
+
+| Example | Description |
+|---------|-------------|
+| List upcoming events | Ask "What's on my calendar this week?" and the agent calls list_calendar_events to return your upcoming events with their times, locations, and attendees. |
+| Schedule a conflict-free meeting | Ask "Schedule a 30-minute sync with alice@example.com tomorrow afternoon." The schedule-meeting skill chains find_available_time, check_conflicts, and create_calendar_event to book a slot that does not overlap anything already on the calendar. |
+| Find a free time slot | Ask "Find a free 1-hour slot on Thursday" and the agent uses find_available_time to propose open windows, anchoring "Thursday" to your timezone with get_current_datetime first. |
+| Reschedule or cancel an event | Ask "Move my 2 PM meeting to 3 PM" or "Cancel my standup tomorrow"; the agent looks the event up with get_calendar_event and then calls update_calendar_event or delete_calendar_event. |
+
 ## Skills (loaded into the system prompt)
 
 | Skill | Description | Source |
 |-------|-------------|--------|
 | `schedule-meeting` | Use this when the user asks to schedule a meeting, book a slot, or find a time that works. Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event. | bare scaffold (`skills/schedule-meeting.md`) |
+
+## Documentation
+- [Setup](docs/setup.md)
+- [Configuration](docs/configuration.md)
+- [Usage](docs/usage.md)
 
 ## Configuration
 
