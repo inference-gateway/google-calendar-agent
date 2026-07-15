@@ -2,7 +2,9 @@ apiVersion: adl.inference-gateway.com/v1
 kind: Agent
 metadata:
   name: google-calendar-agent
-  description: A Google Calendar A2A agent for AI assistants to interact with Google Calendar
+  description:
+    A Google Calendar A2A agent for AI assistants to interact with Google
+    Calendar
   version: 0.4.29
 spec:
   capabilities:
@@ -30,13 +32,17 @@ spec:
         properties:
           timeMin:
             type: string
-            description: Start time (RFC3339 format, e.g., 2024-01-01T00:00:00Z). Defaults to now.
+            description:
+              Start time (RFC3339 format, e.g., 2024-01-01T00:00:00Z). Defaults
+              to now.
           timeMax:
             type: string
-            description: End time (RFC3339 format, e.g., 2024-01-01T23:59:59Z). Optional.
+            description:
+              End time (RFC3339 format, e.g., 2024-01-01T23:59:59Z). Optional.
           maxResults:
             type: integer
-            description: "Maximum number of events to return (default: 10, max: 100)"
+            description:
+              "Maximum number of events to return (default: 10, max: 100)"
             minimum: 1
             maximum: 100
           query:
@@ -64,10 +70,13 @@ spec:
             description: Event description. Optional.
           startTime:
             type: string
-            description: Start time in RFC3339 format (required, e.g., 2024-01-01T10:00:00Z)
+            description:
+              Start time in RFC3339 format (required, e.g.,
+              2024-01-01T10:00:00Z)
           endTime:
             type: string
-            description: End time in RFC3339 format (required, e.g., 2024-01-01T11:00:00Z)
+            description:
+              End time in RFC3339 format (required, e.g., 2024-01-01T11:00:00Z)
           attendees:
             type: array
             items:
@@ -168,13 +177,16 @@ spec:
         properties:
           startDate:
             type: string
-            description: Start date for search (RFC3339 format, e.g., 2024-01-01T00:00:00Z)
+            description:
+              Start date for search (RFC3339 format, e.g., 2024-01-01T00:00:00Z)
           endDate:
             type: string
-            description: End date for search (RFC3339 format, e.g., 2024-01-01T23:59:59Z)
+            description:
+              End date for search (RFC3339 format, e.g., 2024-01-01T23:59:59Z)
           duration:
             type: integer
-            description: "Duration in minutes for the desired time slot (default: 60)"
+            description:
+              "Duration in minutes for the desired time slot (default: 60)"
             minimum: 15
             maximum: 480
         required:
@@ -209,7 +221,10 @@ spec:
     - id: get_current_datetime
       name: get_current_datetime
       description: >-
-        Return the current date/time and the user's IANA timezone. Call this FIRST for any time-relative request (today, tomorrow, next Friday) before emitting RFC3339 timestamps to other calendar tools, so events land in the user's local timezone instead of an LLM-assumed default.
+        Return the current date/time and the user's IANA timezone. Call this
+        FIRST for any time-relative request (today, tomorrow, next Friday)
+        before emitting RFC3339 timestamps to other calendar tools, so events
+        land in the user's local timezone instead of an LLM-assumed default.
       tags:
         - time
         - timezone
@@ -224,7 +239,9 @@ spec:
       bare: true
       name: schedule-meeting
       description: >-
-        Use this when the user asks to schedule a meeting, book a slot, or find a time that works. Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event.
+        Use this when the user asks to schedule a meeting, book a slot, or find
+        a time that works. Resolves a conflict-free booking by finding open
+        slots, validating no overlap, and creating the event.
       tags:
         - calendar
         - scheduling
@@ -302,6 +319,8 @@ spec:
     dependabot: true
     ci: true
     cd: true
+    app_id_secret: RELEASER_APP_ID
+    app_private_key_secret: RELEASER_APP_PRIVATE_KEY
   development:
     sandbox:
       flox:
@@ -314,8 +333,12 @@ spec:
       orchestrators:
         claudecode:
           enabled: true
+          appIdSecret: CLAUDE_APP_ID
+          appPrivateKeySecret: CLAUDE_APP_PRIVATE_KEY
         infer:
           enabled: true
+          appIdSecret: INFER_APP_ID
+          appPrivateKeySecret: INFER_APP_PRIVATE_KEY
         codex:
           enabled: false
         gemini:
@@ -327,14 +350,14 @@ spec:
     - title: List upcoming events
       description: >-
         Ask "What's on my calendar this week?" and the agent calls
-        list_calendar_events to return your upcoming events with their
-        times, locations, and attendees.
+        list_calendar_events to return your upcoming events with their times,
+        locations, and attendees.
     - title: Schedule a conflict-free meeting
       description: >-
         Ask "Schedule a 30-minute sync with alice@example.com tomorrow
         afternoon." The schedule-meeting skill chains find_available_time,
-        check_conflicts, and create_calendar_event to book a slot that does
-        not overlap anything already on the calendar.
+        check_conflicts, and create_calendar_event to book a slot that does not
+        overlap anything already on the calendar.
     - title: Find a free time slot
       description: >-
         Ask "Find a free 1-hour slot on Thursday" and the agent uses
@@ -342,8 +365,8 @@ spec:
         your timezone with get_current_datetime first.
     - title: Reschedule or cancel an event
       description: >-
-        Ask "Move my 2 PM meeting to 3 PM" or "Cancel my standup tomorrow";
-        the agent looks the event up with get_calendar_event and then calls
+        Ask "Move my 2 PM meeting to 3 PM" or "Cancel my standup tomorrow"; the
+        agent looks the event up with get_calendar_event and then calls
         update_calendar_event or delete_calendar_event.
   documentation:
     pages:
@@ -353,8 +376,8 @@ spec:
       - title: Configuration
         path: docs/configuration.md
         description: >-
-          Environment variables for the LLM client, Google Calendar
-          credentials, mock mode, and the server.
+          Environment variables for the LLM client, Google Calendar credentials,
+          mock mode, and the server.
       - title: Usage
         path: docs/usage.md
         description: >-
