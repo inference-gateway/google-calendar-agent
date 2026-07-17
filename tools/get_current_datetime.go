@@ -63,6 +63,8 @@ func resolveTimezone() (*time.Location, string, string) {
 
 // GetCurrentDatetimeHandler handles the get_current_datetime tool execution
 func (t *GetCurrentDatetimeTool) GetCurrentDatetimeHandler(ctx context.Context, args map[string]any) (string, error) {
+	span := startToolSpan(ctx, "get_current_datetime")
+	defer span.End()
 	loc, tzName, source := resolveTimezone()
 	now := time.Now().In(loc)
 

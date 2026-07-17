@@ -43,6 +43,8 @@ func NewGetCalendarEventTool(logger *zap.Logger, google google.CalendarService) 
 
 // GetCalendarEventHandler handles the get_calendar_event tool execution
 func (s *GetCalendarEventTool) GetCalendarEventHandler(ctx context.Context, args map[string]any) (string, error) {
+	span := startToolSpan(ctx, "get_calendar_event")
+	defer span.End()
 	s.logger.Debug("getting calendar event", zap.Any("args", args))
 
 	eventID, ok := args["eventId"].(string)

@@ -56,6 +56,8 @@ func NewFindAvailableTimeTool(logger *zap.Logger, google google.CalendarService)
 
 // FindAvailableTimeHandler handles the find_available_time tool execution
 func (s *FindAvailableTimeTool) FindAvailableTimeHandler(ctx context.Context, args map[string]any) (string, error) {
+	span := startToolSpan(ctx, "find_available_time")
+	defer span.End()
 	s.logger.Debug("finding available time", zap.Any("args", args))
 
 	startDateStr, ok := args["startDate"].(string)

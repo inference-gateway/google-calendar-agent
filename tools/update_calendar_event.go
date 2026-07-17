@@ -64,6 +64,8 @@ func NewUpdateCalendarEventTool(logger *zap.Logger, google google.CalendarServic
 
 // UpdateCalendarEventHandler handles the update_calendar_event tool execution
 func (s *UpdateCalendarEventTool) UpdateCalendarEventHandler(ctx context.Context, args map[string]any) (string, error) {
+	span := startToolSpan(ctx, "update_calendar_event")
+	defer span.End()
 	s.logger.Debug("updating calendar event", zap.Any("args", args))
 
 	eventID, ok := args["eventId"].(string)

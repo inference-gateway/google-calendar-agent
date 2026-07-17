@@ -48,6 +48,8 @@ func NewCheckConflictsTool(logger *zap.Logger, google google.CalendarService) se
 
 // CheckConflictsHandler handles the check_conflicts tool execution
 func (s *CheckConflictsTool) CheckConflictsHandler(ctx context.Context, args map[string]any) (string, error) {
+	span := startToolSpan(ctx, "check_conflicts")
+	defer span.End()
 	s.logger.Debug("checking for conflicts", zap.Any("args", args))
 
 	startTimeStr, ok := args["startTime"].(string)

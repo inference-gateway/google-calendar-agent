@@ -55,16 +55,15 @@ infer agents add google-calendar-agent http://localhost:8080 \
 - ✅ A2A protocol compliant
 - ✅ AI-powered capabilities
 - ✅ Streaming support
+- ✅ OpenTelemetry instrumentation
 - ✅ Enterprise-ready
 - ✅ Minimal dependencies
-- ✅ OpenTelemetry metrics (Prometheus exporter on port 9464)
 
 ## Endpoints
 
 - `GET /.well-known/agent-card.json` - Agent metadata and capabilities
 - `GET /health` - Health check endpoint
 - `POST /a2a` - A2A protocol endpoint
-- `GET /metrics` - Prometheus metrics endpoint (when telemetry is enabled)
 
 ## Available Tools
 
@@ -105,15 +104,6 @@ infer agents add google-calendar-agent http://localhost:8080 \
 The agent is configured via environment variables. Defaults are derived
 from `agent.yaml`; see [CONFIGURATIONS.md](CONFIGURATIONS.md) for the
 full reference of custom and `A2A_*` variables.
-
-### Telemetry
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `A2A_TELEMETRY_ENABLE` | Enable OpenTelemetry instrumentation | `true` |
-| `A2A_OTEL_TRACES_EXPORTER` | Trace exporter (`otlp` or `none`) | `none` |
-| `A2A_OTEL_METRICS_EXPORTER` | Metrics exporter (`otlp`, `prometheus`, or `none`) | `prometheus` |
-| `A2A_OTEL_EXPORTER_PROMETHEUS_PORT` | Prometheus metrics exporter port | `9464` |
 
 ## Development
 
