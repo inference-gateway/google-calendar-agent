@@ -32,6 +32,7 @@ Dockerfile
 
 # Docs
 README.md
+CONFIGURATIONS.md
 CLAUDE.md
 AGENTS.md
 GEMINI.md

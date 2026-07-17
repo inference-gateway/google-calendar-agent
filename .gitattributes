@@ -37,6 +37,7 @@ tools/read.go linguist-generated=true
 
 # Documentation (partially generated)
 README.md linguist-documentation=true
+CONFIGURATIONS.md linguist-documentation=true
 
 # Preserve line endings for generated files
 *.go text eol=lf

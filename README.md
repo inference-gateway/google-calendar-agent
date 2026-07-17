@@ -25,8 +25,6 @@ go run . start
 
 # Or build and invoke the CLI directly
 task build
-./bin/google-calendar-agent --help
-./bin/google-calendar-agent --version
 ./bin/google-calendar-agent start
 
 # Or with Docker
@@ -84,10 +82,10 @@ infer agents add google-calendar-agent http://localhost:8080 \
 
 | Example | Description |
 |---------|-------------|
-| List upcoming events | Ask "What's on my calendar this week?" and the agent calls list_calendar_events to return your upcoming events with their times, locations, and attendees. |
-| Schedule a conflict-free meeting | Ask "Schedule a 30-minute sync with alice@example.com tomorrow afternoon." The schedule-meeting skill chains find_available_time, check_conflicts, and create_calendar_event to book a slot that does not overlap anything already on the calendar. |
-| Find a free time slot | Ask "Find a free 1-hour slot on Thursday" and the agent uses find_available_time to propose open windows, anchoring "Thursday" to your timezone with get_current_datetime first. |
-| Reschedule or cancel an event | Ask "Move my 2 PM meeting to 3 PM" or "Cancel my standup tomorrow"; the agent looks the event up with get_calendar_event and then calls update_calendar_event or delete_calendar_event. |
+| [List upcoming events](examples/list-upcoming-events/) | Ask "What's on my calendar this week?" and the agent calls list_calendar_events to return your upcoming events with their times, locations, and attendees. |
+| [Schedule a conflict-free meeting](examples/schedule-a-conflict-free-meeting/) | Ask "Schedule a 30-minute sync with alice@example.com tomorrow afternoon." The schedule-meeting skill chains find_available_time, check_conflicts, and create_calendar_event to book a slot that does not overlap anything already on the calendar. |
+| [Find a free time slot](examples/find-a-free-time-slot/) | Ask "Find a free 1-hour slot on Thursday" and the agent uses find_available_time to propose open windows, anchoring "Thursday" to your timezone with get_current_datetime first. |
+| [Reschedule or cancel an event](examples/reschedule-or-cancel-an-event/) | Ask "Move my 2 PM meeting to 3 PM" or "Cancel my standup tomorrow"; the agent looks the event up with get_calendar_event and then calls update_calendar_event or delete_calendar_event. |
 
 ## Skills (loaded into the system prompt)
 
@@ -102,57 +100,9 @@ infer agents add google-calendar-agent http://localhost:8080 \
 
 ## Configuration
 
-Configure the agent via environment variables:
-
-### Custom Configuration
-
-The following custom configuration variables are available. Defaults are
-derived from `spec.config.*` in `agent.yaml`; the env vars below override
-them at runtime.
-
-| Category | Variable | Default |
-|----------|----------|---------|
-| **Google** | `GOOGLE_CREDENTIALS_PATH` | `` |
-| **Google** | `GOOGLE_SERVICE_ACCOUNT_JSON` | `` |
-| **GoogleCalendar** | `GOOGLE_CALENDAR_ID` | `primary` |
-| **GoogleCalendar** | `GOOGLE_CALENDAR_MOCK_MODE` | `false` |
-| **GoogleCalendar** | `GOOGLE_CALENDAR_TIMEZONE` | `UTC` |
-| **Tools** | `TOOLS_READ_ENABLED` | `true` |
-| **Tools** | `TOOLS_READ_MAX_LINES` | `2000` |
-
-### Environment Variables
-
-| Category | Variable | Description | Default |
-|----------|----------|-------------|---------|
-| **Server** | `A2A_PORT` | Server port | `8080` |
-| **Server** | `A2A_DEBUG` | Enable debug mode | `false` |
-| **Server** | `A2A_AGENT_URL` | Agent URL for internal references | `http://localhost:8080` |
-| **Server** | `A2A_STREAMING_STATUS_UPDATE_INTERVAL` | Streaming status update frequency | `1s` |
-| **Server** | `A2A_SERVER_READ_TIMEOUT` | HTTP server read timeout | `120s` |
-| **Server** | `A2A_SERVER_WRITE_TIMEOUT` | HTTP server write timeout | `120s` |
-| **Server** | `A2A_SERVER_IDLE_TIMEOUT` | HTTP server idle timeout | `120s` |
-| **Server** | `A2A_SERVER_DISABLE_HEALTHCHECK_LOG` | Disable logging for health check requests | `true` |
-| **Agent Metadata** | `A2A_AGENT_CARD_FILE_PATH` | Path to agent card JSON file | `.well-known/agent-card.json` |
-| **LLM Client** | `A2A_AGENT_CLIENT_PROVIDER` | LLM provider (`openai`, `anthropic`, `azure`, `ollama`, `deepseek`) |`` |
-| **LLM Client** | `A2A_AGENT_CLIENT_MODEL` | Model to use |`` |
-| **LLM Client** | `A2A_AGENT_CLIENT_API_KEY` | API key for LLM provider | - |
-| **LLM Client** | `A2A_AGENT_CLIENT_BASE_URL` | Custom LLM API endpoint | - |
-| **LLM Client** | `A2A_AGENT_CLIENT_TIMEOUT` | Timeout for LLM requests | `30s` |
-| **LLM Client** | `A2A_AGENT_CLIENT_MAX_RETRIES` | Maximum retries for LLM requests | `3` |
-| **LLM Client** | `A2A_AGENT_CLIENT_MAX_CHAT_COMPLETION_ITERATIONS` | Max chat completion rounds | `10` |
-| **LLM Client** | `A2A_AGENT_CLIENT_MAX_TOKENS` | Maximum tokens for LLM responses |`4096` |
-| **LLM Client** | `A2A_AGENT_CLIENT_TEMPERATURE` | Controls randomness of LLM output |`0.7` |
-| **Capabilities** | `A2A_CAPABILITIES_STREAMING` | Enable streaming responses | `true` |
-| **Capabilities** | `A2A_CAPABILITIES_PUSH_NOTIFICATIONS` | Enable push notifications | `false` |
-| **Capabilities** | `A2A_CAPABILITIES_STATE_TRANSITION_HISTORY` | Track state transitions | `false` |
-| **Task Management** | `A2A_TASK_RETENTION_MAX_COMPLETED_TASKS` | Max completed tasks to keep (0 = unlimited) | `100` |
-| **Task Management** | `A2A_TASK_RETENTION_MAX_FAILED_TASKS` | Max failed tasks to keep (0 = unlimited) | `50` |
-| **Task Management** | `A2A_TASK_RETENTION_CLEANUP_INTERVAL` | Cleanup frequency (0 = manual only) | `5m` |
-| **Storage** | `A2A_QUEUE_PROVIDER` | Storage backend (`memory` or `redis`) | `memory` |
-| **Storage** | `A2A_QUEUE_URL` | Redis connection URL (when using Redis) | - |
-| **Storage** | `A2A_QUEUE_MAX_SIZE` | Maximum queue size | `100` |
-| **Storage** | `A2A_QUEUE_CLEANUP_INTERVAL` | Task cleanup interval | `30s` |
-| **Authentication** | `A2A_AUTH_ENABLE` | Enable OIDC authentication | `false` |
+The agent is configured via environment variables. Defaults are derived
+from `agent.yaml`; see [CONFIGURATIONS.md](CONFIGURATIONS.md) for the
+full reference of custom and `A2A_*` variables.
 
 ## Development
 
@@ -214,10 +164,6 @@ docker run --rm -it --network host ghcr.io/inference-gateway/a2a-debugger:latest
 The Docker image can be built with custom version information using build arguments:
 
 ```bash
-# Build with default values from ADL
-docker build -t google-calendar-agent .
-
-# Build with custom version information
 docker build \
   --build-arg VERSION=1.2.3 \
   --build-arg AGENT_NAME="My Custom Agent" \
