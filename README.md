@@ -55,6 +55,7 @@ infer agents add google-calendar-agent http://localhost:8080 \
 - ✅ A2A protocol compliant
 - ✅ AI-powered capabilities
 - ✅ Streaming support
+- ✅ OpenTelemetry instrumentation
 - ✅ Enterprise-ready
 - ✅ Minimal dependencies
 

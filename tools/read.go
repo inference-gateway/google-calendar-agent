@@ -77,6 +77,8 @@ func NewReadTool(ctx context.Context, logger *zap.Logger) (server.Tool, error) {
 
 // Handler executes the Read tool.
 func (t *ReadTool) Handler(ctx context.Context, args map[string]any) (string, error) {
+	span := startToolSpan(ctx, "read")
+	defer span.End()
 	if !t.cfg.Enabled {
 		return "", errors.New("read tool is disabled; set spec.config.tools.read.enabled: true in the ADL and regenerate")
 	}

@@ -59,6 +59,8 @@ func NewListCalendarEventsTool(logger *zap.Logger, google google.CalendarService
 
 // ListCalendarEventsHandler handles the list_calendar_events tool execution
 func (s *ListCalendarEventsTool) ListCalendarEventsHandler(ctx context.Context, args map[string]any) (string, error) {
+	span := startToolSpan(ctx, "list_calendar_events")
+	defer span.End()
 	s.logger.Debug("listing calendar events", zap.Any("args", args))
 
 	maxResults := 10

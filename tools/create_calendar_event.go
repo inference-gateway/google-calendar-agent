@@ -65,6 +65,8 @@ func NewCreateCalendarEventTool(logger *zap.Logger, google google.CalendarServic
 
 // CreateCalendarEventHandler handles the create_calendar_event tool execution
 func (s *CreateCalendarEventTool) CreateCalendarEventHandler(ctx context.Context, args map[string]any) (string, error) {
+	span := startToolSpan(ctx, "create_calendar_event")
+	defer span.End()
 	s.logger.Debug("creating calendar event", zap.Any("args", args))
 
 	summary, ok := args["summary"].(string)

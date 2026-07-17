@@ -305,6 +305,13 @@ spec:
       vendor:
         deps: []
         devdeps: []
+  telemetry:
+    enabled: true
+    metrics:
+      exporter:
+        prometheus:
+          host: ""
+          port: 9464
   acronyms:
     - a2a
     - api
