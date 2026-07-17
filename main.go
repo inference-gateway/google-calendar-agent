@@ -169,6 +169,9 @@ func runStart(ctx context.Context) error {
 	// empty strings, and so any other consumer of cfg.A2A sees the real values.
 	cfg.A2A.AgentName = AgentName
 	cfg.A2A.AgentVersion = Version
+	// The OpenTelemetry SDK settings are read as A2A_OTEL_* through the ADK's
+	// A2A_-prefixed config (cfg.A2A.OTelConfig), so the single Process call above
+	// already loaded them - no separate OTel pass is required.
 
 	// Initialize logger
 	l, err := logger.NewLogger(ctx, &cfg)
