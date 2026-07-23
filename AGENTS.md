@@ -116,7 +116,7 @@ This agent ships 1 markdown skill that are loaded into the system prompt at star
 ### schedule-meeting
 - **Description**: Use this when the user asks to schedule a meeting, book a slot, or find a time that works. Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event.
 - **Tags**: calendar, scheduling, meeting
-- **Source**: scaffolded locally (`skills/schedule-meeting/SKILL.md`)
+- **Source**: scaffolded locally (`.agents/skills/schedule-meeting/SKILL.md`)
 
 ## Server Configuration
 
@@ -201,7 +201,7 @@ docker run -p 8080:8080 google-calendar-agent
 │   └── find_available_time.go    # Find available time slots in the calendar
 │   └── check_conflicts.go        # Check for scheduling conflicts in the specified time range
 │   └── get_current_datetime.go   # Return the current date/time and the user's IANA timezone. Call this FIRST for any time-relative request (today, tomorrow, next Friday) before emitting RFC3339 timestamps to other calendar tools, so events land in the user's local timezone instead of an LLM-assumed default.
-├── skills/                       # Skill directories (SKILL.md + optional assets)
+├── .agents/skills/               # Skill directories (SKILL.md + optional assets)
 │   └── schedule-meeting/         # Use this when the user asks to schedule a meeting, book a slot, or find a time that works. Resolves a conflict-free booking by finding open slots, validating no overlap, and creating the event.
 │       └── SKILL.md              # Playbook prepended to the system prompt
 ├── .well-known/                  # Agent configuration
