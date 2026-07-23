@@ -62,7 +62,7 @@ jobs:
           private-key: ${{ secrets.CLAUDE_APP_PRIVATE_KEY }}
 
       - name: Checkout repository
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           token: ${{ steps.app-token.outputs.token }}
@@ -130,7 +130,7 @@ jobs:
 
       - name: Run Claude Code
         id: claude
-        uses: anthropics/claude-code-action@v1.0.176
+        uses: anthropics/claude-code-action@v1.0.181
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         with:
