@@ -35,6 +35,10 @@ indent_size = 2
 indent_style = space
 indent_size = 2
 
+# Skills pointer symlink (target path, not a text file - no trailing newline)
+[.claude/skills]
+insert_final_newline = false
+
 # Go files
 [*.go]
 indent_style = tab
