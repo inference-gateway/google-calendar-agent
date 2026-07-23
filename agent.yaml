@@ -282,6 +282,9 @@ spec:
         configured default.
 
       Your responses should be accurate, helpful, and focused on calendar management tasks.
+    mcp:
+      enabled: false
+      servers: []
   config:
     tools:
       read:
