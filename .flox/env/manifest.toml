@@ -1,7 +1,7 @@
 schema-version = "1.13.0"
 
 [install]
-adl.flake = "github:inference-gateway/adl-cli/v0.54.0"
+adl.flake = "github:inference-gateway/adl-cli/v0.55.0"
 go.pkg-path = "go"
 go.version = "1.26.4"
 
@@ -25,7 +25,7 @@ claude-code.pkg-path = "claude-code"
 claude-code.version = "^2.1.201"
 claude-code.pkg-group = "common"
 
-infer.flake = "github:inference-gateway/cli/v0.149.0"
+infer.flake = "github:inference-gateway/cli/v0.152.0"
 
 [hook]
 on-activate = '''
