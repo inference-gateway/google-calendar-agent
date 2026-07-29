@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.3](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.2...v0.5.3) (2026-07-29)
+
+### 🔧 Miscellaneous
+
+* **adl:** refresh agent.yaml defaults from ADL CLI v0.57.0 ([#114](https://github.com/inference-gateway/google-calendar-agent/issues/114)) ([e36100f](https://github.com/inference-gateway/google-calendar-agent/commit/e36100f015e484e1e88269a411e1988a6f11ebab))
+* **deps:** bump ADL CLI v0.55.0 -> v0.56.0 ([#110](https://github.com/inference-gateway/google-calendar-agent/issues/110)) ([b64fca7](https://github.com/inference-gateway/google-calendar-agent/commit/b64fca7cc46bacddee4fa70360e00022e7410a62))
+* **deps:** bump ADL CLI v0.56.0 -> v0.57.0 ([#112](https://github.com/inference-gateway/google-calendar-agent/issues/112)) ([d03cc42](https://github.com/inference-gateway/google-calendar-agent/commit/d03cc4237767989c164d87276ce820d61ed8690e))
+* **deps:** bump ADL CLI v0.57.0 -> v0.57.1 ([#116](https://github.com/inference-gateway/google-calendar-agent/issues/116)) ([586992d](https://github.com/inference-gateway/google-calendar-agent/commit/586992df52cd15637f961cb36f93798163ffb9e7))
+
+### 🔨 Miscellaneous
+
+* **deps:** bump anthropics/claude-code-action ([#111](https://github.com/inference-gateway/google-calendar-agent/issues/111)) ([88d9fd3](https://github.com/inference-gateway/google-calendar-agent/commit/88d9fd34bd7770bdbe4861c3cc8785061dfb9166))
+* **deps:** bump docker/login-action in the github-actions group ([#113](https://github.com/inference-gateway/google-calendar-agent/issues/113)) ([0d58b39](https://github.com/inference-gateway/google-calendar-agent/commit/0d58b396169c4c4f6b36a975c60fec07a8ddac9e))
+
 ## [0.5.2](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.1...v0.5.2) (2026-07-23)
 
 ### 🔧 Miscellaneous
