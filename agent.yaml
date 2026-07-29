@@ -329,7 +329,7 @@ spec:
     dependabot: true
     ci: true
     cd: true
-    app_id_secret: RELEASER_APP_ID
+    app_id_secret: RELEASER_APP_CLIENT_ID
     app_private_key_secret: RELEASER_APP_PRIVATE_KEY
   development:
     sandbox:
