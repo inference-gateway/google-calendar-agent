@@ -3,7 +3,7 @@ module github.com/inference-gateway/google-calendar-agent
 go 1.26.4
 
 require (
-	github.com/inference-gateway/adk v0.26.0
+	github.com/inference-gateway/adk v0.26.1
 	github.com/sethvargo/go-envconfig v1.4.3
 	github.com/spf13/cobra v1.10.2
 	go.opentelemetry.io/otel v1.44.0
@@ -49,7 +49,7 @@ require (
 	github.com/googleapis/gax-go/v2 v2.23.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/inference-gateway/sdk v1.30.0 // indirect
+	github.com/inference-gateway/sdk v1.33.0 // indirect
 	github.com/invopop/jsonschema v0.12.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.19.1 // indirect
