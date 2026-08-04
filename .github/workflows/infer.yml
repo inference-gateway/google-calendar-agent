@@ -170,7 +170,6 @@ jobs:
           mistral-api-key: ${{ secrets.MISTRAL_API_KEY }}
           cloudflare-api-key: ${{ secrets.CLOUDFLARE_API_KEY }}
           cohere-api-key: ${{ secrets.COHERE_API_KEY }}
-          ollama-api-key: ${{ secrets.OLLAMA_API_KEY }}
           ollama-cloud-api-key: ${{ secrets.OLLAMA_CLOUD_API_KEY }}
           moonshot-api-key: ${{ secrets.MOONSHOT_API_KEY }}
           minimax-api-key: ${{ secrets.MINIMAX_API_KEY }}
