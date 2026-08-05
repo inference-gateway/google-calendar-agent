@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.4](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.3...v0.5.4) (2026-08-05)
+
+### 👷 CI
+
+* remove deprecated ollama-api-key input ([#122](https://github.com/inference-gateway/google-calendar-agent/issues/122)) ([27f8e0f](https://github.com/inference-gateway/google-calendar-agent/commit/27f8e0fd720ab50c68eebe4925dc210d1ba3cb43))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump ADL CLI v0.57.1 -> v0.57.2 ([#119](https://github.com/inference-gateway/google-calendar-agent/issues/119)) ([b0f5751](https://github.com/inference-gateway/google-calendar-agent/commit/b0f5751b5c5847d8249a58154f93a8a889e98337))
+* **deps:** bump ADL CLI v0.57.2 -> v0.58.0 ([#120](https://github.com/inference-gateway/google-calendar-agent/issues/120)) ([7289904](https://github.com/inference-gateway/google-calendar-agent/commit/72899040c5f09a5f85701a446b0f1f210408ef7d))
+* **deps:** bump ADL CLI v0.58.0 -> v0.58.1 ([#121](https://github.com/inference-gateway/google-calendar-agent/issues/121)) ([847f441](https://github.com/inference-gateway/google-calendar-agent/commit/847f441f7c30f33c879d0e9b89c0a168a04320c7))
+* **deps:** bump ADL CLI v0.58.1 -> v0.59.0 ([#124](https://github.com/inference-gateway/google-calendar-agent/issues/124)) ([c795f91](https://github.com/inference-gateway/google-calendar-agent/commit/c795f91122a9da938fa3f9ac06b95e82fd12c193))
+
+### 🔨 Miscellaneous
+
+* **deps:** bump github.com/inference-gateway/adk in the gomod group ([#117](https://github.com/inference-gateway/google-calendar-agent/issues/117)) ([0e1a5f3](https://github.com/inference-gateway/google-calendar-agent/commit/0e1a5f368266ba5814f17494baf1e17f48ef5bcd))
+
 ## [0.5.3](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.2...v0.5.3) (2026-07-29)
 
 ### 🔧 Miscellaneous
