@@ -126,7 +126,7 @@ When implementing tests:
 ## Environment Management
 
 ### Development Environment
-- **Flox Environment**: ✅ Configured via `.flox/env/manifest.toml` providing Go 1.26.4, linter, `go-task`, Docker, and the Claude Code CLI. Activate with `flox activate`.
+- **Flox Environment**: ✅ Configured via `.flox/env/manifest.toml` providing Go 1.26.7, linter, `go-task`, Docker, and the Claude Code CLI. Activate with `flox activate`.
 
 ## Important Constraints
 

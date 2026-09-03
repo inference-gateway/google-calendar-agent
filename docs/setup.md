@@ -6,7 +6,7 @@ Google Calendar operations to AI assistants.
 
 ## Prerequisites
 
-- Go 1.26.4+ (only needed to build or run from source)
+- Go 1.26.7+ (only needed to build or run from source)
 - An OpenAI-compatible LLM provider and API key
 - Google Calendar credentials — a service account JSON or a credentials file
   (not required in mock mode; see [Configuration](configuration.md))
