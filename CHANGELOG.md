@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.6](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.5...v0.5.6) (2026-09-04)
+
+### 🔧 Miscellaneous
+
+* **deps:** bump ADL CLI v0.60.1 -> v0.60.2 ([#127](https://github.com/inference-gateway/google-calendar-agent/issues/127)) ([46b64f5](https://github.com/inference-gateway/google-calendar-agent/commit/46b64f52ec7ed00f11bca69d6aac8f8cb2b6ec40))
+* **deps:** bump ADL CLI v0.60.2 -> v0.60.3 ([#130](https://github.com/inference-gateway/google-calendar-agent/issues/130)) ([065ba58](https://github.com/inference-gateway/google-calendar-agent/commit/065ba589500540e513a55658d53cae48a3fbb570))
+* **deps:** bump ADL CLI v0.60.3 -> v0.60.4 ([#131](https://github.com/inference-gateway/google-calendar-agent/issues/131)) ([79d6490](https://github.com/inference-gateway/google-calendar-agent/commit/79d6490092de3c2b03a23c49ece3ecac3194d97e))
+* **deps:** bump ADL CLI v0.60.4 -> v0.60.5 ([#132](https://github.com/inference-gateway/google-calendar-agent/issues/132)) ([8949465](https://github.com/inference-gateway/google-calendar-agent/commit/8949465f04f3d1b5d2e9ceb1fd336f4a38296e53))
+* **deps:** bump ADL CLI v0.60.5 -> v0.61.1 ([#135](https://github.com/inference-gateway/google-calendar-agent/issues/135)) ([fcb7fd0](https://github.com/inference-gateway/google-calendar-agent/commit/fcb7fd0370bdf1a4ddd307d10b46d732fd233822))
+* **deps:** bump ADL CLI v0.61.1 -> v0.61.3 ([#136](https://github.com/inference-gateway/google-calendar-agent/issues/136)) ([3acabcb](https://github.com/inference-gateway/google-calendar-agent/commit/3acabcb9ef465d43a73fedecd0eb18e3668ad52e))
+* **deps:** bump ADL CLI v0.61.3 -> v0.61.4 ([#138](https://github.com/inference-gateway/google-calendar-agent/issues/138)) ([1842f2a](https://github.com/inference-gateway/google-calendar-agent/commit/1842f2ac98b54e37148b181efd4432d4af5e5520))
+* **deps:** bump ADL CLI v0.61.4 -> v0.62.1 ([#139](https://github.com/inference-gateway/google-calendar-agent/issues/139)) ([7dffc53](https://github.com/inference-gateway/google-calendar-agent/commit/7dffc5331f73eab6604060c33114f3099e97a47e))
+* **deps:** bump ADL CLI v0.62.1 -> v0.62.2 ([#141](https://github.com/inference-gateway/google-calendar-agent/issues/141)) ([71676c4](https://github.com/inference-gateway/google-calendar-agent/commit/71676c4d90b9ab4260335fef03a939946e1f0377))
+* **deps:** bump ADL CLI v0.62.2 -> v0.62.3 ([#143](https://github.com/inference-gateway/google-calendar-agent/issues/143)) ([562608b](https://github.com/inference-gateway/google-calendar-agent/commit/562608bdd4928a25fbe362e1db2195c32aed0128))
+* **deps:** bump ADL CLI v0.62.3 -> v0.62.5 ([#147](https://github.com/inference-gateway/google-calendar-agent/issues/147)) ([6e5b7f1](https://github.com/inference-gateway/google-calendar-agent/commit/6e5b7f1384977a5f9f1e952ac21799879f0580ad))
+* **deps:** bump ADL CLI v0.62.5 -> v0.62.8 ([#149](https://github.com/inference-gateway/google-calendar-agent/issues/149)) ([6770799](https://github.com/inference-gateway/google-calendar-agent/commit/677079929f3fe2bca1db0cac91d3ef0e2749daf7))
+* **deps:** bump go toolchain to 1.26.7 ([#148](https://github.com/inference-gateway/google-calendar-agent/issues/148)) ([a9b77de](https://github.com/inference-gateway/google-calendar-agent/commit/a9b77de8140936743033ab82b9369d5212e676ec)), closes [#146](https://github.com/inference-gateway/google-calendar-agent/issues/146)
+
 ## [0.5.5](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.4...v0.5.5) (2026-08-07)
 
 ### 🔧 Miscellaneous
