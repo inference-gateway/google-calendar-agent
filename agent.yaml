@@ -306,7 +306,8 @@ spec:
       module: github.com/inference-gateway/google-calendar-agent
       version: "1.26.7"
       vendor:
-        deps: []
+        deps:
+          - google.golang.org/api@v0.297.0
         devdeps: []
   telemetry:
     enabled: true
