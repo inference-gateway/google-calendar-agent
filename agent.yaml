@@ -332,6 +332,8 @@ spec:
     cd: true
     app_id_secret: RELEASER_APP_CLIENT_ID
     app_private_key_secret: RELEASER_APP_PRIVATE_KEY
+    ci_app_id_secret: INFERENCE_GATEWAY_MAINTAINER_APP_CLIENT_ID
+    ci_app_private_key_secret: INFERENCE_GATEWAY_MAINTAINER_APP_PRIVATE_KEY
   development:
     sandbox:
       flox:
