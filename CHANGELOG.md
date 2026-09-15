@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.7](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.6...v0.5.7) (2026-09-15)
+
+### 🔧 Miscellaneous
+
+* **adl:** refresh agent.yaml defaults from ADL CLI v0.63.0 ([#155](https://github.com/inference-gateway/google-calendar-agent/issues/155)) ([5d1015d](https://github.com/inference-gateway/google-calendar-agent/commit/5d1015d220247a8c91e23e0445e388dfd146639e))
+* **deps:** bump ADL CLI v0.62.10 -> v0.62.12 ([#153](https://github.com/inference-gateway/google-calendar-agent/issues/153)) ([7dc2b95](https://github.com/inference-gateway/google-calendar-agent/commit/7dc2b95eb01a09902e51ba2775acf340e806ce36))
+* **deps:** bump ADL CLI v0.62.12 -> v0.63.0 ([#156](https://github.com/inference-gateway/google-calendar-agent/issues/156)) ([85e61a1](https://github.com/inference-gateway/google-calendar-agent/commit/85e61a15f05a2464d415bbca5bd81e96d19f1dab))
+* **deps:** bump ADL CLI v0.62.8 -> v0.62.9 ([#151](https://github.com/inference-gateway/google-calendar-agent/issues/151)) ([1e2043a](https://github.com/inference-gateway/google-calendar-agent/commit/1e2043a8b4f32ae5daa0c2bc8f0a7f6979a149f3))
+* **deps:** bump ADL CLI v0.62.9 -> v0.62.10 ([#152](https://github.com/inference-gateway/google-calendar-agent/issues/152)) ([6fadcca](https://github.com/inference-gateway/google-calendar-agent/commit/6fadccacf01e05996b1bdc584d77231b39ee2c9c))
+* **deps:** bump ADL CLI v0.63.0 -> v0.63.1 ([#157](https://github.com/inference-gateway/google-calendar-agent/issues/157)) ([753e601](https://github.com/inference-gateway/google-calendar-agent/commit/753e6016d578042980547218153a02e4b81a3df2))
+
+### 🔨 Miscellaneous
+
+* **deps:** bump google.golang.org/api from 0.288.0 to 0.297.0 in the gomod group ([#154](https://github.com/inference-gateway/google-calendar-agent/issues/154)) ([667b7ca](https://github.com/inference-gateway/google-calendar-agent/commit/667b7cac5e87e90d0d152528c9c97b95030c308a))
+
 ## [0.5.6](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.5...v0.5.6) (2026-09-04)
 
 ### 🔧 Miscellaneous
