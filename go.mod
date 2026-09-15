@@ -3,7 +3,7 @@ module github.com/inference-gateway/google-calendar-agent
 go 1.26.7
 
 require (
-	github.com/inference-gateway/adk v0.26.6
+	github.com/inference-gateway/adk v0.27.0
 	github.com/sethvargo/go-envconfig v1.4.3
 	github.com/spf13/cobra v1.10.2
 	go.opentelemetry.io/otel v1.46.0
