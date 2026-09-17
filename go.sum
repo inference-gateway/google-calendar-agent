@@ -85,8 +85,8 @@ github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 h1:/Tnpcb2E0Pz/tN9s3bfEY2Q8ePC
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0/go.mod h1:zOBXOsUaBSjKgmH4OGzV1esUpR3oUSCPYVd2cUBjKYY=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/inference-gateway/adk v0.27.0 h1:Add27VM6udsMB8scxTy5ZnZFrhhuesDY+EXyG299EBc=
-github.com/inference-gateway/adk v0.27.0/go.mod h1:FdHfaM2FujKPhmQy3ZjhhhbEB4Udy518Gh9HuUZ6WH8=
+github.com/inference-gateway/adk v0.28.0 h1:E4Rg1Sng1M2Xpsz/K82+AaSev2gE7dcO2zmFXlQNftM=
+github.com/inference-gateway/adk v0.28.0/go.mod h1:8gf5QTiNV8wQe3fJWX6Khxnmn7aQyw1Rb5n0vd4vq+c=
 github.com/inference-gateway/sdk v1.37.2 h1:4GbTJaP/g6T7ya+J563GpsBNwq8vwXGdplWQoFyCa4c=
 github.com/inference-gateway/sdk v1.37.2/go.mod h1:niH2yIl/reMfdMwH/jtE4P2G3FJh63nC4Ji/jLZ0qaA=
 github.com/invopop/jsonschema v0.14.0 h1:MHQqLhvpNUZfw+hM3AZDYK7jxO8FZoQeQM77g8iyZjg=
