@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.10](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.9...v0.5.10) (2026-09-23)
+
+### 🔧 Miscellaneous
+
+* **deps:** bump ADL CLI v0.63.4 -> v0.63.5 ([#163](https://github.com/inference-gateway/google-calendar-agent/issues/163)) ([e34af0b](https://github.com/inference-gateway/google-calendar-agent/commit/e34af0b6d23f24ea825b4a26c3a96638fc5c16d4))
+* **deps:** update google.golang.org/api dependency version ([269d7f5](https://github.com/inference-gateway/google-calendar-agent/commit/269d7f5debbfa7264e00e427f165fea57f38ec38))
+
+### 🔨 Miscellaneous
+
+* **deps:** bump google.golang.org/api in the gomod group ([#164](https://github.com/inference-gateway/google-calendar-agent/issues/164)) ([0ccddaf](https://github.com/inference-gateway/google-calendar-agent/commit/0ccddaff7ba73dedfe885ebc085d8a59b673e5a5))
+
 ## [0.5.9](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.8...v0.5.9) (2026-09-17)
 
 ### 🔧 Miscellaneous
