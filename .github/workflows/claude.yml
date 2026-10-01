@@ -154,7 +154,7 @@ jobs:
 
       - name: Run Claude Code
         id: claude
-        uses: anthropics/claude-code-action@v1.0.234
+        uses: anthropics/claude-code-action@v1.0.236
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         with:
