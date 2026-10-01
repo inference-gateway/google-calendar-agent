@@ -1,12 +1,12 @@
 schema-version = "1.15.0"
 
 [install]
-adl.flake = "github:inference-gateway/adl-cli/v0.64.2"
+adl.flake = "github:inference-gateway/adl-cli/v0.64.4"
 go.pkg-path = "go"
 go.version = "1.26.7"
 
 golangci-lint.pkg-path = "golangci-lint"
-golangci-lint.version = "^2.13.2"
+golangci-lint.version = "^2.14.0"
 golangci-lint.pkg-group = "common"
 
 go-task.pkg-path = "go-task"
@@ -18,14 +18,14 @@ git.version = "^2.55.0"
 git.pkg-group = "common"
 
 docker.pkg-path = "docker"
-docker.version = "^29.8.0"
+docker.version = "^29.8.1"
 docker.pkg-group = "common"
 
 claude-code.pkg-path = "claude-code"
-claude-code.version = "^2.1.280"
+claude-code.version = "^2.1.283"
 claude-code.pkg-group = "common"
 
-infer.flake = "github:inference-gateway/cli/v0.207.0"
+infer.flake = "github:inference-gateway/cli/v0.220.0"
 
 [hook]
 on-activate = '''
