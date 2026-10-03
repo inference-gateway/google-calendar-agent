@@ -13,7 +13,6 @@ This agent is built using the Agent Definition Language (ADL) and provides A2A c
 ## Agent Capabilities
 - **Streaming**: ✅ Real-time response streaming supported
 - **Push Notifications**: ❌ Server-sent events not supported
-- **State History**: ❌ State transition history not tracked
 
 ## AI Configuration
 
