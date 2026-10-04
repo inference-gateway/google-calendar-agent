@@ -134,7 +134,7 @@ is rendered by `adl init --defaults` precisely so it's discoverable:
 | Where | Purpose | Example entry | Rendered into |
 |-------|---------|---------------|---------------|
 | `spec.language.go.vendor.deps` | Runtime Go modules | `github.com/stretchr/testify@v1.10.0` | `go.mod` `require` block |
-| `spec.language.go.vendor.devdeps` | Executable dev tools (Go 1.24 `tool` directive) | `golang.org/x/tools/cmd/stringer@v0.20.0` | `go.mod` `tool` directive |
+| `spec.language.go.vendor.devdeps` | Executable dev tools (Go `tool` directive) | `golang.org/x/tools/cmd/stringer@v0.49.0` | `go.mod` `tool` directive |
 | `spec.development.deps` | Cross-cutting sandbox tools (not tied to one language) | `kubectl@1.31.0`, `terraform@1.9.5`, `deno@2.1.4` | Flox `manifest.toml` / devcontainer feature |
 
 Entries use the `<package>@<version>` form. Built-in pins always win on

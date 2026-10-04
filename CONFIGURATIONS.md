@@ -21,7 +21,7 @@ derived from `agent.yaml`; the env vars below override them at runtime.
 |----------|----------|-------------|---------|
 | **Server** | `A2A_PORT` | Server port | `8080` |
 | **Server** | `A2A_DEBUG` | Enable debug mode | `false` |
-| **Server** | `A2A_AGENT_URL` | Agent URL for internal references | `http://localhost:8080` |
+| **Server** | `A2A_AGENT_URL` | JSON-RPC URL advertised on the agent card | `http://localhost:8080/a2a` |
 | **Server** | `A2A_STREAMING_STATUS_UPDATE_INTERVAL` | Streaming status update frequency | `1s` |
 | **Server** | `A2A_SERVER_READ_TIMEOUT` | HTTP server read timeout | `120s` |
 | **Server** | `A2A_SERVER_WRITE_TIMEOUT` | HTTP server write timeout | `120s` |
@@ -39,7 +39,6 @@ derived from `agent.yaml`; the env vars below override them at runtime.
 | **LLM Client** | `A2A_AGENT_CLIENT_TEMPERATURE` | Controls randomness of LLM output |`0.7` |
 | **Capabilities** | `A2A_CAPABILITIES_STREAMING` | Enable streaming responses | `true` |
 | **Capabilities** | `A2A_CAPABILITIES_PUSH_NOTIFICATIONS` | Enable push notifications | `false` |
-| **Capabilities** | `A2A_CAPABILITIES_STATE_TRANSITION_HISTORY` | Track state transitions | `false` |
 | **Task Management** | `A2A_TASK_RETENTION_MAX_COMPLETED_TASKS` | Max completed tasks to keep (0 = unlimited) | `100` |
 | **Task Management** | `A2A_TASK_RETENTION_MAX_FAILED_TASKS` | Max failed tasks to keep (0 = unlimited) | `50` |
 | **Task Management** | `A2A_TASK_RETENTION_CLEANUP_INTERVAL` | Cleanup frequency (0 = manual only) | `5m` |
