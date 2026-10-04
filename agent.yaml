@@ -10,7 +10,6 @@ spec:
   capabilities:
     streaming: true
     pushNotifications: false
-    stateTransitionHistory: false
   services:
     google:
       type: service
