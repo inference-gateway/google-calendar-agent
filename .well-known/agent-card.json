@@ -2,15 +2,12 @@
 	"name": "google-calendar-agent",
 	"version": "0.5.13",
 	"description": "A Google Calendar A2A agent for AI assistants to interact with Google Calendar",
-	"protocolVersion": "0.3.0",
-	"url": "",
-	"preferredTransport": "JSONRPC",
+	"supportedInterfaces": [{"protocolBinding":"JSONRPC","protocolVersion":"1.0","url":""}],
 	"defaultInputModes": ["text"],
 	"defaultOutputModes": ["text"],
 	"capabilities": {
 		"streaming": true,
-		"pushNotifications": false,
-		"stateTransitionHistory": false
+		"pushNotifications": false
 	},
 	"skills": [
 		{

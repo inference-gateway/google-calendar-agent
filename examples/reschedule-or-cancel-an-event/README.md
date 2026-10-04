@@ -17,11 +17,11 @@ curl -s http://localhost:8080/a2a \
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
-    "method": "tasks.send",
+    "method": "SendMessage",
     "params": {
-      "id": "task-1",
       "message": {
-        "role": "user",
+        "messageId": "m-1",
+        "role": "ROLE_USER",
         "parts": [
           {"text": "Move my 2 PM meeting to 3 PM"}
         ]
@@ -47,16 +47,20 @@ curl -s http://localhost:8080/a2a \
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "id": "task-1",
-    "status": {
-      "state": "completed",
-      "message": {
-        "role": "agent",
-        "parts": [
-          {
-            "text": "I'\''ve moved your **Design Review** from 2:00 PM to 3:00 PM today.\n\n**Updated event:**\n- **Title:** Design Review\n- **Date:** Thursday, July 17, 2026\n- **New time:** 3:00 PM – 4:00 PM (America/New_York)\n- **Event ID:** abc123def456\n\nThere were no conflicts at the new time."
-          }
-        ]
+    "task": {
+      "id": "task-1",
+      "contextId": "ctx-1",
+      "status": {
+        "state": "TASK_STATE_COMPLETED",
+        "message": {
+          "messageId": "msg-1",
+          "role": "ROLE_AGENT",
+          "parts": [
+            {
+              "text": "I've moved your **Design Review** from 2:00 PM to 3:00 PM today.\n\n**Updated event:**\n- **Title:** Design Review\n- **Date:** Thursday, July 17, 2026\n- **New time:** 3:00 PM – 4:00 PM (America/New_York)\n- **Event ID:** abc123def456\n\nThere were no conflicts at the new time."
+            }
+          ]
+        }
       }
     }
   }
@@ -73,11 +77,11 @@ curl -s http://localhost:8080/a2a \
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
-    "method": "tasks.send",
+    "method": "SendMessage",
     "params": {
-      "id": "task-2",
       "message": {
-        "role": "user",
+        "messageId": "m-2",
+        "role": "ROLE_USER",
         "parts": [
           {"text": "Cancel my standup tomorrow"}
         ]
@@ -105,16 +109,20 @@ After you confirm the deletion:
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "id": "task-2",
-    "status": {
-      "state": "completed",
-      "message": {
-        "role": "agent",
-        "parts": [
-          {
-            "text": "The **Team Standup** scheduled for **Friday, July 18, 2026 at 11:00 AM** has been cancelled and removed from your calendar."
-          }
-        ]
+    "task": {
+      "id": "task-2",
+      "contextId": "ctx-2",
+      "status": {
+        "state": "TASK_STATE_COMPLETED",
+        "message": {
+          "messageId": "msg-2",
+          "role": "ROLE_AGENT",
+          "parts": [
+            {
+              "text": "The **Team Standup** scheduled for **Friday, July 18, 2026 at 11:00 AM** has been cancelled and removed from your calendar."
+            }
+          ]
+        }
       }
     }
   }

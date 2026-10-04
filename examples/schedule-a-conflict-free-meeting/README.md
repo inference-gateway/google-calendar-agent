@@ -17,11 +17,11 @@ curl -s http://localhost:8080/a2a \
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
-    "method": "tasks.send",
+    "method": "SendMessage",
     "params": {
-      "id": "task-1",
       "message": {
-        "role": "user",
+        "messageId": "m-1",
+        "role": "ROLE_USER",
         "parts": [
           {"text": "Schedule a 30-minute sync with alice@example.com tomorrow afternoon"}
         ]
@@ -49,16 +49,20 @@ After the agent finds available slots and you confirm one:
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "id": "task-1",
-    "status": {
-      "state": "completed",
-      "message": {
-        "role": "agent",
-        "parts": [
-          {
-            "text": "I'\''ve scheduled a 30-minute sync with alice@example.com.\n\n**Event details:**\n- **Title:** Sync\n- **Date:** Thursday, July 17, 2026\n- **Time:** 2:00 PM – 2:30 PM (America/New_York)\n- **Attendees:** alice@example.com\n- **Event ID:** abc123def456\n\nThe event has been created and added to your calendar."
-          }
-        ]
+    "task": {
+      "id": "task-1",
+      "contextId": "ctx-1",
+      "status": {
+        "state": "TASK_STATE_COMPLETED",
+        "message": {
+          "messageId": "msg-1",
+          "role": "ROLE_AGENT",
+          "parts": [
+            {
+              "text": "I've scheduled a 30-minute sync with alice@example.com.\n\n**Event details:**\n- **Title:** Sync\n- **Date:** Thursday, July 17, 2026\n- **Time:** 2:00 PM – 2:30 PM (America/New_York)\n- **Attendees:** alice@example.com\n- **Event ID:** abc123def456\n\nThe event has been created and added to your calendar."
+            }
+          ]
+        }
       }
     }
   }
@@ -82,6 +86,29 @@ The agent may ask clarifying questions before booking. Here is a typical multi-t
 ```
 
 **Turn 2 — User confirms:**
+
+Send it as another `SendMessage` whose `message.contextId` is turn 1's `result.task.contextId`; the agent keeps the conversation history per context, so it sees turn 1:
+
+```bash
+curl -s http://localhost:8080/a2a \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "SendMessage",
+    "params": {
+      "message": {
+        "messageId": "m-2",
+        "contextId": "<contextId from turn 1>",
+        "role": "ROLE_USER",
+        "parts": [{"text": "The 2 PM slot works"}]
+      }
+    }
+  }' | jq .
+```
+
+The message parts in this flow:
+
 ```json
 {"text": "The 2 PM slot works"}
 ```
@@ -89,7 +116,7 @@ The agent may ask clarifying questions before booking. Here is a typical multi-t
 **Turn 2 — Agent books and confirms:**
 ```json
 {
-  "text": "Great! I'\''ve booked the 2:00 PM – 2:30 PM sync with alice@example.com. Event ID: abc123def456."
+  "text": "Great! I've booked the 2:00 PM – 2:30 PM sync with alice@example.com. Event ID: abc123def456."
 }
 ```
 
