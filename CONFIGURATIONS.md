@@ -19,7 +19,7 @@ derived from `agent.yaml`; the env vars below override them at runtime.
 
 | Category | Variable | Description | Default |
 |----------|----------|-------------|---------|
-| **Server** | `A2A_PORT` | Server port | `8080` |
+| **Server** | `A2A_SERVER_PORT` | Server port | `8080` |
 | **Server** | `A2A_DEBUG` | Enable debug mode | `false` |
 | **Server** | `A2A_AGENT_URL` | JSON-RPC URL advertised on the agent card | `http://localhost:8080/a2a` |
 | **Server** | `A2A_STREAMING_STATUS_UPDATE_INTERVAL` | Streaming status update frequency | `1s` |

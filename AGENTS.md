@@ -229,6 +229,8 @@ task test:coverage
 - No comments above modules, packages, or files.
 - Tool directives are not comments and stay where the tool needs them (lint suppressions, build
   tags, compiler pragmas, code generation markers).
+- No semicolons in documentation prose (Markdown files, doc comments): split the sentence or use
+  a dash instead.
 
 ## Contributing
 
