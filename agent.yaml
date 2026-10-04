@@ -306,7 +306,7 @@ spec:
       version: "1.26.8"
       vendor:
         deps:
-          - google.golang.org/api@v0.299.0
+          - google.golang.org/api@v0.300.0
         devdeps: []
   telemetry:
     enabled: true
