@@ -17,11 +17,11 @@ curl -s http://localhost:8080/a2a \
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
-    "method": "tasks.send",
+    "method": "SendMessage",
     "params": {
-      "id": "task-1",
       "message": {
-        "role": "user",
+        "messageId": "m-1",
+        "role": "ROLE_USER",
         "parts": [
           {"text": "What'\''s on my calendar this week?"}
         ]
@@ -45,16 +45,20 @@ curl -s http://localhost:8080/a2a \
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "id": "task-1",
-    "status": {
-      "state": "completed",
-      "message": {
-        "role": "agent",
-        "parts": [
-          {
-            "text": "Here are the events on your calendar this week:\n\n**Monday, July 14**\n- 10:00 AM – 11:00 AM: **Sprint Planning** (Conference Room A)\n- 2:00 PM – 3:00 PM: **Design Review** (Virtual)\n\n**Wednesday, July 16**\n- 9:30 AM – 10:30 AM: **1:1 with Manager** (Zoom)\n\n**Friday, July 18**\n- 11:00 AM – 12:00 PM: **Team Standup** (Conference Room B)\n\nWould you like more details on any of these events?"
-          }
-        ]
+    "task": {
+      "id": "task-1",
+      "contextId": "ctx-1",
+      "status": {
+        "state": "TASK_STATE_COMPLETED",
+        "message": {
+          "messageId": "msg-1",
+          "role": "ROLE_AGENT",
+          "parts": [
+            {
+              "text": "Here are the events on your calendar this week:\n\n**Monday, July 14**\n- 10:00 AM – 11:00 AM: **Sprint Planning** (Conference Room A)\n- 2:00 PM – 3:00 PM: **Design Review** (Virtual)\n\n**Wednesday, July 16**\n- 9:30 AM – 10:30 AM: **1:1 with Manager** (Zoom)\n\n**Friday, July 18**\n- 11:00 AM – 12:00 PM: **Team Standup** (Conference Room B)\n\nWould you like more details on any of these events?"
+            }
+          ]
+        }
       }
     }
   }
@@ -70,11 +74,11 @@ curl -s http://localhost:8080/a2a \
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
-    "method": "tasks.send",
+    "method": "SendMessage",
     "params": {
-      "id": "task-2",
       "message": {
-        "role": "user",
+        "messageId": "m-2",
+        "role": "ROLE_USER",
         "parts": [
           {"text": "What meetings do I have tomorrow?"}
         ]
@@ -88,11 +92,11 @@ curl -s http://localhost:8080/a2a \
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
-    "method": "tasks.send",
+    "method": "SendMessage",
     "params": {
-      "id": "task-3",
       "message": {
-        "role": "user",
+        "messageId": "m-3",
+        "role": "ROLE_USER",
         "parts": [
           {"text": "Find events about sprint planning"}
         ]

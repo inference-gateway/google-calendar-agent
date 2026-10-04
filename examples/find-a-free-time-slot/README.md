@@ -17,11 +17,11 @@ curl -s http://localhost:8080/a2a \
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
-    "method": "tasks.send",
+    "method": "SendMessage",
     "params": {
-      "id": "task-1",
       "message": {
-        "role": "user",
+        "messageId": "m-1",
+        "role": "ROLE_USER",
         "parts": [
           {"text": "Find a free 1-hour slot on Thursday"}
         ]
@@ -45,16 +45,20 @@ curl -s http://localhost:8080/a2a \
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "id": "task-1",
-    "status": {
-      "state": "completed",
-      "message": {
-        "role": "agent",
-        "parts": [
-          {
-            "text": "Here are the available 1-hour slots on **Thursday, July 17, 2026** (America/New_York):\n\n1. **9:00 AM – 10:00 AM**\n2. **10:00 AM – 11:00 AM**\n3. **11:00 AM – 12:00 PM**\n4. **1:00 PM – 2:00 PM**\n5. **2:00 PM – 3:00 PM**\n6. **3:00 PM – 4:00 PM**\n\nWould you like me to book any of these slots?"
-          }
-        ]
+    "task": {
+      "id": "task-1",
+      "contextId": "ctx-1",
+      "status": {
+        "state": "TASK_STATE_COMPLETED",
+        "message": {
+          "messageId": "msg-1",
+          "role": "ROLE_AGENT",
+          "parts": [
+            {
+              "text": "Here are the available 1-hour slots on **Thursday, July 17, 2026** (America/New_York):\n\n1. **9:00 AM – 10:00 AM**\n2. **10:00 AM – 11:00 AM**\n3. **11:00 AM – 12:00 PM**\n4. **1:00 PM – 2:00 PM**\n5. **2:00 PM – 3:00 PM**\n6. **3:00 PM – 4:00 PM**\n\nWould you like me to book any of these slots?"
+            }
+          ]
+        }
       }
     }
   }
@@ -70,11 +74,11 @@ curl -s http://localhost:8080/a2a \
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
-    "method": "tasks.send",
+    "method": "SendMessage",
     "params": {
-      "id": "task-2",
       "message": {
-        "role": "user",
+        "messageId": "m-2",
+        "role": "ROLE_USER",
         "parts": [
           {"text": "What times are free next Monday for a 45-minute meeting?"}
         ]
@@ -88,11 +92,11 @@ curl -s http://localhost:8080/a2a \
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
-    "method": "tasks.send",
+    "method": "SendMessage",
     "params": {
-      "id": "task-3",
       "message": {
-        "role": "user",
+        "messageId": "m-3",
+        "role": "ROLE_USER",
         "parts": [
           {"text": "Find a free 2-hour slot this Friday afternoon"}
         ]
