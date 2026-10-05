@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.17](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.16...v0.5.17) (2026-10-05)
+
+### 🔧 Miscellaneous
+
+* **deps:** bump ADL CLI v0.67.0 -> v0.67.1 ([#179](https://github.com/inference-gateway/google-calendar-agent/issues/179)) ([2e5af8b](https://github.com/inference-gateway/google-calendar-agent/commit/2e5af8b7ee0e45179701d40236eac96ef2e6be58))
+
+### 🔨 Miscellaneous
+
+* **deps:** bump the gomod group across 1 directory with 2 updates ([#178](https://github.com/inference-gateway/google-calendar-agent/issues/178)) ([cb49235](https://github.com/inference-gateway/google-calendar-agent/commit/cb492357f165534e9ef6916bd57285cb6bf606e1))
+
 ## [0.5.16](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.15...v0.5.16) (2026-10-05)
 
 ### 🔧 Miscellaneous
