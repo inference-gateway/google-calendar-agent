@@ -17,9 +17,11 @@ services:
       A2A_AGENT_CLIENT_MAX_CHAT_COMPLETION_ITERATIONS: 20
       GOOGLE_SERVICE_ACCOUNT_JSON: ${GOOGLE_SERVICE_ACCOUNT_JSON}
       GOOGLE_CREDENTIALS_PATH: /tmp/google-credentials.json
-      GOOGLE_CALENDAR_MOCK_MODE: false
+      GOOGLE_CALENDAR_MOCK_MODE: ${GOOGLE_CALENDAR_MOCK_MODE:-false}
       GOOGLE_CALENDAR_ID: ${GOOGLE_CALENDAR_ID}
-      GOOGLE_CALENDAR_TIMEZONE: Europe/Berlin
+      GOOGLE_CALENDAR_TIMEZONE: ${GOOGLE_CALENDAR_TIMEZONE:-Europe/Berlin}
+    ports:
+      - "8081:8080"
     restart: unless-stopped
     networks:
       - a2a-network

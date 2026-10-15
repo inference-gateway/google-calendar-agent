@@ -104,106 +104,53 @@ docker compose run --rm a2a-debugger tasks history <context-id>
 
 ## Quick Start
 
-### 1. Clone and Setup
+### 1. Configure the environment
 
 ```bash
-# Navigate to the basic example directory
-cd examples/basic
-
-# Copy the environment template
-cp .env.gateway.example .env.gateway
-cp .env.agent.example .env.agent
+cd example
+cp .env.example .env
 ```
 
-### 2. Configure Environment Variables
-
-Edit the `.env` file and configure the required settings:
-
-#### For Demo Mode (No Google Calendar Integration)
+Edit `.env`. Docker Compose reads it and passes the values through to the
+services:
 
 ```bash
-# Set demo mode to true
-DEMO_MODE=true
+# Which model the agent talks to, routed through the Inference Gateway
+PROVIDER=deepseek
+MODEL=deepseek-v4-flash
+DEEPSEEK_API_KEY=your_deepseek_api_key
 
-# Configure at least one LLM provider
-GROQ_API_KEY=your_groq_api_key_here
-LLM_PROVIDER=groq
-LLM_MODEL=deepseek-r1-distill-llama-70b
-```
-
-#### For Production Mode (With Google Calendar)
-
-```bash
-# Disable demo mode
-DEMO_MODE=false
-
-# Configure Google Calendar
+# Google Calendar (omit both and set GOOGLE_CALENDAR_MOCK_MODE=true for demo mode)
 GOOGLE_CALENDAR_ID=primary
-GOOGLE_CALENDAR_SA_JSON={"type":"service_account","project_id":"..."}
-
-# Configure LLM provider
-GROQ_API_KEY=your_groq_api_key_here
-LLM_PROVIDER=groq
-LLM_MODEL=deepseek-r1-distill-llama-70b
+GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"..."}
+GOOGLE_CALENDAR_TIMEZONE=Europe/Berlin
 ```
 
-### 3. Start the Services
+### 2. Start the services
 
 ```bash
-# Using Task (recommended)
-task up
-
-# Or using Docker Compose directly
-docker-compose up -d
-
-# View logs
-task logs
-# or
-docker-compose logs -f
-
-# Check service status
-task status
-# or
-docker-compose ps
+task up            # or: docker compose up -d
+task logs          # follow logs
+task status        # service status
 ```
 
-### 4. Test the Setup
+The Inference Gateway listens on `localhost:8080` and the agent's A2A
+endpoint on `localhost:8081`.
 
-#### Check Health Status
+### 3. Test the setup
 
 ```bash
-# Test Inference Gateway
-curl http://localhost:8080/health
+task health        # both health endpoints
+task agent-info    # the agent card from /.well-known/agent-card.json
+task test-agent    # one SendMessage request straight to the agent
+task test-gateway  # one chat completion through the gateway
 ```
 
-#### Get Agent Information
-
-Set on the Inference Gateway `A2A_EXPOSE=true` and bring up the containers.
-
-```bash
-curl http://localhost:8080/v1/a2a/agents
-```
-
-#### Test Chat Completions
-
-```bash
-# Test through Inference Gateway
-curl -X POST http://localhost:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "deepseek/deepseek-chat",
-    "messages": [
-      {
-        "role": "user",
-        "content": "List my events for today"
-      }
-    ]
-  }'
-```
+The prompt walkthroughs under [`../examples/`](../examples/) send their
+requests to `http://localhost:8080/a2a`. With this setup use port `8081`
+instead, since `8080` is the gateway.
 
 ## Available Tasks
-
-This example includes a Taskfile for easy management. Here are the available commands:
 
 ```bash
 # Service management
@@ -229,9 +176,8 @@ task clean-all          # Stop services and remove everything
 task pull               # Pull latest images
 
 # Modes
-task demo               # Start in demo mode
-task prod               # Start in production mode
-task debug              # Start with debug logging
+task demo               # Start in demo mode (mock calendar)
+task prod               # Start with ENVIRONMENT=production
 
 # Validation
 task validate-env       # Check environment configuration
@@ -239,69 +185,22 @@ task validate-env       # Check environment configuration
 
 ## Configuration Options
 
-### Google Calendar Configuration
+| Environment Variable          | Description                                        | Default              | Required |
+| ----------------------------- | -------------------------------------------------- | -------------------- | -------- |
+| `PROVIDER`                    | LLM provider the agent uses via the gateway        | `deepseek`           | No       |
+| `MODEL`                       | Model name for that provider                       | `deepseek-v4-flash`  | No       |
+| `<PROVIDER>_API_KEY`          | API key for the chosen provider (gateway side)     | -                    | Yes      |
+| `GOOGLE_CALENDAR_MOCK_MODE`   | Run without Google Calendar integration            | `false`              | No       |
+| `GOOGLE_CALENDAR_ID`          | Target calendar ID                                 | `primary`            | No       |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | Service account JSON (single line)                 | -                    | Yes\*    |
+| `GOOGLE_CALENDAR_TIMEZONE`    | Default timezone                                   | `Europe/Berlin`      | No       |
 
-| Environment Variable             | Description                             | Default   | Required |
-| -------------------------------- | --------------------------------------- | --------- | -------- |
-| `DEMO_MODE`                      | Run without Google Calendar integration | `false`   | No       |
-| `GOOGLE_CALENDAR_ID`             | Target calendar ID                      | `primary` | No       |
-| `GOOGLE_CALENDAR_SA_JSON`        | Service account JSON (single line)      | -         | Yes\*    |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Path to credentials file                | -         | Yes\*    |
-| `GOOGLE_CALENDAR_READ_ONLY`      | Read-only calendar access               | `false`   | No       |
-| `GOOGLE_CALENDAR_TIMEZONE`       | Default timezone                        | `UTC`     | No       |
+\* Required unless `GOOGLE_CALENDAR_MOCK_MODE=true`
 
-\* Required unless `DEMO_MODE=true`
-
-### Supported LLM Providers
-
-#### Groq (Recommended for Speed)
-
-```bash
-GROQ_API_KEY=your_groq_api_key
-LLM_PROVIDER=groq
-LLM_MODEL=deepseek-r1-distill-llama-70b
-```
-
-#### OpenAI
-
-```bash
-OPENAI_API_KEY=your_openai_api_key
-LLM_PROVIDER=openai
-LLM_MODEL=gpt-4o
-```
-
-#### Anthropic
-
-```bash
-ANTHROPIC_API_KEY=your_anthropic_api_key
-LLM_PROVIDER=anthropic
-LLM_MODEL=claude-3-opus-20240229
-```
-
-#### DeepSeek (Cost-Effective)
-
-```bash
-DEEPSEEK_API_KEY=your_deepseek_api_key
-LLM_PROVIDER=deepseek
-LLM_MODEL=deepseek-chat
-```
-
-#### Cohere
-
-```bash
-COHERE_API_KEY=your_cohere_api_key
-LLM_PROVIDER=cohere
-LLM_MODEL=command-r-plus
-```
-
-#### Cloudflare Workers AI
-
-```bash
-CLOUDFLARE_API_TOKEN=your_cloudflare_token
-CLOUDFLARE_ACCOUNT_ID=your_account_id
-LLM_PROVIDER=cloudflare
-LLM_MODEL=@cf/meta/llama-3.1-8b-instruct
-```
+Supported providers are the ones the gateway image accepts a key for:
+`anthropic`, `cloudflare`, `cohere`, `groq`, `openai`, `deepseek`,
+`google`, `mistral`. See [`../docs/configuration.md`](../docs/configuration.md)
+for every agent variable.
 
 ## Google Calendar Setup
 
@@ -313,7 +212,11 @@ LLM_MODEL=@cf/meta/llama-3.1-8b-instruct
 4. Create a Service Account
 5. Download the JSON credentials file
 6. Share your calendar with the service account email
-7. Set `GOOGLE_CALENDAR_SA_JSON` to the JSON content (single line)
+7. Set `GOOGLE_SERVICE_ACCOUNT_JSON` to the JSON content (single line)
+
+A service account cannot invite attendees unless your Workspace admin grants it
+domain-wide delegation. Without it, the agent books the event on the shared
+calendar and tells you to forward the invite yourself.
 
 ## API Usage Examples
 
@@ -324,7 +227,7 @@ LLM_MODEL=@cf/meta/llama-3.1-8b-instruct
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
@@ -341,7 +244,7 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
@@ -358,7 +261,7 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
@@ -375,7 +278,7 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek/deepseek-chat",
+    "model": "deepseek/deepseek-v4-flash",
     "messages": [
       {
         "role": "user",
@@ -446,18 +349,18 @@ removes the container on exit so each run starts fresh.
 
 ```bash
 # Check logs for errors
-docker-compose logs
+docker compose logs
 
 # Restart services
-docker-compose down
-docker-compose up -d
+docker compose down
+docker compose up -d
 ```
 
 #### Health Checks Failing
 
 ```bash
 # Check service status
-docker-compose ps
+docker compose ps
 
 # Test connectivity
 curl http://localhost:8080/health
@@ -489,27 +392,27 @@ SERVER_GIN_MODE=debug
 
 ```bash
 # All services
-docker-compose logs -f
+docker compose logs -f
 
 # Specific service
-docker-compose logs -f google-calendar-agent
-docker-compose logs -f inference-gateway
+docker compose logs -f google-calendar-agent
+docker compose logs -f inference-gateway
 
 # Last 100 lines
-docker-compose logs --tail=100
+docker compose logs --tail=100
 ```
 
 ## Cleanup
 
 ```bash
 # Stop services
-docker-compose down
+docker compose down
 
 # Remove volumes and networks
-docker-compose down -v
+docker compose down -v
 
 # Remove images (optional)
-docker-compose down --rmi all
+docker compose down --rmi all
 ```
 
 ## Security Considerations
