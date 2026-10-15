@@ -6,6 +6,7 @@ Ask "Schedule a 30-minute sync with alice@example.com tomorrow afternoon." The `
 
 - The agent is running (see [Setup](../../docs/setup.md))
 - Mock mode is enabled (`GOOGLE_CALENDAR_MOCK_MODE=true`) or real Google Calendar credentials are configured
+- To invite attendees with a service account, the account needs domain-wide delegation. Without it the agent books the event without guests and asks you to forward the invite.
 
 ## Example request
 
