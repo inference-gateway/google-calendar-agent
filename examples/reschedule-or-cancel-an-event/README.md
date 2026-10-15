@@ -129,6 +129,16 @@ After you confirm the deletion:
 }
 ```
 
+## Run it with Docker Compose
+
+The [Docker Compose example](../docker-compose/) starts the agent next to the
+Inference Gateway. From that directory, the same prompt goes through the
+a2a-debugger:
+
+```bash
+task debugger:submit -- "Move my 2 PM meeting to 3 PM"
+```
+
 ## Related tools
 
 - `list_calendar_events` — finds events matching a description or time range

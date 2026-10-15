@@ -105,6 +105,16 @@ curl -s http://localhost:8080/a2a \
   }' | jq .
 ```
 
+## Run it with Docker Compose
+
+The [Docker Compose example](../docker-compose/) starts the agent next to the
+Inference Gateway. From that directory, the same prompt goes through the
+a2a-debugger:
+
+```bash
+task debugger:submit -- "Find a free 1-hour slot on Thursday"
+```
+
 ## Related tools
 
 - `find_available_time` — the tool called to discover open slots

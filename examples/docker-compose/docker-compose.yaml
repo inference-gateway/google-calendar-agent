@@ -2,7 +2,7 @@
 services:
   google-calendar-agent:
     build:
-      context: ..
+      context: ../..
     environment:
       ENVIRONMENT: development
       A2A_AGENT_URL: http://google-calendar-agent:8080

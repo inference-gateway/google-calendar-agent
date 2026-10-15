@@ -87,6 +87,7 @@ infer agents add google-calendar-agent http://localhost:8080 \
 | [Schedule a conflict-free meeting](examples/schedule-a-conflict-free-meeting/) | Ask "Schedule a 30-minute sync with alice@example.com tomorrow afternoon." The schedule-meeting skill chains find_available_time, check_conflicts, and create_calendar_event to book a slot that does not overlap anything already on the calendar. |
 | [Find a free time slot](examples/find-a-free-time-slot/) | Ask "Find a free 1-hour slot on Thursday" and the agent uses find_available_time to propose open windows, anchoring "Thursday" to your timezone with get_current_datetime first. |
 | [Reschedule or cancel an event](examples/reschedule-or-cancel-an-event/) | Ask "Move my 2 PM meeting to 3 PM" or "Cancel my standup tomorrow"; the agent looks the event up with get_calendar_event and then calls update_calendar_event or delete_calendar_event. |
+| [Docker Compose](examples/docker-compose/) | Run the agent next to the Inference Gateway with Docker Compose, then drive it with the bundled a2a-debugger or the curl walkthroughs above. |
 
 ## Skills (loaded into the system prompt)
 
