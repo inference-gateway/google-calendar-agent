@@ -12,12 +12,12 @@ tasks:
   up:
     desc: Start all services using Docker Compose
     cmds:
-      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} up -d
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} up -d
 
   down:
     desc: Stop all services
     cmds:
-      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} down
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} down
 
   restart:
     desc: Restart all services
@@ -28,30 +28,30 @@ tasks:
   logs:
     desc: Show logs for all services
     cmds:
-      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} logs -f
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} logs -f
 
   logs-gateway:
     desc: Show logs for inference gateway
     cmds:
-      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} logs -f inference-gateway
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} logs -f inference-gateway
 
   logs-agent:
     desc: Show logs for calendar agent
     cmds:
-      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} logs -f google-calendar-agent
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} logs -f google-calendar-agent
 
   status:
     desc: Show status of all services
     cmds:
-      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} ps
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} ps
 
   health:
     desc: Check health of all services
     cmds:
       - echo "Checking Inference Gateway health..."
-      - curl -f http://localhost:8080/health || echo "Inference Gateway health check failed"
+      - curl -sf http://localhost:8080/health || echo "Inference Gateway health check failed"
       - echo "Checking Calendar Agent health..."
-      - curl -f http://localhost:8081/health || echo "Calendar Agent health check failed"
+      - curl -sf http://localhost:8081/health || echo "Calendar Agent health check failed"
 
   test-gateway:
     desc: Test Inference Gateway with a simple request
@@ -73,38 +73,45 @@ tasks:
     desc: Test Calendar Agent directly
     cmds:
       - |
-        curl -X POST http://localhost:8081/a2a \
+        curl -s -X POST http://localhost:8081/a2a \
           -H "Content-Type: application/json" \
           -d '{
-            "input": "List my events for today",
-            "input_mode": "text/plain",
-            "output_mode": "text/plain"
-          }'
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "SendMessage",
+            "params": {
+              "message": {
+                "messageId": "m-1",
+                "role": "ROLE_USER",
+                "parts": [{"text": "List my events for today"}]
+              }
+            }
+          }' | jq .
 
   agent-info:
     desc: Get agent information
     cmds:
-      - curl http://localhost:8081/.well-known/agent.json | jq
+      - curl -s http://localhost:8081/.well-known/agent-card.json | jq
 
   clean:
     desc: Stop services and remove volumes and networks
     cmds:
-      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} down -v
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} down -v
 
   clean-all:
     desc: Stop services and remove volumes, networks, and images
     cmds:
-      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} down -v --rmi all
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} down -v --rmi all
 
   pull:
     desc: Pull latest images
     cmds:
-      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} pull
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} pull
 
   build:
     desc: Build services (if using local builds)
     cmds:
-      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} build
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} build
 
   validate-env:
     desc: Validate environment configuration
@@ -115,7 +122,7 @@ tasks:
           exit 1
         fi
         echo "Environment file exists."
-        if grep -q "GROQ_API_KEY=" .env || grep -q "OPENAI_API_KEY=" .env || grep -q "ANTHROPIC_API_KEY=" .env; then
+        if grep -q -E "^(GROQ|OPENAI|ANTHROPIC|DEEPSEEK|GOOGLE|MISTRAL|COHERE|CLOUDFLARE)_API_KEY=" .env; then
           echo "LLM provider API key found."
         else
           echo "Warning: No LLM provider API key found. Please configure at least one provider in .env"
@@ -125,14 +132,12 @@ tasks:
     desc: Start in demo mode (no Google Calendar integration required)
     cmds:
       - |
-        GOOGLE_MOCK_MODE=true \
-        docker-compose -f {{.DOCKER_COMPOSE_FILE}} up
+        GOOGLE_CALENDAR_MOCK_MODE=true \
+        docker compose -f {{.DOCKER_COMPOSE_FILE}} up
 
   prod:
     desc: Start in production mode
     cmds:
       - |
-        APP_ENVIRONMENT=prod \
-        SERVER_GIN_MODE=release \
-        LOG_LEVEL=info \
-        docker-compose -f {{.DOCKER_COMPOSE_FILE}} up -d
+        ENVIRONMENT=production \
+        docker compose -f {{.DOCKER_COMPOSE_FILE}} up -d
