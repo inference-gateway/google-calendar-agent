@@ -20,7 +20,6 @@ Taskfile.yml linguist-generated=true
 .github/dependabot.yml linguist-generated=true
 
 # AI assistant documentation (generated)
-CLAUDE.md linguist-generated=true
 AGENTS.md linguist-generated=true
 .github/workflows/claude.yml linguist-generated=true
 .github/workflows/infer.yml linguist-generated=true
