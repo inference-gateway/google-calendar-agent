@@ -96,7 +96,7 @@ func (s *FindAvailableTimeTool) FindAvailableTimeHandler(ctx context.Context, ar
 
 	userLocation, _, _ := resolveTimezone()
 	loc := google.LocationOrDefault(calendarTimeZone, userLocation)
-	availableSlots := s.findAvailableSlots(startDate, endDate, time.Duration(duration)*time.Minute, existingEvents, loc)
+	availableSlots, truncated := s.findAvailableSlots(startDate, endDate, time.Duration(duration)*time.Minute, existingEvents, loc)
 
 	s.logger.Info("available time slots found", zap.Int("slotCount", len(availableSlots)))
 
@@ -113,6 +113,7 @@ func (s *FindAvailableTimeTool) FindAvailableTimeHandler(ctx context.Context, ar
 		"success":           true,
 		"availableSlots":    slots,
 		"slotCount":         len(slots),
+		"truncated":         truncated,
 		"requestedDuration": duration,
 		"searchRange": map[string]string{
 			"startDate": startDateStr,
@@ -135,55 +136,32 @@ type timeSlot struct {
 	duration  time.Duration
 }
 
-// findAvailableSlots finds available time slots between existing events, placing all-day events in loc.
-func (s *FindAvailableTimeTool) findAvailableSlots(startDate, endDate time.Time, duration time.Duration, events []*calendar.Event, loc *time.Location) []timeSlot {
+// maxAvailableSlots caps how many slots one call returns so a wide search window
+// does not flood the model. The response flags truncation so it can narrow the window.
+const maxAvailableSlots = 50
+
+// findAvailableSlots walks the gaps between busy periods inside [startDate, endDate)
+// and emits every consecutive slot of the requested duration, placing all-day events in loc.
+// The second result reports whether the cap cut the list short.
+func (s *FindAvailableTimeTool) findAvailableSlots(startDate, endDate time.Time, duration time.Duration, events []*calendar.Event, loc *time.Location) ([]timeSlot, bool) {
 	busyPeriods := mergeBusyPeriods(collectBusyPeriods(events, loc))
+	searchEnd := timeSlot{startTime: endDate, endTime: endDate}
 
-	var availableSlots []timeSlot
-
-	if len(busyPeriods) > 0 {
-		if busyPeriods[0].startTime.Sub(startDate) >= duration {
-			availableSlots = append(availableSlots, timeSlot{
-				startTime: startDate,
-				endTime:   startDate.Add(duration),
-				duration:  duration,
-			})
+	var slots []timeSlot
+	cursor := startDate
+	for _, period := range append(busyPeriods, searchEnd) {
+		for !cursor.Add(duration).After(period.startTime) {
+			if len(slots) == maxAvailableSlots {
+				return slots, true
+			}
+			slots = append(slots, timeSlot{startTime: cursor, endTime: cursor.Add(duration), duration: duration})
+			cursor = cursor.Add(duration)
 		}
-	} else {
-		availableSlots = append(availableSlots, timeSlot{
-			startTime: startDate,
-			endTime:   startDate.Add(duration),
-			duration:  duration,
-		})
-		return availableSlots
-	}
-
-	for i := 0; i < len(busyPeriods)-1; i++ {
-		gapStart := busyPeriods[i].endTime
-		gapEnd := busyPeriods[i+1].startTime
-		gapDuration := gapEnd.Sub(gapStart)
-
-		if gapDuration >= duration {
-			availableSlots = append(availableSlots, timeSlot{
-				startTime: gapStart,
-				endTime:   gapStart.Add(duration),
-				duration:  duration,
-			})
+		if period.endTime.After(cursor) {
+			cursor = period.endTime
 		}
 	}
-
-	if len(busyPeriods) > 0 {
-		lastEventEnd := busyPeriods[len(busyPeriods)-1].endTime
-		if endDate.Sub(lastEventEnd) >= duration {
-			availableSlots = append(availableSlots, timeSlot{
-				startTime: lastEventEnd,
-				endTime:   lastEventEnd.Add(duration),
-				duration:  duration,
-			})
-		}
-	}
-
-	return availableSlots
+	return slots, false
 }
 
 // collectBusyPeriods converts events into busy intervals, placing all-day events in loc.
