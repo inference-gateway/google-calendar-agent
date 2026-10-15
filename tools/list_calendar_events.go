@@ -108,7 +108,7 @@ func (s *ListCalendarEventsTool) ListCalendarEventsHandler(ctx context.Context, 
 	}
 
 	calendarID := s.google.GetCalendarID()
-	events, err := s.google.ListEvents(calendarID, timeMin, timeMax)
+	events, _, err := s.google.ListEvents(calendarID, timeMin, timeMax)
 	if err != nil {
 		s.logger.Error("failed to list calendar events", zap.Error(err))
 		return "", fmt.Errorf("failed to list calendar events: %w", err)

@@ -88,13 +88,15 @@ func (s *FindAvailableTimeTool) FindAvailableTimeHandler(ctx context.Context, ar
 	}
 
 	calendarID := s.google.GetCalendarID()
-	existingEvents, err := s.google.ListEvents(calendarID, startDate, endDate)
+	existingEvents, calendarTimeZone, err := s.google.ListEvents(calendarID, startDate, endDate)
 	if err != nil {
 		s.logger.Error("failed to list events for availability check", zap.Error(err))
 		return "", fmt.Errorf("failed to list events for availability check: %w", err)
 	}
 
-	availableSlots := s.findAvailableSlots(startDate, endDate, time.Duration(duration)*time.Minute, existingEvents)
+	userLocation, _, _ := resolveTimezone()
+	loc := google.LocationOrDefault(calendarTimeZone, userLocation)
+	availableSlots, truncated := s.findAvailableSlots(startDate, endDate, time.Duration(duration)*time.Minute, existingEvents, loc)
 
 	s.logger.Info("available time slots found", zap.Int("slotCount", len(availableSlots)))
 
@@ -111,6 +113,7 @@ func (s *FindAvailableTimeTool) FindAvailableTimeHandler(ctx context.Context, ar
 		"success":           true,
 		"availableSlots":    slots,
 		"slotCount":         len(slots),
+		"truncated":         truncated,
 		"requestedDuration": duration,
 		"searchRange": map[string]string{
 			"startDate": startDateStr,
@@ -133,89 +136,69 @@ type timeSlot struct {
 	duration  time.Duration
 }
 
-// findAvailableSlots finds available time slots between existing events
-func (s *FindAvailableTimeTool) findAvailableSlots(startDate, endDate time.Time, duration time.Duration, events []*calendar.Event) []timeSlot {
-	loc, _, _ := resolveTimezone()
+// maxAvailableSlots caps how many slots one call returns so a wide search window
+// does not flood the model. The response flags truncation so it can narrow the window.
+const maxAvailableSlots = 50
 
-	var busyPeriods []timeSlot
-	for _, event := range events {
-		if event.Start == nil || event.End == nil {
-			continue
-		}
+// findAvailableSlots walks the gaps between busy periods inside [startDate, endDate)
+// and emits every consecutive slot of the requested duration, placing all-day events in loc.
+// The second result reports whether the cap cut the list short.
+func (s *FindAvailableTimeTool) findAvailableSlots(startDate, endDate time.Time, duration time.Duration, events []*calendar.Event, loc *time.Location) ([]timeSlot, bool) {
+	busyPeriods := mergeBusyPeriods(collectBusyPeriods(events, loc))
+	searchEnd := timeSlot{startTime: endDate, endTime: endDate}
 
-		if event.Start.DateTime != "" {
-			eventStart, err1 := time.Parse(time.RFC3339, event.Start.DateTime)
-			eventEnd, err2 := time.Parse(time.RFC3339, event.End.DateTime)
-			if err1 == nil && err2 == nil {
-				busyPeriods = append(busyPeriods, timeSlot{
-					startTime: eventStart,
-					endTime:   eventEnd,
-					duration:  eventEnd.Sub(eventStart),
-				})
+	var slots []timeSlot
+	cursor := startDate
+	for _, period := range append(busyPeriods, searchEnd) {
+		for !cursor.Add(duration).After(period.startTime) {
+			if len(slots) == maxAvailableSlots {
+				return slots, true
 			}
-			continue
+			slots = append(slots, timeSlot{startTime: cursor, endTime: cursor.Add(duration), duration: duration})
+			cursor = cursor.Add(duration)
 		}
-
-		if event.Start.Date != "" && event.End.Date != "" {
-			startDay, err1 := time.ParseInLocation("2006-01-02", event.Start.Date, loc)
-			endDay, err2 := time.ParseInLocation("2006-01-02", event.End.Date, loc)
-			if err1 == nil && err2 == nil {
-				busyPeriods = append(busyPeriods, timeSlot{
-					startTime: startDay,
-					endTime:   endDay,
-					duration:  endDay.Sub(startDay),
-				})
-			}
+		if period.endTime.After(cursor) {
+			cursor = period.endTime
 		}
 	}
+	return slots, false
+}
 
+// collectBusyPeriods converts events into busy intervals, placing all-day events in loc.
+func collectBusyPeriods(events []*calendar.Event, loc *time.Location) []timeSlot {
+	var busyPeriods []timeSlot
+	for _, event := range events {
+		eventStart, eventEnd, ok := google.EventTimeRange(event, loc)
+		if !ok {
+			continue
+		}
+		busyPeriods = append(busyPeriods, timeSlot{
+			startTime: eventStart,
+			endTime:   eventEnd,
+			duration:  eventEnd.Sub(eventStart),
+		})
+	}
+	return busyPeriods
+}
+
+// mergeBusyPeriods sorts busy intervals and folds overlapping or touching ones together
+// so that a gap is only reported when no event covers it.
+func mergeBusyPeriods(busyPeriods []timeSlot) []timeSlot {
 	sort.Slice(busyPeriods, func(i, j int) bool {
 		return busyPeriods[i].startTime.Before(busyPeriods[j].startTime)
 	})
 
-	var availableSlots []timeSlot
-
-	if len(busyPeriods) > 0 {
-		if busyPeriods[0].startTime.Sub(startDate) >= duration {
-			availableSlots = append(availableSlots, timeSlot{
-				startTime: startDate,
-				endTime:   startDate.Add(duration),
-				duration:  duration,
-			})
+	var merged []timeSlot
+	for _, period := range busyPeriods {
+		last := len(merged) - 1
+		if last >= 0 && !period.startTime.After(merged[last].endTime) {
+			if period.endTime.After(merged[last].endTime) {
+				merged[last].endTime = period.endTime
+				merged[last].duration = merged[last].endTime.Sub(merged[last].startTime)
+			}
+			continue
 		}
-	} else {
-		availableSlots = append(availableSlots, timeSlot{
-			startTime: startDate,
-			endTime:   startDate.Add(duration),
-			duration:  duration,
-		})
-		return availableSlots
+		merged = append(merged, period)
 	}
-
-	for i := 0; i < len(busyPeriods)-1; i++ {
-		gapStart := busyPeriods[i].endTime
-		gapEnd := busyPeriods[i+1].startTime
-		gapDuration := gapEnd.Sub(gapStart)
-
-		if gapDuration >= duration {
-			availableSlots = append(availableSlots, timeSlot{
-				startTime: gapStart,
-				endTime:   gapStart.Add(duration),
-				duration:  duration,
-			})
-		}
-	}
-
-	if len(busyPeriods) > 0 {
-		lastEventEnd := busyPeriods[len(busyPeriods)-1].endTime
-		if endDate.Sub(lastEventEnd) >= duration {
-			availableSlots = append(availableSlots, timeSlot{
-				startTime: lastEventEnd,
-				endTime:   lastEventEnd.Add(duration),
-				duration:  duration,
-			})
-		}
-	}
-
-	return availableSlots
+	return merged
 }

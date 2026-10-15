@@ -87,13 +87,14 @@ func (s *CheckConflictsTool) CheckConflictsHandler(ctx context.Context, args map
 		conflictData := map[string]any{
 			"eventId": conflict.Id,
 			"summary": conflict.Summary,
+			"allDay":  google.IsAllDay(conflict),
 		}
 
 		if conflict.Start != nil {
-			conflictData["startTime"] = conflict.Start.DateTime
+			conflictData["startTime"] = google.EventDateTimeValue(conflict.Start)
 		}
 		if conflict.End != nil {
-			conflictData["endTime"] = conflict.End.DateTime
+			conflictData["endTime"] = google.EventDateTimeValue(conflict.End)
 		}
 		if conflict.Location != "" {
 			conflictData["location"] = conflict.Location

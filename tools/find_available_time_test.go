@@ -35,18 +35,62 @@ func TestFindAvailableTimeHandler(t *testing.T) {
 		startTime string
 		endTime   string
 	}
+	hourly := func(from string, n int) []slotExpect {
+		start, _ := time.Parse(time.RFC3339, from)
+		slots := make([]slotExpect, 0, n)
+		for i := 0; i < n; i++ {
+			t := start.Add(time.Duration(i) * time.Hour)
+			slots = append(slots, slotExpect{t.Format(time.RFC3339), t.Add(time.Hour).Format(time.RFC3339)})
+		}
+		return slots
+	}
 
 	tests := []struct {
-		name       string
-		args       map[string]any
-		events     []*calendar.Event
-		listErr    error
-		wantErr    bool
-		wantErrSub string
-		wantSlots  []slotExpect
+		name             string
+		args             map[string]any
+		events           []*calendar.Event
+		calendarTimeZone string
+		listErr          error
+		wantErr          bool
+		wantErrSub       string
+		wantSlots        []slotExpect
+		wantTruncated    bool
 	}{
 		{
-			name: "happy path with timed events emits before/between/after slots",
+			name: "a window wider than the cap is truncated",
+			args: map[string]any{
+				"startDate": "2026-05-20T00:00:00Z",
+				"endDate":   "2026-05-23T00:00:00Z",
+				"duration":  float64(60),
+			},
+			wantSlots:     hourly("2026-05-20T00:00:00Z", 50),
+			wantTruncated: true,
+		},
+		{
+			name: "all-day event is placed in the calendar time zone, not the user's",
+			args: map[string]any{
+				"startDate": "2026-05-23T02:00:00Z",
+				"endDate":   "2026-05-23T04:00:00Z",
+				"duration":  float64(60),
+			},
+			events:           []*calendar.Event{allDay("2026-05-23", "2026-05-24")},
+			calendarTimeZone: "America/New_York",
+			wantSlots:        hourly("2026-05-23T02:00:00Z", 2),
+		},
+		{
+			name: "cancelled recurring instance does not block a slot",
+			args: map[string]any{
+				"startDate": "2026-05-23T09:00:00Z",
+				"endDate":   "2026-05-23T11:00:00Z",
+				"duration":  float64(60),
+			},
+			events: []*calendar.Event{
+				{Id: "cancelled", Status: "cancelled", Start: &calendar.EventDateTime{DateTime: "2026-05-23T09:00:00Z"}, End: &calendar.EventDateTime{DateTime: "2026-05-23T10:00:00Z"}},
+			},
+			wantSlots: hourly("2026-05-23T09:00:00Z", 2),
+		},
+		{
+			name: "happy path with timed events emits every slot before/between/after",
 			args: map[string]any{
 				"startDate": "2026-05-23T09:00:00Z",
 				"endDate":   "2026-05-23T17:00:00Z",
@@ -56,11 +100,7 @@ func TestFindAvailableTimeHandler(t *testing.T) {
 				timed("2026-05-23T10:00:00Z", "2026-05-23T11:00:00Z"),
 				timed("2026-05-23T14:00:00Z", "2026-05-23T15:00:00Z"),
 			},
-			wantSlots: []slotExpect{
-				{"2026-05-23T09:00:00Z", "2026-05-23T10:00:00Z"},
-				{"2026-05-23T11:00:00Z", "2026-05-23T12:00:00Z"},
-				{"2026-05-23T15:00:00Z", "2026-05-23T16:00:00Z"},
-			},
+			wantSlots: append(append(hourly("2026-05-23T09:00:00Z", 1), hourly("2026-05-23T11:00:00Z", 3)...), hourly("2026-05-23T15:00:00Z", 2)...),
 		},
 		{
 			name: "events returned out of order are sorted before slot detection",
@@ -73,11 +113,7 @@ func TestFindAvailableTimeHandler(t *testing.T) {
 				timed("2026-05-23T14:00:00Z", "2026-05-23T15:00:00Z"),
 				timed("2026-05-23T10:00:00Z", "2026-05-23T11:00:00Z"),
 			},
-			wantSlots: []slotExpect{
-				{"2026-05-23T09:00:00Z", "2026-05-23T10:00:00Z"},
-				{"2026-05-23T11:00:00Z", "2026-05-23T12:00:00Z"},
-				{"2026-05-23T15:00:00Z", "2026-05-23T16:00:00Z"},
-			},
+			wantSlots: append(append(hourly("2026-05-23T09:00:00Z", 1), hourly("2026-05-23T11:00:00Z", 3)...), hourly("2026-05-23T15:00:00Z", 2)...),
 		},
 		{
 			name: "all-day event blocks the entire day",
@@ -101,10 +137,33 @@ func TestFindAvailableTimeHandler(t *testing.T) {
 			events: []*calendar.Event{
 				allDay("2026-05-23", "2026-05-24"),
 			},
-			wantSlots: []slotExpect{
-				{"2026-05-22T09:00:00Z", "2026-05-22T10:00:00Z"},
-				{"2026-05-24T00:00:00Z", "2026-05-24T01:00:00Z"},
+			wantSlots: append(hourly("2026-05-22T09:00:00Z", 15), hourly("2026-05-24T00:00:00Z", 17)...),
+		},
+		{
+			name: "timed event nested in an all-day event does not open a gap inside the day",
+			args: map[string]any{
+				"startDate": "2026-05-23T09:00:00Z",
+				"endDate":   "2026-05-24T03:00:00Z",
+				"duration":  float64(60),
 			},
+			events: []*calendar.Event{
+				allDay("2026-05-23", "2026-05-24"),
+				timed("2026-05-23T10:00:00Z", "2026-05-23T11:00:00Z"),
+			},
+			wantSlots: hourly("2026-05-24T00:00:00Z", 3),
+		},
+		{
+			name: "overlapping timed events are merged into one busy block",
+			args: map[string]any{
+				"startDate": "2026-05-23T09:00:00Z",
+				"endDate":   "2026-05-23T14:00:00Z",
+				"duration":  float64(60),
+			},
+			events: []*calendar.Event{
+				timed("2026-05-23T09:00:00Z", "2026-05-23T12:00:00Z"),
+				timed("2026-05-23T10:00:00Z", "2026-05-23T11:00:00Z"),
+			},
+			wantSlots: hourly("2026-05-23T12:00:00Z", 2),
 		},
 		{
 			name: "startDate falling inside a busy period skips the pre-slot",
@@ -116,9 +175,7 @@ func TestFindAvailableTimeHandler(t *testing.T) {
 			events: []*calendar.Event{
 				timed("2026-05-23T09:00:00Z", "2026-05-23T11:00:00Z"),
 			},
-			wantSlots: []slotExpect{
-				{"2026-05-23T11:00:00Z", "2026-05-23T12:00:00Z"},
-			},
+			wantSlots: hourly("2026-05-23T11:00:00Z", 6),
 		},
 		{
 			name: "back-to-back meetings leave no slots fitting the duration",
@@ -140,10 +197,8 @@ func TestFindAvailableTimeHandler(t *testing.T) {
 				"startDate": "2026-05-23T09:00:00Z",
 				"endDate":   "2026-05-23T11:00:00Z",
 			},
-			events: nil,
-			wantSlots: []slotExpect{
-				{"2026-05-23T09:00:00Z", "2026-05-23T10:00:00Z"},
-			},
+			events:    nil,
+			wantSlots: hourly("2026-05-23T09:00:00Z", 2),
 		},
 		{
 			name: "missing startDate returns error",
@@ -185,11 +240,11 @@ func TestFindAvailableTimeHandler(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			stub := &stubCalendarService{
-				listEventsFn: func(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, error) {
+				listEventsFn: func(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, string, error) {
 					if tc.listErr != nil {
-						return nil, tc.listErr
+						return nil, "", tc.listErr
 					}
-					return tc.events, nil
+					return tc.events, tc.calendarTimeZone, nil
 				},
 			}
 			tool := &FindAvailableTimeTool{logger: zap.NewNop(), google: stub}
@@ -211,6 +266,7 @@ func TestFindAvailableTimeHandler(t *testing.T) {
 			var parsed struct {
 				Success        bool             `json:"success"`
 				SlotCount      int              `json:"slotCount"`
+				Truncated      bool             `json:"truncated"`
 				AvailableSlots []map[string]any `json:"availableSlots"`
 			}
 			if err := json.Unmarshal([]byte(result), &parsed); err != nil {
@@ -219,6 +275,9 @@ func TestFindAvailableTimeHandler(t *testing.T) {
 
 			if !parsed.Success {
 				t.Errorf("success = false, want true")
+			}
+			if parsed.Truncated != tc.wantTruncated {
+				t.Errorf("truncated = %v, want %v", parsed.Truncated, tc.wantTruncated)
 			}
 			if got, want := parsed.SlotCount, len(tc.wantSlots); got != want {
 				t.Errorf("slotCount = %d, want %d (slots=%+v)", got, want, parsed.AvailableSlots)

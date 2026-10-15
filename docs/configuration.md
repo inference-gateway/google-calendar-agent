@@ -35,7 +35,7 @@ agent returns deterministic sample data — useful for demos and local testing.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `A2A_PORT` | Server port | `8080` |
+| `A2A_SERVER_PORT` | Server port | `8080` |
 | `A2A_DEBUG` | Enable debug logging | `false` |
 | `A2A_SERVER_READ_TIMEOUT` | HTTP read timeout | `120s` |
 | `A2A_SERVER_WRITE_TIMEOUT` | HTTP write timeout | `120s` |
