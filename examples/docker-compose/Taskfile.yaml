@@ -93,6 +93,26 @@ tasks:
     cmds:
       - curl -s http://localhost:8081/.well-known/agent-card.json | jq
 
+  debugger:card:
+    desc: Show the agent card through the a2a-debugger
+    cmds:
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} run --rm a2a-debugger agent-card
+
+  debugger:submit:
+    desc: 'Submit a prompt through the a2a-debugger (usage: task debugger:submit -- "Find a free 1-hour slot on Thursday")'
+    cmds:
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} run --rm a2a-debugger tasks submit {{.CLI_ARGS}}
+
+  debugger:tasks:
+    desc: List tasks the agent has processed
+    cmds:
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} run --rm a2a-debugger tasks list
+
+  debugger:history:
+    desc: 'Show the conversation for a context (usage: task debugger:history -- <context-id>)'
+    cmds:
+      - docker compose -f {{.DOCKER_COMPOSE_FILE}} run --rm a2a-debugger tasks history {{.CLI_ARGS}}
+
   clean:
     desc: Stop services and remove volumes and networks
     cmds:

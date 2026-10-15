@@ -107,7 +107,7 @@ docker compose run --rm a2a-debugger tasks history <context-id>
 ### 1. Configure the environment
 
 ```bash
-cd example
+cd examples/docker-compose
 cp .env.example .env
 ```
 
@@ -146,9 +146,25 @@ task test-agent    # one SendMessage request straight to the agent
 task test-gateway  # one chat completion through the gateway
 ```
 
-The prompt walkthroughs under [`../examples/`](../examples/) send their
+### 4. Talk to the agent with the a2a-debugger
+
+The [a2a-debugger](https://github.com/inference-gateway/a2a-debugger) ships
+in the compose file under the `manual` profile, so it only runs when asked:
+
+```bash
+task debugger:card                                            # agent card
+task debugger:submit -- "Find a free 1-hour slot on Thursday" # one prompt
+task debugger:tasks                                           # tasks seen so far
+task debugger:history -- <context-id>                         # full conversation
+```
+
+The sibling walkthroughs ([list events](../list-upcoming-events/),
+[find a free slot](../find-a-free-time-slot/),
+[schedule a meeting](../schedule-a-conflict-free-meeting/),
+[reschedule or cancel](../reschedule-or-cancel-an-event/)) send their curl
 requests to `http://localhost:8080/a2a`. With this setup use port `8081`
-instead, since `8080` is the gateway.
+instead, since `8080` is the gateway, or paste the same prompt into
+`task debugger:submit`.
 
 ## Available Tasks
 
@@ -169,6 +185,10 @@ task health             # Check health of all services
 task test-gateway       # Test Inference Gateway
 task test-agent         # Test Calendar Agent directly
 task agent-info         # Get agent information
+task debugger:card      # Agent card via a2a-debugger
+task debugger:submit    # Submit a prompt via a2a-debugger
+task debugger:tasks     # List processed tasks
+task debugger:history   # Conversation history for a context
 
 # Maintenance
 task clean              # Stop services and remove volumes
@@ -199,7 +219,7 @@ task validate-env       # Check environment configuration
 
 Supported providers are the ones the gateway image accepts a key for:
 `anthropic`, `cloudflare`, `cohere`, `groq`, `openai`, `deepseek`,
-`google`, `mistral`. See [`../docs/configuration.md`](../docs/configuration.md)
+`google`, `mistral`. See [`../../docs/configuration.md`](../../docs/configuration.md)
 for every agent variable.
 
 ## Google Calendar Setup
