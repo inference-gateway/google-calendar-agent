@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.20](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.19...v0.5.20) (2026-10-15)
+
+### ♻️ Improvements
+
+* **examples:** move the docker compose setup under examples and add a2a-debugger tasks ([#189](https://github.com/inference-gateway/google-calendar-agent/issues/189)) ([9e5dd66](https://github.com/inference-gateway/google-calendar-agent/commit/9e5dd66f475dbd13cc2803bef5ec9a012b51540d))
+
+### 🐛 Bug Fixes
+
+* **calendar:** handle all-day events, keep event time zones, paginate listings ([#187](https://github.com/inference-gateway/google-calendar-agent/issues/187)) ([c8eb1ad](https://github.com/inference-gateway/google-calendar-agent/commit/c8eb1ada3f90d5589a8d95f78352c042ff0c3513)), closes [#185](https://github.com/inference-gateway/google-calendar-agent/issues/185)
+* **example:** make the docker example runnable again ([#188](https://github.com/inference-gateway/google-calendar-agent/issues/188)) ([1511251](https://github.com/inference-gateway/google-calendar-agent/commit/1511251eeaf137b7c5c31116adde0386829b44a1))
+
+### 🔧 Miscellaneous
+
+* **deps:** bump ADL CLI v0.67.3 -> v0.67.4 ([#186](https://github.com/inference-gateway/google-calendar-agent/issues/186)) ([7206a4d](https://github.com/inference-gateway/google-calendar-agent/commit/7206a4de8ddbf4b5fd3af3f8580c6f45eae1cabb))
+* **flox:** refresh manifest.lock to match manifest.toml ([#190](https://github.com/inference-gateway/google-calendar-agent/issues/190)) ([e754016](https://github.com/inference-gateway/google-calendar-agent/commit/e754016beac935d3b149d7e61e9d5b80ff48d48b))
+
+### 🔨 Miscellaneous
+
+* **deps:** bump google.golang.org/api from 0.300.0 to 0.301.0 in the gomod group ([#183](https://github.com/inference-gateway/google-calendar-agent/issues/183)) ([26d4000](https://github.com/inference-gateway/google-calendar-agent/commit/26d400046317101e35cba06154b5164f987fa21b))
+
 ## [0.5.19](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.18...v0.5.19) (2026-10-08)
 
 ### 🔧 Miscellaneous
