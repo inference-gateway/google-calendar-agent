@@ -121,6 +121,16 @@ The message parts in this flow:
 }
 ```
 
+## Run it with Docker Compose
+
+The [Docker Compose example](../docker-compose/) starts the agent next to the
+Inference Gateway. From that directory, the same prompt goes through the
+a2a-debugger:
+
+```bash
+task debugger:submit -- "Schedule a 30-minute sync with alice@example.com tomorrow afternoon"
+```
+
 ## Related tools
 
 - `find_available_time` — discovers open slots in a date range

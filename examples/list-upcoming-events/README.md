@@ -105,6 +105,16 @@ curl -s http://localhost:8080/a2a \
   }' | jq .
 ```
 
+## Run it with Docker Compose
+
+The [Docker Compose example](../docker-compose/) starts the agent next to the
+Inference Gateway. From that directory, the same prompt goes through the
+a2a-debugger:
+
+```bash
+task debugger:submit -- "What's on my calendar this week?"
+```
+
 ## Related tools
 
 - `list_calendar_events` — the tool called to fetch events
