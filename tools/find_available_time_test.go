@@ -107,6 +107,36 @@ func TestFindAvailableTimeHandler(t *testing.T) {
 			},
 		},
 		{
+			name: "timed event nested in an all-day event does not open a gap inside the day",
+			args: map[string]any{
+				"startDate": "2026-05-23T09:00:00Z",
+				"endDate":   "2026-05-24T03:00:00Z",
+				"duration":  float64(60),
+			},
+			events: []*calendar.Event{
+				allDay("2026-05-23", "2026-05-24"),
+				timed("2026-05-23T10:00:00Z", "2026-05-23T11:00:00Z"),
+			},
+			wantSlots: []slotExpect{
+				{"2026-05-24T00:00:00Z", "2026-05-24T01:00:00Z"},
+			},
+		},
+		{
+			name: "overlapping timed events are merged into one busy block",
+			args: map[string]any{
+				"startDate": "2026-05-23T09:00:00Z",
+				"endDate":   "2026-05-23T14:00:00Z",
+				"duration":  float64(60),
+			},
+			events: []*calendar.Event{
+				timed("2026-05-23T09:00:00Z", "2026-05-23T12:00:00Z"),
+				timed("2026-05-23T10:00:00Z", "2026-05-23T11:00:00Z"),
+			},
+			wantSlots: []slotExpect{
+				{"2026-05-23T12:00:00Z", "2026-05-23T13:00:00Z"},
+			},
+		},
+		{
 			name: "startDate falling inside a busy period skips the pre-slot",
 			args: map[string]any{
 				"startDate": "2026-05-23T10:00:00Z",

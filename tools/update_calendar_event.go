@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	zap "go.uber.org/zap"
 	calendar "google.golang.org/api/calendar/v3"
@@ -36,7 +37,7 @@ func NewUpdateCalendarEventTool(logger *zap.Logger, google google.CalendarServic
 					"type":        "string",
 				},
 				"endTime": map[string]any{
-					"description": "End time in RFC3339 format. Optional.",
+					"description": "End time in RFC3339 format, or YYYY-MM-DD (exclusive) for an all-day event. Optional.",
 					"type":        "string",
 				},
 				"eventId": map[string]any{
@@ -48,7 +49,7 @@ func NewUpdateCalendarEventTool(logger *zap.Logger, google google.CalendarServic
 					"type":        "string",
 				},
 				"startTime": map[string]any{
-					"description": "Start time in RFC3339 format. Optional.",
+					"description": "Start time in RFC3339 format, or YYYY-MM-DD for an all-day event. Optional.",
 					"type":        "string",
 				},
 				"summary": map[string]any{
@@ -104,12 +105,18 @@ func (s *UpdateCalendarEventTool) UpdateCalendarEventHandler(ctx context.Context
 		existingEvent.Location = s
 	}
 
+	recurring := len(existingEvent.Recurrence) > 0
+
 	if v, exists := args["startTime"]; exists && v != nil {
 		s, ok := v.(string)
 		if !ok {
 			return "", fmt.Errorf("startTime must be a string, got %T", v)
 		}
-		existingEvent.Start = &calendar.EventDateTime{DateTime: s}
+		start, err := rescheduleEventDateTime(existingEvent.Start, s, recurring)
+		if err != nil {
+			return "", fmt.Errorf("invalid startTime: %w", err)
+		}
+		existingEvent.Start = start
 	}
 
 	if v, exists := args["endTime"]; exists && v != nil {
@@ -117,7 +124,15 @@ func (s *UpdateCalendarEventTool) UpdateCalendarEventHandler(ctx context.Context
 		if !ok {
 			return "", fmt.Errorf("endTime must be a string, got %T", v)
 		}
-		existingEvent.End = &calendar.EventDateTime{DateTime: s}
+		end, err := rescheduleEventDateTime(existingEvent.End, s, recurring)
+		if err != nil {
+			return "", fmt.Errorf("invalid endTime: %w", err)
+		}
+		existingEvent.End = end
+	}
+
+	if mixesAllDayAndTimed(existingEvent) {
+		return "", fmt.Errorf("startTime and endTime must both be dates (YYYY-MM-DD) for an all-day event or both be RFC3339 date-times for a timed event")
 	}
 
 	updatedEvent, err := s.google.UpdateEvent(calendarID, eventID, existingEvent)
@@ -134,8 +149,9 @@ func (s *UpdateCalendarEventTool) UpdateCalendarEventHandler(ctx context.Context
 		"success":   true,
 		"eventId":   updatedEvent.Id,
 		"summary":   updatedEvent.Summary,
-		"startTime": updatedEvent.Start.DateTime,
-		"endTime":   updatedEvent.End.DateTime,
+		"startTime": google.EventDateTimeValue(updatedEvent.Start),
+		"endTime":   google.EventDateTimeValue(updatedEvent.End),
+		"allDay":    google.IsAllDay(updatedEvent),
 		"htmlLink":  updatedEvent.HtmlLink,
 	}
 
@@ -152,4 +168,50 @@ func (s *UpdateCalendarEventTool) UpdateCalendarEventHandler(ctx context.Context
 	}
 
 	return string(resultJSON), nil
+}
+
+// rescheduleEventDateTime applies a new start or end value while keeping the existing time zone.
+// A YYYY-MM-DD value keeps or makes the boundary all-day, an RFC3339 value makes it timed.
+// Recurring events require a time zone, so one is filled from the user's zone when missing.
+func rescheduleEventDateTime(current *calendar.EventDateTime, value string, recurring bool) (*calendar.EventDateTime, error) {
+	updated := &calendar.EventDateTime{}
+	if current != nil {
+		*updated = *current
+	}
+
+	switch {
+	case isRFC3339(value):
+		updated.DateTime = value
+		updated.Date = ""
+	case isDate(value):
+		updated.Date = value
+		updated.DateTime = ""
+	default:
+		return nil, fmt.Errorf("%q is neither an RFC3339 date-time nor a YYYY-MM-DD date", value)
+	}
+
+	if recurring && updated.TimeZone == "" {
+		_, tzName, _ := resolveTimezone()
+		updated.TimeZone = tzName
+	}
+	return updated, nil
+}
+
+// mixesAllDayAndTimed reports whether one boundary is a date and the other a date-time,
+// which the Google Calendar API rejects.
+func mixesAllDayAndTimed(event *calendar.Event) bool {
+	if event.Start == nil || event.End == nil {
+		return false
+	}
+	return (event.Start.Date != "") != (event.End.Date != "")
+}
+
+func isRFC3339(value string) bool {
+	_, err := time.Parse(time.RFC3339, value)
+	return err == nil
+}
+
+func isDate(value string) bool {
+	_, err := time.Parse(google.DateLayout, value)
+	return err == nil
 }

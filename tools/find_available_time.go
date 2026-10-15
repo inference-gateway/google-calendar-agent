@@ -136,42 +136,7 @@ type timeSlot struct {
 // findAvailableSlots finds available time slots between existing events
 func (s *FindAvailableTimeTool) findAvailableSlots(startDate, endDate time.Time, duration time.Duration, events []*calendar.Event) []timeSlot {
 	loc, _, _ := resolveTimezone()
-
-	var busyPeriods []timeSlot
-	for _, event := range events {
-		if event.Start == nil || event.End == nil {
-			continue
-		}
-
-		if event.Start.DateTime != "" {
-			eventStart, err1 := time.Parse(time.RFC3339, event.Start.DateTime)
-			eventEnd, err2 := time.Parse(time.RFC3339, event.End.DateTime)
-			if err1 == nil && err2 == nil {
-				busyPeriods = append(busyPeriods, timeSlot{
-					startTime: eventStart,
-					endTime:   eventEnd,
-					duration:  eventEnd.Sub(eventStart),
-				})
-			}
-			continue
-		}
-
-		if event.Start.Date != "" && event.End.Date != "" {
-			startDay, err1 := time.ParseInLocation("2006-01-02", event.Start.Date, loc)
-			endDay, err2 := time.ParseInLocation("2006-01-02", event.End.Date, loc)
-			if err1 == nil && err2 == nil {
-				busyPeriods = append(busyPeriods, timeSlot{
-					startTime: startDay,
-					endTime:   endDay,
-					duration:  endDay.Sub(startDay),
-				})
-			}
-		}
-	}
-
-	sort.Slice(busyPeriods, func(i, j int) bool {
-		return busyPeriods[i].startTime.Before(busyPeriods[j].startTime)
-	})
+	busyPeriods := mergeBusyPeriods(collectBusyPeriods(events, loc))
 
 	var availableSlots []timeSlot
 
@@ -218,4 +183,43 @@ func (s *FindAvailableTimeTool) findAvailableSlots(startDate, endDate time.Time,
 	}
 
 	return availableSlots
+}
+
+// collectBusyPeriods converts events into busy intervals, placing all-day events in loc.
+func collectBusyPeriods(events []*calendar.Event, loc *time.Location) []timeSlot {
+	var busyPeriods []timeSlot
+	for _, event := range events {
+		eventStart, eventEnd, ok := google.EventTimeRange(event, loc)
+		if !ok {
+			continue
+		}
+		busyPeriods = append(busyPeriods, timeSlot{
+			startTime: eventStart,
+			endTime:   eventEnd,
+			duration:  eventEnd.Sub(eventStart),
+		})
+	}
+	return busyPeriods
+}
+
+// mergeBusyPeriods sorts busy intervals and folds overlapping or touching ones together
+// so that a gap is only reported when no event covers it.
+func mergeBusyPeriods(busyPeriods []timeSlot) []timeSlot {
+	sort.Slice(busyPeriods, func(i, j int) bool {
+		return busyPeriods[i].startTime.Before(busyPeriods[j].startTime)
+	})
+
+	var merged []timeSlot
+	for _, period := range busyPeriods {
+		last := len(merged) - 1
+		if last >= 0 && !period.startTime.After(merged[last].endTime) {
+			if period.endTime.After(merged[last].endTime) {
+				merged[last].endTime = period.endTime
+				merged[last].duration = merged[last].endTime.Sub(merged[last].startTime)
+			}
+			continue
+		}
+		merged = append(merged, period)
+	}
+	return merged
 }

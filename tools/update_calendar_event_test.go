@@ -147,6 +147,56 @@ func TestUpdateCalendarEventHandler(t *testing.T) {
 			wantEnd:     "2026-05-23T11:00:00Z",
 		},
 		{
+			name: "all-day event moved with dates stays all-day",
+			args: map[string]any{
+				"eventId":   "evt-1",
+				"startTime": "2026-05-25",
+				"endTime":   "2026-05-26",
+			},
+			getEventFn: func(calendarID, eventID string) (*calendar.Event, error) {
+				event := baseEvent()
+				event.Start = &calendar.EventDateTime{Date: "2026-05-23"}
+				event.End = &calendar.EventDateTime{Date: "2026-05-24"}
+				return event, nil
+			},
+			updateEventFn: func(calendarID, eventID string, event *calendar.Event) (*calendar.Event, error) {
+				if event.Start.DateTime != "" || event.End.DateTime != "" {
+					return nil, errors.New("all-day event was converted to a timed event")
+				}
+				return event, nil
+			},
+			wantSummary: "Original",
+			wantStart:   "2026-05-25",
+			wantEnd:     "2026-05-26",
+		},
+		{
+			name: "all-day event with only a timed start is rejected before the API call",
+			args: map[string]any{
+				"eventId":   "evt-1",
+				"startTime": "2026-05-23T10:00:00Z",
+			},
+			getEventFn: func(calendarID, eventID string) (*calendar.Event, error) {
+				event := baseEvent()
+				event.Start = &calendar.EventDateTime{Date: "2026-05-23"}
+				event.End = &calendar.EventDateTime{Date: "2026-05-24"}
+				return event, nil
+			},
+			wantErr:    true,
+			wantErrSub: "must both be dates",
+		},
+		{
+			name: "unparseable startTime is rejected",
+			args: map[string]any{
+				"eventId":   "evt-1",
+				"startTime": "tomorrow at noon",
+			},
+			getEventFn: func(calendarID, eventID string) (*calendar.Event, error) {
+				return baseEvent(), nil
+			},
+			wantErr:    true,
+			wantErrSub: "invalid startTime",
+		},
+		{
 			name:       "missing eventId returns error before any API call",
 			args:       map[string]any{},
 			wantErr:    true,
@@ -253,6 +303,57 @@ func TestUpdateCalendarEventHandler(t *testing.T) {
 			}
 			if got := parsed["success"]; got != true {
 				t.Errorf("success = %v, want true", got)
+			}
+		})
+	}
+}
+
+func TestUpdateCalendarEventHandlerPreservesTimeZone(t *testing.T) {
+	t.Setenv("GOOGLE_CALENDAR_TIMEZONE", "America/New_York")
+
+	tests := []struct {
+		name         string
+		recurrence   []string
+		timeZone     string
+		wantTimeZone string
+	}{
+		{"recurring event keeps its time zone", []string{"RRULE:FREQ=WEEKLY"}, "Europe/Berlin", "Europe/Berlin"},
+		{"single event keeps its custom time zone", nil, "Asia/Tokyo", "Asia/Tokyo"},
+		{"recurring event without time zone gets the user's zone", []string{"RRULE:FREQ=DAILY"}, "", "America/New_York"},
+		{"single event without time zone stays without one", nil, "", ""},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var sent *calendar.Event
+			stub := &stubCalendarService{
+				getEventFn: func(calendarID, eventID string) (*calendar.Event, error) {
+					return &calendar.Event{
+						Id:         eventID,
+						Recurrence: tc.recurrence,
+						Start:      &calendar.EventDateTime{DateTime: "2026-05-23T10:00:00+02:00", TimeZone: tc.timeZone},
+						End:        &calendar.EventDateTime{DateTime: "2026-05-23T11:00:00+02:00", TimeZone: tc.timeZone},
+					}, nil
+				},
+				updateEventFn: func(calendarID, eventID string, event *calendar.Event) (*calendar.Event, error) {
+					sent = event
+					return event, nil
+				},
+			}
+			tool := &UpdateCalendarEventTool{logger: zap.NewNop(), google: stub}
+			_, err := tool.UpdateCalendarEventHandler(context.Background(), map[string]any{
+				"eventId":   "evt-1",
+				"startTime": "2026-05-24T10:00:00+02:00",
+				"endTime":   "2026-05-24T11:00:00+02:00",
+			})
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if sent.Start.TimeZone != tc.wantTimeZone || sent.End.TimeZone != tc.wantTimeZone {
+				t.Errorf("time zones = %q/%q, want %q", sent.Start.TimeZone, sent.End.TimeZone, tc.wantTimeZone)
+			}
+			if sent.Start.DateTime != "2026-05-24T10:00:00+02:00" || sent.End.DateTime != "2026-05-24T11:00:00+02:00" {
+				t.Errorf("date-times = %q/%q, want the requested values", sent.Start.DateTime, sent.End.DateTime)
 			}
 		})
 	}

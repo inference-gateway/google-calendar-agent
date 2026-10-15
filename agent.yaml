@@ -113,10 +113,14 @@ spec:
             description: Event description. Optional.
           startTime:
             type: string
-            description: Start time in RFC3339 format. Optional.
+            description: >-
+              Start time in RFC3339 format, or YYYY-MM-DD for an all-day
+              event. Optional.
           endTime:
             type: string
-            description: End time in RFC3339 format. Optional.
+            description: >-
+              End time in RFC3339 format, or YYYY-MM-DD (exclusive) for an
+              all-day event. Optional.
           location:
             type: string
             description: Event location. Optional.
