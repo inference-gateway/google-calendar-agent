@@ -88,13 +88,15 @@ func (s *FindAvailableTimeTool) FindAvailableTimeHandler(ctx context.Context, ar
 	}
 
 	calendarID := s.google.GetCalendarID()
-	existingEvents, err := s.google.ListEvents(calendarID, startDate, endDate)
+	existingEvents, calendarTimeZone, err := s.google.ListEvents(calendarID, startDate, endDate)
 	if err != nil {
 		s.logger.Error("failed to list events for availability check", zap.Error(err))
 		return "", fmt.Errorf("failed to list events for availability check: %w", err)
 	}
 
-	availableSlots := s.findAvailableSlots(startDate, endDate, time.Duration(duration)*time.Minute, existingEvents)
+	userLocation, _, _ := resolveTimezone()
+	loc := google.LocationOrDefault(calendarTimeZone, userLocation)
+	availableSlots := s.findAvailableSlots(startDate, endDate, time.Duration(duration)*time.Minute, existingEvents, loc)
 
 	s.logger.Info("available time slots found", zap.Int("slotCount", len(availableSlots)))
 
@@ -133,9 +135,8 @@ type timeSlot struct {
 	duration  time.Duration
 }
 
-// findAvailableSlots finds available time slots between existing events
-func (s *FindAvailableTimeTool) findAvailableSlots(startDate, endDate time.Time, duration time.Duration, events []*calendar.Event) []timeSlot {
-	loc, _, _ := resolveTimezone()
+// findAvailableSlots finds available time slots between existing events, placing all-day events in loc.
+func (s *FindAvailableTimeTool) findAvailableSlots(startDate, endDate time.Time, duration time.Duration, events []*calendar.Event, loc *time.Location) []timeSlot {
 	busyPeriods := mergeBusyPeriods(collectBusyPeriods(events, loc))
 
 	var availableSlots []timeSlot

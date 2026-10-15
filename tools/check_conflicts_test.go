@@ -33,6 +33,8 @@ func TestCheckConflictsHandler(t *testing.T) {
 		wantHasConflicts bool
 		wantCount        int
 		wantFirstSummary string
+		wantFirstAllDay  bool
+		wantFirstStart   string
 	}{
 		{
 			name: "happy path with no conflicts",
@@ -54,6 +56,24 @@ func TestCheckConflictsHandler(t *testing.T) {
 			wantHasConflicts: true,
 			wantCount:        1,
 			wantFirstSummary: "Overlapping meeting",
+		},
+		{
+			name: "all-day conflict reports allDay and date values",
+			args: map[string]any{
+				"startTime": "2026-05-23T10:00:00Z",
+				"endTime":   "2026-05-23T11:00:00Z",
+			},
+			conflicts: []*calendar.Event{{
+				Id:      "holiday",
+				Summary: "Public holiday",
+				Start:   &calendar.EventDateTime{Date: "2026-05-23"},
+				End:     &calendar.EventDateTime{Date: "2026-05-24"},
+			}},
+			wantHasConflicts: true,
+			wantCount:        1,
+			wantFirstSummary: "Public holiday",
+			wantFirstAllDay:  true,
+			wantFirstStart:   "2026-05-23",
 		},
 		{
 			name:       "missing startTime returns error",
@@ -142,8 +162,15 @@ func TestCheckConflictsHandler(t *testing.T) {
 				t.Errorf("conflictCount = %d, want %d", parsed.ConflictCount, tc.wantCount)
 			}
 			if tc.wantFirstSummary != "" && len(parsed.Conflicts) > 0 {
-				if parsed.Conflicts[0]["summary"] != tc.wantFirstSummary {
-					t.Errorf("conflicts[0].summary = %v, want %v", parsed.Conflicts[0]["summary"], tc.wantFirstSummary)
+				first := parsed.Conflicts[0]
+				if first["summary"] != tc.wantFirstSummary {
+					t.Errorf("conflicts[0].summary = %v, want %v", first["summary"], tc.wantFirstSummary)
+				}
+				if first["allDay"] != tc.wantFirstAllDay {
+					t.Errorf("conflicts[0].allDay = %v, want %v", first["allDay"], tc.wantFirstAllDay)
+				}
+				if tc.wantFirstStart != "" && first["startTime"] != tc.wantFirstStart {
+					t.Errorf("conflicts[0].startTime = %v, want %v", first["startTime"], tc.wantFirstStart)
 				}
 			}
 		})

@@ -133,13 +133,13 @@ func TestListCalendarEventsHandler(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var capturedTimeMin, capturedTimeMax time.Time
 			stub := &stubCalendarService{
-				listEventsFn: func(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, error) {
+				listEventsFn: func(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, string, error) {
 					capturedTimeMin = timeMin
 					capturedTimeMax = timeMax
 					if tc.listErr != nil {
-						return nil, tc.listErr
+						return nil, "", tc.listErr
 					}
-					return tc.events, nil
+					return tc.events, "", nil
 				},
 			}
 			tool := &ListCalendarEventsTool{logger: zap.NewNop(), google: stub}

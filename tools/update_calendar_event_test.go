@@ -21,7 +21,7 @@ type stubCalendarService struct {
 	updateEventFn    func(calendarID, eventID string, event *calendar.Event) (*calendar.Event, error)
 	createEventFn    func(calendarID string, event *calendar.Event) (*calendar.Event, error)
 	deleteEventFn    func(calendarID, eventID string) error
-	listEventsFn     func(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, error)
+	listEventsFn     func(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, string, error)
 	checkConflictsFn func(calendarID string, startTime, endTime time.Time) ([]*calendar.Event, error)
 	listCalendarsFn  func() ([]*calendar.CalendarListEntry, error)
 	calendarID       string
@@ -29,9 +29,9 @@ type stubCalendarService struct {
 
 var _ google.CalendarService = (*stubCalendarService)(nil)
 
-func (s *stubCalendarService) ListEvents(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, error) {
+func (s *stubCalendarService) ListEvents(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, string, error) {
 	if s.listEventsFn == nil {
-		return nil, errors.New("ListEvents unexpectedly called")
+		return nil, "", errors.New("ListEvents unexpectedly called")
 	}
 	return s.listEventsFn(calendarID, timeMin, timeMax)
 }

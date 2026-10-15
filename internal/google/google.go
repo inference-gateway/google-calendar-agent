@@ -14,7 +14,7 @@ import (
 // CalendarService represents the google dependency interface
 // Google Calendar API service for managing calendar events
 type CalendarService interface {
-	ListEvents(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, error)
+	ListEvents(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, string, error)
 	CreateEvent(calendarID string, event *calendar.Event) (*calendar.Event, error)
 	UpdateEvent(calendarID, eventID string, event *calendar.Event) (*calendar.Event, error)
 	DeleteEvent(calendarID, eventID string) error
@@ -107,8 +107,10 @@ func (g *CalendarServiceImpl) CreateEvent(calendarID string, event *calendar.Eve
 	return createdEvent, nil
 }
 
-// ListEvents lists the events in the calendar
-func (g *CalendarServiceImpl) ListEvents(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, error) {
+// ListEvents lists the events in the calendar and returns the calendar's IANA time zone.
+// A bounded window reads every page. An unbounded window reads a single page on purpose,
+// since following nextPageToken without a timeMax would walk the calendar's entire future.
+func (g *CalendarServiceImpl) ListEvents(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, string, error) {
 	g.logger.Debug("listing events",
 		zap.String("component", "google-calendar-service"),
 		zap.String("operation", "list-events"),
@@ -122,26 +124,28 @@ func (g *CalendarServiceImpl) ListEvents(calendarID string, timeMin, timeMax tim
 		OrderBy("startTime")
 
 	var items []*calendar.Event
+	var timeZone string
 	var err error
 	if timeMax.IsZero() {
 		var events *calendar.Events
 		events, err = call.Do()
 		if events != nil {
 			items = events.Items
+			timeZone = events.TimeZone
 		}
 	} else {
-		items, _, err = collectAllEvents(call.TimeMax(timeMax.Format(time.RFC3339)))
+		items, timeZone, err = collectAllEvents(call.TimeMax(timeMax.Format(time.RFC3339)))
 	}
 	if err != nil {
 		g.logger.Error("failed to list events",
 			zap.String("component", "google-calendar-service"),
 			zap.String("operation", "list-events"),
 			zap.Error(err))
-		return nil, fmt.Errorf("unable to list events: %w", err)
+		return nil, "", fmt.Errorf("unable to list events: %w", err)
 	}
 
 	g.logger.Debug("Successfully listed events", zap.Int("count", len(items)))
-	return items, nil
+	return items, timeZone, nil
 }
 
 // collectAllEvents follows nextPageToken until every page of a bounded listing is read.
@@ -162,8 +166,9 @@ func collectAllEvents(call *calendar.EventsListCall) ([]*calendar.Event, string,
 // EventTimeRange returns the start and end instants of an event.
 // Timed events use start.dateTime/end.dateTime. All-day events use start.date/end.date
 // interpreted as midnight in loc, matching how Google Calendar blocks the whole day.
+// Cancelled events (deleted instances of a recurring series) occupy no time and report false.
 func EventTimeRange(event *calendar.Event, loc *time.Location) (time.Time, time.Time, bool) {
-	if event == nil || event.Start == nil || event.End == nil {
+	if event == nil || event.Start == nil || event.End == nil || event.Status == "cancelled" {
 		return time.Time{}, time.Time{}, false
 	}
 	start, startOK := parseEventDateTime(event.Start, loc)
@@ -311,7 +316,8 @@ func (g *CalendarServiceImpl) CheckConflicts(calendarID string, startTime, endTi
 		return nil, fmt.Errorf("unable to check conflicts: %w", err)
 	}
 
-	conflicts := overlappingEvents(items, startTime, endTime, locationOrDefault(calendarTimeZone, startTime.Location()))
+	fallback := LocationOrDefault(g.config.GoogleCalendar.Timezone, time.UTC)
+	conflicts := overlappingEvents(items, startTime, endTime, LocationOrDefault(calendarTimeZone, fallback))
 
 	g.logger.Debug("Successfully checked conflicts", zap.Int("conflictCount", len(conflicts)))
 	return conflicts, nil
@@ -330,8 +336,8 @@ func overlappingEvents(events []*calendar.Event, startTime, endTime time.Time, l
 	return conflicts
 }
 
-// locationOrDefault loads the named IANA time zone, falling back when the name is empty or unknown.
-func locationOrDefault(name string, fallback *time.Location) *time.Location {
+// LocationOrDefault loads the named IANA time zone, falling back when the name is empty or unknown.
+func LocationOrDefault(name string, fallback *time.Location) *time.Location {
 	if name == "" {
 		return fallback
 	}
@@ -375,8 +381,9 @@ func (m *MockCalendarService) CreateEvent(calendarID string, event *calendar.Eve
 }
 
 // Implement other mock methods...
-func (m *MockCalendarService) ListEvents(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, error) {
+func (m *MockCalendarService) ListEvents(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, string, error) {
 	m.logger.Debug("Mock: listing events", zap.String("calendarID", calendarID))
+	const mockTimeZone = "UTC"
 
 	events := []*calendar.Event{
 		{
@@ -409,7 +416,7 @@ func (m *MockCalendarService) ListEvents(calendarID string, timeMin, timeMax tim
 		},
 	}
 
-	return events, nil
+	return events, mockTimeZone, nil
 }
 func (m *MockCalendarService) UpdateEvent(calendarID, eventID string, event *calendar.Event) (*calendar.Event, error) {
 	m.logger.Debug("Mock: updating event", zap.String("eventId", eventID), zap.String("summary", event.Summary))

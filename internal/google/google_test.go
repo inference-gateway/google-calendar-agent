@@ -100,6 +100,17 @@ func TestCheckConflicts(t *testing.T) {
 			wantIDs: []string{"second"},
 		},
 		{
+			name: "cancelled recurring instance is not a conflict",
+			pages: map[string]*calendar.Events{
+				"": {TimeZone: "UTC", Items: []*calendar.Event{
+					{Id: "cancelled", Status: "cancelled", Start: &calendar.EventDateTime{DateTime: "2026-05-23T10:00:00Z"}, End: &calendar.EventDateTime{DateTime: "2026-05-23T11:00:00Z"}},
+				}},
+			},
+			start:   "2026-05-23T10:00:00Z",
+			end:     "2026-05-23T11:00:00Z",
+			wantIDs: []string{},
+		},
+		{
 			name: "touching events are not conflicts",
 			pages: map[string]*calendar.Events{
 				"": {TimeZone: "UTC", Items: []*calendar.Event{timedEvent("before", "2026-05-23T09:00:00Z", "2026-05-23T10:00:00Z")}},
@@ -135,16 +146,19 @@ func TestCheckConflicts(t *testing.T) {
 
 func TestListEventsPagination(t *testing.T) {
 	pages := map[string]*calendar.Events{
-		"":      {NextPageToken: "page2", Items: []*calendar.Event{timedEvent("first", "2026-05-23T08:00:00Z", "2026-05-23T09:00:00Z")}},
+		"":      {TimeZone: "Europe/Berlin", NextPageToken: "page2", Items: []*calendar.Event{timedEvent("first", "2026-05-23T08:00:00Z", "2026-05-23T09:00:00Z")}},
 		"page2": {Items: []*calendar.Event{timedEvent("second", "2026-05-23T10:00:00Z", "2026-05-23T11:00:00Z")}},
 	}
 	timeMin, _ := time.Parse(time.RFC3339, "2026-05-23T00:00:00Z")
 
 	t.Run("bounded window reads every page", func(t *testing.T) {
 		svc, requests := newTestService(t, pages)
-		events, err := svc.ListEvents("primary", timeMin, timeMin.Add(24*time.Hour))
+		events, timeZone, err := svc.ListEvents("primary", timeMin, timeMin.Add(24*time.Hour))
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
+		}
+		if timeZone != "Europe/Berlin" {
+			t.Errorf("timeZone = %q, want Europe/Berlin", timeZone)
 		}
 		if len(events) != 2 || *requests != 2 {
 			t.Errorf("events = %v after %d requests, want 2 events after 2 requests", eventIDs(events), *requests)
@@ -153,7 +167,7 @@ func TestListEventsPagination(t *testing.T) {
 
 	t.Run("unbounded window reads a single page", func(t *testing.T) {
 		svc, requests := newTestService(t, pages)
-		events, err := svc.ListEvents("primary", timeMin, time.Time{})
+		events, _, err := svc.ListEvents("primary", timeMin, time.Time{})
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}

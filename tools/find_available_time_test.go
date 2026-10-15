@@ -37,14 +37,42 @@ func TestFindAvailableTimeHandler(t *testing.T) {
 	}
 
 	tests := []struct {
-		name       string
-		args       map[string]any
-		events     []*calendar.Event
-		listErr    error
-		wantErr    bool
-		wantErrSub string
-		wantSlots  []slotExpect
+		name             string
+		args             map[string]any
+		events           []*calendar.Event
+		calendarTimeZone string
+		listErr          error
+		wantErr          bool
+		wantErrSub       string
+		wantSlots        []slotExpect
 	}{
+		{
+			name: "all-day event is placed in the calendar time zone, not the user's",
+			args: map[string]any{
+				"startDate": "2026-05-23T02:00:00Z",
+				"endDate":   "2026-05-23T04:00:00Z",
+				"duration":  float64(60),
+			},
+			events:           []*calendar.Event{allDay("2026-05-23", "2026-05-24")},
+			calendarTimeZone: "America/New_York",
+			wantSlots: []slotExpect{
+				{"2026-05-23T02:00:00Z", "2026-05-23T03:00:00Z"},
+			},
+		},
+		{
+			name: "cancelled recurring instance does not block a slot",
+			args: map[string]any{
+				"startDate": "2026-05-23T09:00:00Z",
+				"endDate":   "2026-05-23T11:00:00Z",
+				"duration":  float64(60),
+			},
+			events: []*calendar.Event{
+				{Id: "cancelled", Status: "cancelled", Start: &calendar.EventDateTime{DateTime: "2026-05-23T09:00:00Z"}, End: &calendar.EventDateTime{DateTime: "2026-05-23T10:00:00Z"}},
+			},
+			wantSlots: []slotExpect{
+				{"2026-05-23T09:00:00Z", "2026-05-23T10:00:00Z"},
+			},
+		},
 		{
 			name: "happy path with timed events emits before/between/after slots",
 			args: map[string]any{
@@ -215,11 +243,11 @@ func TestFindAvailableTimeHandler(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			stub := &stubCalendarService{
-				listEventsFn: func(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, error) {
+				listEventsFn: func(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, string, error) {
 					if tc.listErr != nil {
-						return nil, tc.listErr
+						return nil, "", tc.listErr
 					}
-					return tc.events, nil
+					return tc.events, tc.calendarTimeZone, nil
 				},
 			}
 			tool := &FindAvailableTimeTool{logger: zap.NewNop(), google: stub}
