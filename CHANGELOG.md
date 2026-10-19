@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.22](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.21...v0.5.22) (2026-10-19)
+
+### 🐛 Bug Fixes
+
+* set event time zone on create and drop calendar ID from debug logs ([#195](https://github.com/inference-gateway/google-calendar-agent/issues/195)) ([cfeb8e4](https://github.com/inference-gateway/google-calendar-agent/commit/cfeb8e47071bf7c1905096b436ed21efb7d5a3eb)), closes [#194](https://github.com/inference-gateway/google-calendar-agent/issues/194)
+
+### 🔧 Miscellaneous
+
+* **deps:** bump ADL CLI v0.68.0 -> v0.68.1 ([#192](https://github.com/inference-gateway/google-calendar-agent/issues/192)) ([1087bc4](https://github.com/inference-gateway/google-calendar-agent/commit/1087bc4a731567a26f26771fa1acb80f36fa981c))
+* remove CLAUDE.md file ([#193](https://github.com/inference-gateway/google-calendar-agent/issues/193)) ([57ced60](https://github.com/inference-gateway/google-calendar-agent/commit/57ced603bb2e4e72703230b08df9cec4aa3ad784))
+
 ## [0.5.21](https://github.com/inference-gateway/google-calendar-agent/compare/v0.5.20...v0.5.21) (2026-10-15)
 
 ### 🔧 Miscellaneous
