@@ -91,7 +91,6 @@ func (g *CalendarServiceImpl) CreateEvent(calendarID string, event *calendar.Eve
 	g.logger.Debug("creating event",
 		zap.String("component", "google-calendar-service"),
 		zap.String("operation", "create-event"),
-		zap.String("calendarID", calendarID),
 		zap.String("summary", event.Summary))
 
 	createdEvent, err := g.service.Events.Insert(calendarID, event).Do()
@@ -114,7 +113,6 @@ func (g *CalendarServiceImpl) ListEvents(calendarID string, timeMin, timeMax tim
 	g.logger.Debug("listing events",
 		zap.String("component", "google-calendar-service"),
 		zap.String("operation", "list-events"),
-		zap.String("calendarID", calendarID),
 		zap.Time("timeMin", timeMin),
 		zap.Time("timeMax", timeMax))
 
@@ -213,7 +211,6 @@ func (g *CalendarServiceImpl) UpdateEvent(calendarID, eventID string, event *cal
 	g.logger.Debug("updating event",
 		zap.String("component", "google-calendar-service"),
 		zap.String("operation", "update-event"),
-		zap.String("calendarID", calendarID),
 		zap.String("eventID", eventID),
 		zap.String("summary", event.Summary))
 
@@ -236,7 +233,6 @@ func (g *CalendarServiceImpl) DeleteEvent(calendarID, eventID string) error {
 	g.logger.Debug("deleting event",
 		zap.String("component", "google-calendar-service"),
 		zap.String("operation", "delete-event"),
-		zap.String("calendarID", calendarID),
 		zap.String("eventID", eventID))
 
 	err := g.service.Events.Delete(calendarID, eventID).Do()
@@ -258,7 +254,6 @@ func (g *CalendarServiceImpl) GetEvent(calendarID, eventID string) (*calendar.Ev
 	g.logger.Debug("getting event",
 		zap.String("component", "google-calendar-service"),
 		zap.String("operation", "get-event"),
-		zap.String("calendarID", calendarID),
 		zap.String("eventID", eventID))
 
 	event, err := g.service.Events.Get(calendarID, eventID).Do()
@@ -299,7 +294,6 @@ func (g *CalendarServiceImpl) CheckConflicts(calendarID string, startTime, endTi
 	g.logger.Debug("checking conflicts",
 		zap.String("component", "google-calendar-service"),
 		zap.String("operation", "check-conflicts"),
-		zap.String("calendarID", calendarID),
 		zap.Time("startTime", startTime),
 		zap.Time("endTime", endTime))
 
@@ -382,7 +376,7 @@ func (m *MockCalendarService) CreateEvent(calendarID string, event *calendar.Eve
 
 // Implement other mock methods...
 func (m *MockCalendarService) ListEvents(calendarID string, timeMin, timeMax time.Time) ([]*calendar.Event, string, error) {
-	m.logger.Debug("Mock: listing events", zap.String("calendarID", calendarID))
+	m.logger.Debug("Mock: listing events")
 	const mockTimeZone = "UTC"
 
 	events := []*calendar.Event{
@@ -452,7 +446,6 @@ func (m *MockCalendarService) ListCalendars() ([]*calendar.CalendarListEntry, er
 }
 func (m *MockCalendarService) CheckConflicts(calendarID string, startTime, endTime time.Time) ([]*calendar.Event, error) {
 	m.logger.Debug("Mock: checking conflicts",
-		zap.String("calendarID", calendarID),
 		zap.Time("startTime", startTime),
 		zap.Time("endTime", endTime))
 

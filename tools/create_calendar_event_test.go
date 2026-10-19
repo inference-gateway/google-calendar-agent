@@ -174,3 +174,41 @@ func TestCreateCalendarEventHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateCalendarEventHandlerSetsTimeZone(t *testing.T) {
+	tests := []struct {
+		name         string
+		gctz         string
+		tz           string
+		wantTimeZone string
+	}{
+		{"GOOGLE_CALENDAR_TIMEZONE is applied", "Europe/Madrid", "America/Los_Angeles", "Europe/Madrid"},
+		{"TZ is applied when GOOGLE_CALENDAR_TIMEZONE is unset", "", "America/Los_Angeles", "America/Los_Angeles"},
+		{"UTC when no time zone is configured", "", "", "UTC"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("GOOGLE_CALENDAR_TIMEZONE", tc.gctz)
+			t.Setenv("TZ", tc.tz)
+
+			var sent *calendar.Event
+			stub := &stubCalendarService{createEventFn: func(calendarID string, event *calendar.Event) (*calendar.Event, error) {
+				sent = event
+				return event, nil
+			}}
+			tool := &CreateCalendarEventTool{logger: zap.NewNop(), google: stub}
+			_, err := tool.CreateCalendarEventHandler(context.Background(), map[string]any{
+				"summary":   "Standup",
+				"startTime": "2026-05-23T10:00:00+02:00",
+				"endTime":   "2026-05-23T10:30:00+02:00",
+			})
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if sent.Start.TimeZone != tc.wantTimeZone || sent.End.TimeZone != tc.wantTimeZone {
+				t.Errorf("time zones = %q/%q, want %q", sent.Start.TimeZone, sent.End.TimeZone, tc.wantTimeZone)
+			}
+		})
+	}
+}
