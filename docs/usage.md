@@ -31,6 +31,10 @@ then emits RFC3339 timestamps with the correct offset. Set
 `GOOGLE_CALENDAR_TIMEZONE` (see [Configuration](configuration.md)) to control
 the default when a request does not name a timezone.
 
+`create_calendar_event` also stores the same timezone on the new event's start
+and end. Clients then show the event in that zone, and any recurrence added
+later expands in local time instead of UTC.
+
 ## schedule-meeting skill
 
 When you ask to book a meeting, the agent loads the `schedule-meeting`

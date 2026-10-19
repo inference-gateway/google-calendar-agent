@@ -113,15 +113,18 @@ func (s *CreateCalendarEventTool) CreateCalendarEventHandler(ctx context.Context
 		}
 	}
 
+	_, timeZone, _ := resolveTimezone()
 	event := &calendar.Event{
 		Summary:     summary,
 		Description: description,
 		Location:    location,
 		Start: &calendar.EventDateTime{
 			DateTime: startTime,
+			TimeZone: timeZone,
 		},
 		End: &calendar.EventDateTime{
 			DateTime: endTime,
+			TimeZone: timeZone,
 		},
 	}
 
