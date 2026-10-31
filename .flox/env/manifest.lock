@@ -4,7 +4,7 @@
     "schema-version": "1.15.0",
     "install": {
       "adl": {
-        "flake": "github:inference-gateway/adl-cli/v0.68.3"
+        "flake": "github:inference-gateway/adl-cli/v0.68.4"
       },
       "claude-code": {
         "pkg-path": "claude-code",
@@ -45,96 +45,6 @@
     "options": {}
   },
   "packages": [
-    {
-      "attr_path": "go",
-      "broken": false,
-      "derivation": "/nix/store/hw9s3y4ggwn2mnr4dpnlr3pzlq6pfc3d-go-1.26.8.drv",
-      "description": "Go Programming language",
-      "install_id": "go",
-      "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=c59305bab2065cfecc4944690d9eedbb56f3a9fa",
-      "name": "go-1.26.8",
-      "pname": "go",
-      "rev": "c59305bab2065cfecc4944690d9eedbb56f3a9fa",
-      "rev_count": 1083223,
-      "rev_date": "2026-10-01T02:47:39Z",
-      "scrape_date": "2026-10-02T04:59:41.159239Z",
-      "stabilities": [
-        "staging",
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "1.26.8",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "out": "/nix/store/isqxa82c7f65sbhi51npr0547yz87bh5-go-1.26.8"
-      },
-      "system": "aarch64-darwin",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "go",
-      "broken": false,
-      "derivation": "/nix/store/mvzy81jgrz380qa717xzvl3k8a978shb-go-1.26.8.drv",
-      "description": "Go Programming language",
-      "install_id": "go",
-      "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=c59305bab2065cfecc4944690d9eedbb56f3a9fa",
-      "name": "go-1.26.8",
-      "pname": "go",
-      "rev": "c59305bab2065cfecc4944690d9eedbb56f3a9fa",
-      "rev_count": 1083223,
-      "rev_date": "2026-10-01T02:47:39Z",
-      "scrape_date": "2026-10-02T05:33:11.003350Z",
-      "stabilities": [
-        "staging",
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "1.26.8",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "out": "/nix/store/3677bfwiaibp0fs0dxijmn8bsmkx31vx-go-1.26.8"
-      },
-      "system": "aarch64-linux",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "go",
-      "broken": false,
-      "derivation": "/nix/store/x0zllw4xw2cdql7jvzqdjhibgavvl7d9-go-1.26.8.drv",
-      "description": "Go Programming language",
-      "install_id": "go",
-      "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=c59305bab2065cfecc4944690d9eedbb56f3a9fa",
-      "name": "go-1.26.8",
-      "pname": "go",
-      "rev": "c59305bab2065cfecc4944690d9eedbb56f3a9fa",
-      "rev_count": 1083223,
-      "rev_date": "2026-10-01T02:47:39Z",
-      "scrape_date": "2026-10-02T06:09:44.595100Z",
-      "stabilities": [
-        "staging",
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "1.26.8",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "out": "/nix/store/iqq9yz2yrcrzsn52h3vkkz72i92h1zds-go-1.26.8"
-      },
-      "system": "x86_64-linux",
-      "group": "toplevel",
-      "priority": 5
-    },
     {
       "attr_path": "claude-code",
       "broken": false,
@@ -580,90 +490,93 @@
       "priority": 5
     },
     {
-      "install_id": "adl",
-      "locked-url": "github:inference-gateway/adl-cli/821d056f4a0c064a0c7cf2400efc57ec1e6cc84b?narHash=sha256-J58%2BX8pjcBkq2qpQ29Ns0yteVQVqZeNZY0FRLL4OoWs%3D",
-      "flake-description": "ADL CLI - Generate enterprise-ready A2A agents from YAML",
-      "locked-flake-attr-path": "packages.aarch64-darwin.default",
-      "derivation": "/nix/store/8yf7ay3isa4lr58hdrim7w0rcasdyaw5-adl-0.68.3.drv",
+      "attr_path": "go",
+      "broken": false,
+      "derivation": "/nix/store/hw9s3y4ggwn2mnr4dpnlr3pzlq6pfc3d-go-1.26.8.drv",
+      "description": "Go Programming language",
+      "install_id": "go",
+      "license": "BSD-3-Clause",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=c59305bab2065cfecc4944690d9eedbb56f3a9fa",
+      "name": "go-1.26.8",
+      "pname": "go",
+      "rev": "c59305bab2065cfecc4944690d9eedbb56f3a9fa",
+      "rev_count": 1083223,
+      "rev_date": "2026-10-01T02:47:39Z",
+      "scrape_date": "2026-10-02T04:59:41.159239Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.26.8",
+      "outputs_to_install": [
+        "out"
+      ],
       "outputs": {
-        "out": "/nix/store/nj0pw98gdvqxqj7vvsjasff61d1p7k3q-adl-0.68.3"
+        "out": "/nix/store/isqxa82c7f65sbhi51npr0547yz87bh5-go-1.26.8"
       },
-      "output-names": [
-        "out"
-      ],
-      "outputs-to-install": [
-        "out"
-      ],
-      "requested-outputs-to-install": [],
-      "package-system": "aarch64-darwin",
       "system": "aarch64-darwin",
-      "name": "adl-0.68.3",
-      "pname": "adl",
-      "version": "0.68.3",
-      "description": "Generate enterprise-ready A2A agents from YAML Agent Definition Language files",
-      "licenses": [
-        "MIT"
-      ],
-      "broken": false,
-      "unfree": false,
+      "group": "toplevel",
       "priority": 5
     },
     {
-      "install_id": "adl",
-      "locked-url": "github:inference-gateway/adl-cli/821d056f4a0c064a0c7cf2400efc57ec1e6cc84b?narHash=sha256-J58%2BX8pjcBkq2qpQ29Ns0yteVQVqZeNZY0FRLL4OoWs%3D",
-      "flake-description": "ADL CLI - Generate enterprise-ready A2A agents from YAML",
-      "locked-flake-attr-path": "packages.aarch64-linux.default",
-      "derivation": "/nix/store/67fk4qcclhngjnz8776s6h4m1cs8xddc-adl-0.68.3.drv",
+      "attr_path": "go",
+      "broken": false,
+      "derivation": "/nix/store/mvzy81jgrz380qa717xzvl3k8a978shb-go-1.26.8.drv",
+      "description": "Go Programming language",
+      "install_id": "go",
+      "license": "BSD-3-Clause",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=c59305bab2065cfecc4944690d9eedbb56f3a9fa",
+      "name": "go-1.26.8",
+      "pname": "go",
+      "rev": "c59305bab2065cfecc4944690d9eedbb56f3a9fa",
+      "rev_count": 1083223,
+      "rev_date": "2026-10-01T02:47:39Z",
+      "scrape_date": "2026-10-02T05:33:11.003350Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.26.8",
+      "outputs_to_install": [
+        "out"
+      ],
       "outputs": {
-        "out": "/nix/store/8g7larzbq3c23wbnwhxlvjmcyb66f64x-adl-0.68.3"
+        "out": "/nix/store/3677bfwiaibp0fs0dxijmn8bsmkx31vx-go-1.26.8"
       },
-      "output-names": [
-        "out"
-      ],
-      "outputs-to-install": [
-        "out"
-      ],
-      "requested-outputs-to-install": [],
-      "package-system": "aarch64-linux",
       "system": "aarch64-linux",
-      "name": "adl-0.68.3",
-      "pname": "adl",
-      "version": "0.68.3",
-      "description": "Generate enterprise-ready A2A agents from YAML Agent Definition Language files",
-      "licenses": [
-        "MIT"
-      ],
-      "broken": false,
-      "unfree": false,
+      "group": "toplevel",
       "priority": 5
     },
     {
-      "install_id": "adl",
-      "locked-url": "github:inference-gateway/adl-cli/821d056f4a0c064a0c7cf2400efc57ec1e6cc84b?narHash=sha256-J58%2BX8pjcBkq2qpQ29Ns0yteVQVqZeNZY0FRLL4OoWs%3D",
-      "flake-description": "ADL CLI - Generate enterprise-ready A2A agents from YAML",
-      "locked-flake-attr-path": "packages.x86_64-linux.default",
-      "derivation": "/nix/store/fyi24l7yc5r7hf29krnlmlfz04k1nkx3-adl-0.68.3.drv",
-      "outputs": {
-        "out": "/nix/store/csgsdmqa8wwrwxvhlhyqsvlhw4wc2igb-adl-0.68.3"
-      },
-      "output-names": [
-        "out"
-      ],
-      "outputs-to-install": [
-        "out"
-      ],
-      "requested-outputs-to-install": [],
-      "package-system": "x86_64-linux",
-      "system": "x86_64-linux",
-      "name": "adl-0.68.3",
-      "pname": "adl",
-      "version": "0.68.3",
-      "description": "Generate enterprise-ready A2A agents from YAML Agent Definition Language files",
-      "licenses": [
-        "MIT"
-      ],
+      "attr_path": "go",
       "broken": false,
+      "derivation": "/nix/store/x0zllw4xw2cdql7jvzqdjhibgavvl7d9-go-1.26.8.drv",
+      "description": "Go Programming language",
+      "install_id": "go",
+      "license": "BSD-3-Clause",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=c59305bab2065cfecc4944690d9eedbb56f3a9fa",
+      "name": "go-1.26.8",
+      "pname": "go",
+      "rev": "c59305bab2065cfecc4944690d9eedbb56f3a9fa",
+      "rev_count": 1083223,
+      "rev_date": "2026-10-01T02:47:39Z",
+      "scrape_date": "2026-10-02T06:09:44.595100Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
       "unfree": false,
+      "version": "1.26.8",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/iqq9yz2yrcrzsn52h3vkkz72i92h1zds-go-1.26.8"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
       "priority": 5
     },
     {
@@ -746,6 +659,93 @@
       "pname": "infer",
       "version": "0.238.0",
       "description": "Command-line interface for the Inference Gateway - AI model interaction manager",
+      "licenses": [
+        "MIT"
+      ],
+      "broken": false,
+      "unfree": false,
+      "priority": 5
+    },
+    {
+      "install_id": "adl",
+      "locked-url": "github:inference-gateway/adl-cli/7682a027862ea5f19e0b3a6961a42a0dea41f22b?narHash=sha256-Cnrp0m%2BJJmygSPqxN3Gs4y8BdV32ZXwVqy6I2eMfiBE%3D",
+      "flake-description": "ADL CLI - Generate enterprise-ready A2A agents from YAML",
+      "locked-flake-attr-path": "packages.aarch64-darwin.default",
+      "derivation": "/nix/store/l2qxd538pgp2ih4cjmvggh531a3706s5-adl-0.68.4.drv",
+      "outputs": {
+        "out": "/nix/store/3f7b295w65cr6awh1s3632bpavyrs8sh-adl-0.68.4"
+      },
+      "output-names": [
+        "out"
+      ],
+      "outputs-to-install": [
+        "out"
+      ],
+      "requested-outputs-to-install": [],
+      "package-system": "aarch64-darwin",
+      "system": "aarch64-darwin",
+      "name": "adl-0.68.4",
+      "pname": "adl",
+      "version": "0.68.4",
+      "description": "Generate enterprise-ready A2A agents from YAML Agent Definition Language files",
+      "licenses": [
+        "MIT"
+      ],
+      "broken": false,
+      "unfree": false,
+      "priority": 5
+    },
+    {
+      "install_id": "adl",
+      "locked-url": "github:inference-gateway/adl-cli/7682a027862ea5f19e0b3a6961a42a0dea41f22b?narHash=sha256-Cnrp0m%2BJJmygSPqxN3Gs4y8BdV32ZXwVqy6I2eMfiBE%3D",
+      "flake-description": "ADL CLI - Generate enterprise-ready A2A agents from YAML",
+      "locked-flake-attr-path": "packages.aarch64-linux.default",
+      "derivation": "/nix/store/ypqcyyk6iakc22xv1a25kf92y9ymkc3v-adl-0.68.4.drv",
+      "outputs": {
+        "out": "/nix/store/2rdsfbylb9jly03ny3w1av9x0zhlhgi5-adl-0.68.4"
+      },
+      "output-names": [
+        "out"
+      ],
+      "outputs-to-install": [
+        "out"
+      ],
+      "requested-outputs-to-install": [],
+      "package-system": "aarch64-linux",
+      "system": "aarch64-linux",
+      "name": "adl-0.68.4",
+      "pname": "adl",
+      "version": "0.68.4",
+      "description": "Generate enterprise-ready A2A agents from YAML Agent Definition Language files",
+      "licenses": [
+        "MIT"
+      ],
+      "broken": false,
+      "unfree": false,
+      "priority": 5
+    },
+    {
+      "install_id": "adl",
+      "locked-url": "github:inference-gateway/adl-cli/7682a027862ea5f19e0b3a6961a42a0dea41f22b?narHash=sha256-Cnrp0m%2BJJmygSPqxN3Gs4y8BdV32ZXwVqy6I2eMfiBE%3D",
+      "flake-description": "ADL CLI - Generate enterprise-ready A2A agents from YAML",
+      "locked-flake-attr-path": "packages.x86_64-linux.default",
+      "derivation": "/nix/store/rch5i92dvhpjqndky2fh97szjyrg2wdf-adl-0.68.4.drv",
+      "outputs": {
+        "out": "/nix/store/v7617wnc2jlalw2g38mw7bmr5n70vxiz-adl-0.68.4"
+      },
+      "output-names": [
+        "out"
+      ],
+      "outputs-to-install": [
+        "out"
+      ],
+      "requested-outputs-to-install": [],
+      "package-system": "x86_64-linux",
+      "system": "x86_64-linux",
+      "name": "adl-0.68.4",
+      "pname": "adl",
+      "version": "0.68.4",
+      "description": "Generate enterprise-ready A2A agents from YAML Agent Definition Language files",
       "licenses": [
         "MIT"
       ],
