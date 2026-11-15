@@ -307,7 +307,7 @@ spec:
   language:
     go:
       module: github.com/inference-gateway/google-calendar-agent
-      version: "1.26.8"
+      version: "1.27.3"
       vendor:
         deps:
           - google.golang.org/api@v0.311.0

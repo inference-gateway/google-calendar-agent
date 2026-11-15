@@ -22,7 +22,7 @@ docker.version = "^29.9.2"
 docker.pkg-group = "common"
 
 claude-code.pkg-path = "claude-code"
-claude-code.version = "^2.1.321"
+claude-code.version = "^2.1.318"
 claude-code.pkg-group = "common"
 
 infer.flake = "github:inference-gateway/cli/v0.259.0"
